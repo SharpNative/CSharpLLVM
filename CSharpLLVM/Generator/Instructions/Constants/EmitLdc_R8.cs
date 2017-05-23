@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Stack;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.Constants
 {
@@ -15,8 +16,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            TypeRef type = LLVM.DoubleType();
-            context.CurrentStack.Push(new StackElement(LLVM.ConstReal(type, (double)instruction.Operand)));
+            context.CurrentStack.Push(new StackElement(LLVM.ConstReal(TypeHelper.Double, (double)instruction.Operand)));
         }
     }
 }

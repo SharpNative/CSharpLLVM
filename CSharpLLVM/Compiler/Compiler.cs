@@ -4,6 +4,7 @@ using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
 using CSharpLLVM.Generator;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Compiler
 {
@@ -18,6 +19,7 @@ namespace CSharpLLVM.Compiler
         public ModuleRef Module { get { return m_module; } }
         public ContextRef ModuleContext { get { return m_context; } }
         public CodeGenerator CodeGen { get; private set; }
+        public TargetDataRef TargetData { get; private set; }
 
         public Dictionary<string, ValueRef> m_functionLookup = new Dictionary<string, ValueRef>();
 
@@ -75,16 +77,40 @@ namespace CSharpLLVM.Compiler
             m_module = LLVM.ModuleCreateWithName(m_settings.ModuleName);
             m_context = LLVM.GetModuleContext(m_module);
 
+            // Targets
+            LLVM.InitializeAllTargetInfos();
+            LLVM.InitializeAllTargets();
+            LLVM.InitializeAllTargetMCs();
+            LLVM.InitializeAllAsmParsers();
+            LLVM.InitializeAllAsmPrinters();
+
+            //string triplet = LLVM.GetDefaultTargetTriple();
+            string triplet = "x86_64-pc-linux";
+            string error;
+
+            LLVM.SetTarget(m_module, triplet);
+            TargetRef target;
+            if (LLVM.GetTargetFromTriple(triplet, out target, out error))
+            {
+                throw new InvalidOperationException(error);
+            }
+
+            // Initialize types and runtime
+            string dataLayout = LLVM.GetDataLayout(Module);
+            TargetData = LLVM.CreateTargetData(dataLayout);
+            TypeHelper.Init(TargetData);
+            RuntimeHelper.Init(Module);
+
             // Optimizer
             // TODO: more optimizations, the ones here are just the basic ones that are always active
             m_passManager = LLVM.CreateFunctionPassManagerForModule(m_module);
             LLVM.AddPromoteMemoryToRegisterPass(m_passManager);
-            LLVM.AddConstantPropagationPass(m_passManager);
+            /*LLVM.AddConstantPropagationPass(m_passManager);
             LLVM.AddReassociatePass(m_passManager);
             LLVM.AddTailCallEliminationPass(m_passManager);
             LLVM.AddInstructionCombiningPass(m_passManager);
             LLVM.AddGVNPass(m_passManager);
-            LLVM.AddCFGSimplificationPass(m_passManager);
+            LLVM.AddCFGSimplificationPass(m_passManager);*/
             LLVM.InitializeFunctionPassManager(m_passManager);
 
             // Loop through the modules within the IL assembly
@@ -101,28 +127,12 @@ namespace CSharpLLVM.Compiler
             Console.WriteLine(LLVM.PrintModuleToString(m_module));
 
             // Verify and throw exception on error
-            string error = "";
             if (LLVM.VerifyModule(m_module, VerifierFailureAction.PrintMessageAction, out error))
             {
                 throw new InvalidOperationException(error);
             }
 
-            LLVM.InitializeAllTargetInfos();
-            LLVM.InitializeAllTargets();
-            LLVM.InitializeAllTargetMCs();
-            LLVM.InitializeAllAsmParsers();
-            LLVM.InitializeAllAsmPrinters();
-
-            //string triplet = LLVM.GetDefaultTargetTriple();
-            string triplet = "x86_64-pc-linux";
-
-            LLVM.SetTarget(m_module, triplet);
-            TargetRef target;
-            if (LLVM.GetTargetFromTriple(triplet, out target, out error))
-            {
-                throw new InvalidOperationException(error);
-            }
-
+            // Output
             TargetMachineRef machine = LLVM.CreateTargetMachine(target, triplet, "generic", "", CodeGenOptLevel.CodeGenLevelDefault, RelocMode.RelocDefault, CodeModel.CodeModelDefault);
             LLVM.SetModuleDataLayout(m_module, LLVM.CreateTargetDataLayout(machine));
             if (LLVM.TargetMachineEmitToFile(machine, m_module, "./out.o", CodeGenFileType.ObjectFile, out error))
@@ -134,6 +144,9 @@ namespace CSharpLLVM.Compiler
             {
                 throw new InvalidOperationException(error);
             }
+
+            // Cleanup
+            LLVM.DisposeTargetData(TargetData);
         }
 
         /// <summary>

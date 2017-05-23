@@ -1,6 +1,7 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.Constants
 {
@@ -14,7 +15,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            TypeRef type = LLVM.Int32Type();
+            TypeRef type = TypeHelper.Int32;
 
             Code code = instruction.OpCode.Code;
             if (code >= Code.Ldc_I4_0 && code <= Code.Ldc_I4_8)

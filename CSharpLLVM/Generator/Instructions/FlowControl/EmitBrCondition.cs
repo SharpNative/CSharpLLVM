@@ -18,7 +18,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement element = context.CurrentStack.Pop();
-            ValueRef ret = LLVM.BuildICmp(builder, PredicateHelper.GetIntPredicateFromCode(instruction.OpCode.Code), element.Value, LLVM.ConstInt(LLVM.Int1Type(), 1, false), "brcond");
+            ValueRef ret = LLVM.BuildICmp(builder, PredicateHelper.GetIntPredicateFromCode(instruction.OpCode.Code), element.Value, TypeHelper.True, "brcond");
             Instruction onFalse = instruction.Next;
             Instruction onTrue = (Instruction)instruction.Operand;
             LLVM.BuildCondBr(builder, ret, context.GetBlockOf(onTrue), context.GetBlockOf(onFalse));

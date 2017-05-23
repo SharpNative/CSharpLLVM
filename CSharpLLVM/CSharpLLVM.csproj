@@ -24,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -72,6 +73,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generator\Instructions\Arrays\EmitLdelema.cs" />
+    <Compile Include="Generator\Instructions\Arrays\EmitLdelem.cs" />
+    <Compile Include="Generator\Instructions\Arrays\EmitStelem_Ref.cs" />
+    <Compile Include="Generator\Instructions\Arrays\EmitStelem.cs" />
+    <Compile Include="Generator\Instructions\Arrays\EmitNewArr.cs" />
     <Compile Include="Generator\Instructions\BitwiseOps\EmitNot.cs" />
     <Compile Include="Generator\Instructions\Arithmetic\EmitNeg.cs" />
     <Compile Include="Generator\Instructions\BitwiseOps\EmitXor.cs" />
@@ -81,8 +87,10 @@
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr_Un.cs" />
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr.cs" />
     <Compile Include="Generator\Instructions\InstructionHandlerAttribute.cs" />
+    <Compile Include="Generator\Instructions\Stack\EmitDup.cs" />
     <Compile Include="Helpers\NameHelper.cs" />
     <Compile Include="Helpers\PredicateHelper.cs" />
+    <Compile Include="Helpers\RuntimeHelper.cs" />
     <Compile Include="Stack\ILStack.cs" />
     <Compile Include="Generator\CodeGenerator.cs" />
     <Compile Include="Compiler\Compiler.cs" />
@@ -107,7 +115,7 @@
     <Compile Include="Generator\Instructions\FlowControl\EmitBr.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitNop.cs" />
     <Compile Include="Generator\Instructions\Constants\EmitLdc_I4.cs" />
-    <Compile Include="Generator\Instructions\Misc\EmitPop.cs" />
+    <Compile Include="Generator\Instructions\Stack\EmitPop.cs" />
     <Compile Include="Generator\Instructions\FlowControl\EmitRet.cs" />
     <Compile Include="Helpers\TypeHelper.cs" />
     <Compile Include="Generator\ICodeEmitter.cs" />

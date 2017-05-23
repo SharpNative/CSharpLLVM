@@ -26,7 +26,15 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
             }
             else
             {
-                context.CurrentStack.Push(LLVM.BuildSub(builder, value1.Value, value2.Value, "subi"));
+                ValueRef val1 = value1.Value;
+                ValueRef val2 = value2.Value;
+
+                if (value1.Type != value2.Type)
+                {
+                    val1 = LLVM.BuildIntCast(builder, val1, value2.Type, "subcast");
+                }
+
+                context.CurrentStack.Push(LLVM.BuildSub(builder, val1, val2, "subi"));
             }
         }
     }

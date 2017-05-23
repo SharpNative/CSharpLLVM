@@ -1,6 +1,7 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.Constants
 {
@@ -21,8 +22,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
             ValueRef strValue = LLVM.BuildGlobalString(builder, str, string.Empty);
 
             // We need to cast the string
-            TypeRef type = LLVM.PointerType(LLVM.Int8Type(), 0);
-            ValueRef value = LLVM.ConstPointerCast(strValue, type);
+            ValueRef value = LLVM.ConstPointerCast(strValue, TypeHelper.String);
 
             context.CurrentStack.Push(value);
         }
