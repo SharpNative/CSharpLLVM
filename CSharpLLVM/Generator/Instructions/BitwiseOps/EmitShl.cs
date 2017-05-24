@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Stack;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.BitwiseOps
 {
@@ -18,6 +19,7 @@ namespace CSharpLLVM.Generator.Instructions.BitwiseOps
         {
             StackElement value2 = context.CurrentStack.Pop();
             StackElement value1 = context.CurrentStack.Pop();
+            CastHelper.HelpIntCast(builder, ref value1, ref value2);
             context.CurrentStack.Push(LLVM.BuildShl(builder, value1.Value, value2.Value, "shl"));
         }
     }

@@ -26,18 +26,12 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
             }
             else
             {
-                ValueRef val1 = value1.Value;
-                ValueRef val2 = value2.Value;
-
-                if (value1.Type != value2.Type)
-                {
-                    val1 = LLVM.BuildIntCast(builder, val1, value2.Type, "divcast");
-                }
+                CastHelper.HelpIntCast(builder, ref value1, ref value2);
 
                 if (instruction.OpCode.Code == Code.Div)
-                    context.CurrentStack.Push(LLVM.BuildSDiv(builder, val1, val2, "divsi"));
+                    context.CurrentStack.Push(LLVM.BuildSDiv(builder, value1.Value, value2.Value, "divsi"));
                 else /* Div_Un */
-                    context.CurrentStack.Push(LLVM.BuildUDiv(builder, val1, val2, "divui"));
+                    context.CurrentStack.Push(LLVM.BuildUDiv(builder, value1.Value, value2.Value, "divui"));
             }
         }
     }
