@@ -22,16 +22,16 @@ namespace CSharpLLVM.Generator.Instructions.Casting
             if (TypeHelper.IsFloatingPoint(element))
             {
                 if (instruction.OpCode.Code == Code.Conv_R4 || instruction.OpCode.Code == Code.Conv_R8)
-                    result = LLVM.BuildFPCast(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fromfloat");
+                    result = LLVM.BuildFPCast(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fp2fp");
                 else
-                    result = LLVM.BuildFPToSI(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fromfloat");
+                    result = LLVM.BuildFPToSI(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fp2int");
             }
             else
             {
                 if (instruction.OpCode.Code == Code.Conv_R4 || instruction.OpCode.Code == Code.Conv_R8)
-                    result = LLVM.BuildSIToFP(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fromint");
+                    result = LLVM.BuildSIToFP(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "int2fp");
                 else
-                    result = LLVM.BuildIntCast(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fromint");
+                    result = LLVM.BuildIntCast(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "int2int");
             }
 
             context.CurrentStack.Push(result);
