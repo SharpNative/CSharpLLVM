@@ -36,7 +36,15 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             // Cast if not the same type
             if (element.Type != destType)
             {
-                data = LLVM.BuildIntCast(builder, data, destType, "tmp");
+                // Two cases: int to different size, or int to pointer
+                TypeKind kind = LLVM.GetTypeKind(destType);
+                
+                // Convert to pointer
+                if (kind == TypeKind.PointerTypeKind)
+                    data = LLVM.BuildIntToPtr(builder, data, destType, "tmpptr");
+                // Convert to int of different size
+                else
+                    data = LLVM.BuildIntCast(builder, data, destType, "tmpint");
             }
 
             LLVM.BuildStore(builder, data, context.LocalValues[index]);

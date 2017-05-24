@@ -61,43 +61,49 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.UInt64:
                 case MetadataType.Int64:
                     return Int64;
-
+                
                 case MetadataType.UInt32:
                 case MetadataType.Int32:
                     return Int32;
-
+                
                 case MetadataType.UInt16:
                 case MetadataType.Int16:
                     return Int16;
-
+                
                 case MetadataType.Byte:
                 case MetadataType.SByte:
                     return Int8;
-
+                
                 case MetadataType.Char:
                     return Int8;
-
+                
                 case MetadataType.String:
                     return String;
-
+                
                 case MetadataType.Boolean:
                     return Boolean;
-
+                
                 case MetadataType.Array:
                 {
                     ArrayType array = (ArrayType)type;
                     return LLVM.PointerType(GetTypeRefFromType(array.ElementType), 0);
                 }
-
+                
+                case MetadataType.Pointer:
+                {
+                    PointerType ptr = (PointerType)type;
+                    return LLVM.PointerType(GetTypeRefFromType(ptr.ElementType), 0);
+                }
+                
                 case MetadataType.Void:
                     return Void;
-
+                
                 case MetadataType.Single:
                     return Float;
-
+                
                 case MetadataType.Double:
                     return Double;
-
+                
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
             }
@@ -196,6 +202,16 @@ namespace CSharpLLVM.Helpers
         public static bool IsFloatingPoint(StackElement element)
         {
             return (element.Type == Float || element.Type == Double);
+        }
+
+        /// <summary>
+        /// Checks if a stack element is a pointer
+        /// </summary>
+        /// <param name="element">The element</param>
+        /// <returns>If the stack element is a pointer</returns>
+        public static bool IsPointer(StackElement element)
+        {
+            return (LLVM.GetTypeKind(element.Type) == TypeKind.PointerTypeKind);
         }
     }
 }

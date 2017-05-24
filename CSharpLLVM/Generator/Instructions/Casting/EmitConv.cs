@@ -19,19 +19,24 @@ namespace CSharpLLVM.Generator.Instructions.Casting
             StackElement element = context.CurrentStack.Pop();
             ValueRef result;
 
+            TypeRef destType = TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code);
             if (TypeHelper.IsFloatingPoint(element))
             {
                 if (instruction.OpCode.Code == Code.Conv_R4 || instruction.OpCode.Code == Code.Conv_R8)
-                    result = LLVM.BuildFPCast(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fp2fp");
+                    result = LLVM.BuildFPCast(builder, element.Value, destType, "fp2fp");
                 else
-                    result = LLVM.BuildFPToSI(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "fp2int");
+                    result = LLVM.BuildFPToSI(builder, element.Value, destType, "fp2int");
+            }
+            else if (TypeHelper.IsPointer(element))
+            {
+                result = LLVM.BuildPtrToInt(builder, element.Value, destType, "int2ptr");
             }
             else
             {
                 if (instruction.OpCode.Code == Code.Conv_R4 || instruction.OpCode.Code == Code.Conv_R8)
-                    result = LLVM.BuildSIToFP(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "int2fp");
+                    result = LLVM.BuildSIToFP(builder, element.Value, destType, "int2fp");
                 else
-                    result = LLVM.BuildIntCast(builder, element.Value, TypeHelper.GetTypeRefFromConv(instruction.OpCode.Code), "int2int");
+                    result = LLVM.BuildIntCast(builder, element.Value, destType, "int2int");
             }
 
             context.CurrentStack.Push(result);

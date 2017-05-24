@@ -26,8 +26,21 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
             }
             else
             {
-                CastHelper.HelpIntCast(builder, ref value1, ref value2);
-                context.CurrentStack.Push(LLVM.BuildAdd(builder, value1.Value, value2.Value, "addi"));
+                bool isPtrVal1, isPtrVal2;
+                CastHelper.HelpPossiblePtrCast(builder, ref value1, ref value2, out isPtrVal1, out isPtrVal2);
+
+                // If one of the two values is a pointer, then the result will be a pointer as well
+                if (isPtrVal1 || isPtrVal2)
+                {
+                    ValueRef result = LLVM.BuildAdd(builder, value1.Value, value2.Value, "addptr");
+                    context.CurrentStack.Push(LLVM.BuildIntToPtr(builder, result, value1.Type, "ptr"));
+                }
+                // Just a cast to different int size
+                else
+                {
+                    CastHelper.HelpIntCast(builder, ref value1, ref value2);
+                    context.CurrentStack.Push(LLVM.BuildAdd(builder, value1.Value, value2.Value, "addi"));
+                }
             }
         }
     }
