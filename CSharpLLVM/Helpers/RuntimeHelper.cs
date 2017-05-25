@@ -4,17 +4,18 @@ namespace CSharpLLVM.Helpers
 {
     static class RuntimeHelper
     {
-        public static ValueRef Calloc { get; private set; }
+        public static ValueRef Newarr { get; private set; }
 
         /// <summary>
         /// Initializes runtime functions
         /// </summary>
         /// <param name="module">The module</param>
-        public static void Init(ModuleRef module)
+        public static void ImportFunctions(ModuleRef module)
         {
-            TypeRef callocType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.NativeIntType, TypeHelper.NativeIntType }, false);
-            Calloc = LLVM.AddFunction(module, "calloc", callocType);
-            LLVM.SetLinkage(Calloc, Linkage.ExternalLinkage);
+            // Newarr
+            TypeRef newarrType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.Int32, TypeHelper.NativeIntType }, false);
+            Newarr = LLVM.AddFunction(module, "newarr", newarrType);
+            LLVM.SetLinkage(Newarr, Linkage.ExternalLinkage);
         }
     }
 }

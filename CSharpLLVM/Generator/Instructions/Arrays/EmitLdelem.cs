@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Stack;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.Arrays
 {
@@ -20,7 +21,15 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             StackElement array = context.CurrentStack.Pop();
 
             ValueRef ptr = LLVM.BuildGEP(builder, array.Value, new ValueRef[] { index.Value }, "arrayptr");
-            context.CurrentStack.Push(LLVM.BuildLoad(builder, ptr, "arrayelem"));
+            ValueRef res = LLVM.BuildLoad(builder, ptr, "arrayelem");
+
+            // Some need to be pushed as an int32 on the stack
+            Code code = instruction.OpCode.Code;
+            if (code == Code.Ldelem_I1 || code == Code.Ldelem_I2 || code == Code.Ldelem_I4 ||
+                code == Code.Ldelem_U1 || code == Code.Ldelem_U2 || code == Code.Ldelem_U4)
+                res = LLVM.BuildIntCast(builder, res, TypeHelper.Int32, "tmp");
+
+            context.CurrentStack.Push(res);
         }
     }
 }

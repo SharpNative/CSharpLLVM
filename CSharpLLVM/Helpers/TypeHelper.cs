@@ -83,6 +83,15 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.Boolean:
                     return Boolean;
                 
+                case MetadataType.Void:
+                    return Void;
+                
+                case MetadataType.Single:
+                    return Float;
+                
+                case MetadataType.Double:
+                    return Double;
+                
                 case MetadataType.Array:
                 {
                     ArrayType array = (ArrayType)type;
@@ -95,14 +104,17 @@ namespace CSharpLLVM.Helpers
                     return LLVM.PointerType(GetTypeRefFromType(ptr.ElementType), 0);
                 }
                 
-                case MetadataType.Void:
-                    return Void;
+                case MetadataType.ByReference:
+                {
+                    ByReferenceType byref = (ByReferenceType)type;
+                    return LLVM.PointerType(GetTypeRefFromType(byref.ElementType), 0);
+                }
                 
-                case MetadataType.Single:
-                    return Float;
-                
-                case MetadataType.Double:
-                    return Double;
+                case MetadataType.Pinned:
+                {
+                    PinnedType pinned = (PinnedType)type;
+                    return GetTypeRefFromType(pinned.ElementType);
+                }
                 
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
@@ -187,6 +199,41 @@ namespace CSharpLLVM.Helpers
                     return Float;
 
                 case Code.Stelem_R8:
+                    return Double;
+
+                default:
+                    throw new InvalidOperationException("Invalid code to get type from: " + code);
+            }
+        }
+
+        /// <summary>
+        /// Gets a TypeRef from a Code
+        /// </summary>
+        /// <param name="code">The code</param>
+        /// <returns>The type</returns>
+        public static TypeRef GetTypeRefFromStind(Code code)
+        {
+            switch (code)
+            {
+                case Code.Stind_I:
+                    return NativeIntType;
+
+                case Code.Stind_I1:
+                    return Int8;
+
+                case Code.Stind_I2:
+                    return Int16;
+
+                case Code.Stind_I4:
+                    return Int32;
+
+                case Code.Stind_I8:
+                    return Int64;
+
+                case Code.Stind_R4:
+                    return Float;
+
+                case Code.Stind_R8:
                     return Double;
 
                 default:

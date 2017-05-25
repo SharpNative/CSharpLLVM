@@ -31,7 +31,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
                     destType = TypeHelper.Boolean;
                 }
                 // We treat char as 8-bit
-                else if (array.Type == LLVM.PointerType(TypeHelper.Int8, 0))
+                if (array.Type == LLVM.PointerType(TypeHelper.Int8, 0))
                 {
                     destType = TypeHelper.Int8;
                 }

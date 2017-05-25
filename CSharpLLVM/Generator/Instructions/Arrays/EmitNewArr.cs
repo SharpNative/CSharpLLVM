@@ -4,7 +4,6 @@ using CSharpLLVM.Compiler;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
-using System;
 
 namespace CSharpLLVM.Generator.Instructions.Arrays
 {
@@ -25,16 +24,16 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
 
             // Might need to cast the count (amount of elements)
             ValueRef count = countElement.Value;
-            if (countElement.Type != TypeHelper.NativeIntType)
+            if (countElement.Type != TypeHelper.Int32)
             {
-                count = LLVM.BuildIntCast(builder, count, TypeHelper.NativeIntType, "count");
+                count = LLVM.BuildIntCast(builder, count, TypeHelper.Int32, "count");
             }
 
             // Size of one element
             ulong size = LLVM.SizeOfTypeInBits(context.Compiler.TargetData, typeRef) / 8;
             ValueRef sizeValue = LLVM.ConstInt(TypeHelper.NativeIntType, size, false);
 
-            context.CurrentStack.Push(LLVM.BuildCall(builder, RuntimeHelper.Calloc, new ValueRef[] { count, sizeValue }, "array"));
+            context.CurrentStack.Push(LLVM.BuildCall(builder, RuntimeHelper.Newarr, new ValueRef[] { count, sizeValue }, "array"));
         }
     }
 }

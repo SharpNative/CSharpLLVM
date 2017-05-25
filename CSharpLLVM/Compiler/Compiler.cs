@@ -99,7 +99,7 @@ namespace CSharpLLVM.Compiler
             string dataLayout = LLVM.GetDataLayout(Module);
             TargetData = LLVM.CreateTargetData(dataLayout);
             TypeHelper.Init(TargetData);
-            RuntimeHelper.Init(Module);
+            RuntimeHelper.ImportFunctions(Module);
 
             // Optimizer
             // TODO: more optimizations, the ones here are just the basic ones that are always active

@@ -42,5 +42,33 @@ namespace CSharpLLVM.Helpers
             else
                 value2.Value = LLVM.BuildIntCast(builder, value2.Value, TypeHelper.NativeIntType, "tmp");
         }
+
+        /// <summary>
+        /// Helps int and ptr casting to a destination type
+        /// </summary>
+        /// <param name="builder">The builder</param>
+        /// <param name="data">The data (int or pointer)</param>
+        /// <param name="dataType">The data type</param>
+        /// <param name="destType">The destination type</param>
+        public static void HelpIntAndPtrCast(BuilderRef builder, ref ValueRef data, TypeRef dataType, TypeRef destType)
+        {
+            // Two cases: int to different size, or int to pointer
+            TypeKind kind = LLVM.GetTypeKind(destType);
+
+            // Convert to pointer
+            if (kind == TypeKind.PointerTypeKind)
+            {
+                // Two cases: pointer to pointer, or int to int
+                if (LLVM.GetTypeKind(dataType) == TypeKind.PointerTypeKind)
+                    data = LLVM.BuildPointerCast(builder, data, destType, "tmpptr");
+                else
+                    data = LLVM.BuildIntToPtr(builder, data, destType, "tmpptr");
+            }
+            // Convert to int of different size
+            else
+            {
+                data = LLVM.BuildIntCast(builder, data, destType, "tmpint");
+            }
+        }
     }
 }

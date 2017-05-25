@@ -1,4 +1,5 @@
-﻿using Swigged.LLVM;
+﻿using CSharpLLVM.Helpers;
+using Swigged.LLVM;
 using System.Collections.Generic;
 
 namespace CSharpLLVM.Stack
@@ -48,9 +49,9 @@ namespace CSharpLLVM.Stack
         public StackElement Pop()
         {
             m_phi.RemoveAt(m_phi.Count - 1);
-            StackElement a = m_stack[m_stack.Count - 1];
+            StackElement top = m_stack[m_stack.Count - 1];
             m_stack.RemoveAt(m_stack.Count - 1);
-            return a;
+            return top;
         }
 
         /// <summary>
@@ -153,10 +154,11 @@ namespace CSharpLLVM.Stack
                         */
                         TypeRef phiType = LLVM.TypeOf(phi);
                         ValueRef newValue = srcStack[i].Value;
-
+                        
+                        // Cast if not the same type
                         if (srcStack[i].Type != phiType)
                         {
-                            newValue = LLVM.BuildIntCast(builder, newValue, phiType, "phicast");
+                            CastHelper.HelpIntAndPtrCast(builder, ref newValue, srcStack[i].Type, phiType);
                         }
 
                         // Add incoming block for the phi

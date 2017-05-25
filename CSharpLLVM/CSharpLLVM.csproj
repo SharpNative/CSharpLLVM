@@ -73,6 +73,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Generator\Instructions\Arrays\EmitLdlen.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelema.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitStelem_Ref.cs" />
@@ -87,6 +88,8 @@
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr_Un.cs" />
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr.cs" />
     <Compile Include="Generator\Instructions\InstructionHandlerAttribute.cs" />
+    <Compile Include="Generator\Instructions\Pointers\EmitLdind.cs" />
+    <Compile Include="Generator\Instructions\Pointers\EmitStind.cs" />
     <Compile Include="Generator\Instructions\Stack\EmitDup.cs" />
     <Compile Include="Helpers\CastHelper.cs" />
     <Compile Include="Helpers\NameHelper.cs" />

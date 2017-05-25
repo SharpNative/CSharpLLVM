@@ -93,14 +93,13 @@ namespace CSharpLLVM.Compiler
                     // If this instruction did not already branch...
                     if (instruction.OpCode.FlowControl != FlowControl.Branch && instruction.OpCode.FlowControl != FlowControl.Cond_Branch)
                     {
-                        LLVM.BuildBr(m_builder, m_context.GetBlockOf(instruction.Next));
-
-                        m_context.SetStack(instruction.Next);
-                        
                         if (m_context.IsNewBlock(instruction.Next))
                         {
                             m_context.UpdateStack(m_builder, instruction, instruction.Next);
                         }
+
+                        m_context.SetStack(instruction.Next);
+                        LLVM.BuildBr(m_builder, m_context.GetBlockOf(instruction.Next));
                     }
                 }
             }
