@@ -88,6 +88,7 @@
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr_Un.cs" />
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr.cs" />
     <Compile Include="Generator\Instructions\InstructionHandlerAttribute.cs" />
+    <Compile Include="Generator\Instructions\Misc\EmitLdtoken.cs" />
     <Compile Include="Generator\Instructions\Pointers\EmitLdind.cs" />
     <Compile Include="Generator\Instructions\Pointers\EmitLocalloc.cs" />
     <Compile Include="Generator\Instructions\Pointers\EmitStind.cs" />

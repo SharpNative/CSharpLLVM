@@ -4,6 +4,7 @@ using Mono.Cecil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
+using System;
 
 namespace CSharpLLVM.Generator.Instructions.FlowControl
 {
@@ -18,9 +19,13 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            // TODO: test order of arguments with multiple arguemnts
-            // TODO: ability to return struct value
-
+            // Check for special cases
+            if(instruction.Previous.OpCode.Code == Code.Ldtoken)
+            {
+                emitFromLdtoken(instruction, context, builder);
+                return;
+            }
+            
             MethodReference methodRef = (MethodReference)instruction.Operand;
             TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
 
@@ -34,9 +39,10 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             ValueRef? func = context.Compiler.GetFunction(methodName);
 
             // Process arguments
+            // Note: backwards for loop because stack is backwards!
             ValueRef[] argVals = new ValueRef[paramCount];
             TypeRef[] paramTypes = new TypeRef[paramCount];
-            for (int i = 0; i < paramCount; i++)
+            for (int i = paramCount - 1; i >= 0; i--)
             {
                 StackElement element = context.CurrentStack.Pop();
                 argVals[i] = element.Value;
@@ -72,9 +78,33 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             // Call
             ValueRef retVal = LLVM.BuildCall(builder, func.Value, argVals, string.Empty);
 
-            // Push on stack if return value
+            // Push return value on stack if it has one
             if (methodRef.ReturnType.MetadataType != MetadataType.Void)
                 context.CurrentStack.Push(retVal);
+        }
+
+        /// <summary>
+        /// Emits a call instruction
+        /// </summary>
+        /// <param name="instruction">The instruction</param>
+        /// <param name="context">The context</param>
+        /// <param name="builder">The builder</param>
+        public void emitFromLdtoken(Instruction instruction, MethodContext context, BuilderRef builder)
+        {
+            MethodReference methodRef = (MethodReference)instruction.Operand;
+            if (methodRef.Name == "InitializeArray" && methodRef.DeclaringType.FullName == "System.Runtime.CompilerServices.RuntimeHelpers")
+            {
+                StackElement count = context.CurrentStack.Pop();
+                StackElement initialValues = context.CurrentStack.Pop();
+                StackElement array = context.CurrentStack.Pop();
+
+                ValueRef tmp = LLVM.BuildPointerCast(builder, initialValues.Value, TypeHelper.VoidPtr, "callcast");
+                LLVM.BuildCall(builder, RuntimeHelper.Memcpy, new ValueRef[] { array.Value, tmp, count.Value }, string.Empty);
+            }
+            else
+            {
+                throw new NotImplementedException("Can't handle special case of call: " + methodRef.FullName);
+            }
         }
     }
 }

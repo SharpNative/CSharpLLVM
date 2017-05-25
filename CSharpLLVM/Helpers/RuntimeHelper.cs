@@ -5,6 +5,7 @@ namespace CSharpLLVM.Helpers
     static class RuntimeHelper
     {
         public static ValueRef Newarr { get; private set; }
+        public static ValueRef Memcpy { get; private set; }
 
         /// <summary>
         /// Initializes runtime functions
@@ -15,6 +16,11 @@ namespace CSharpLLVM.Helpers
             // Newarr
             TypeRef newarrType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.Int32, TypeHelper.NativeIntType }, false);
             Newarr = LLVM.AddFunction(module, "newarr", newarrType);
+            LLVM.SetLinkage(Newarr, Linkage.ExternalLinkage);
+
+            // Memcpy
+            TypeRef memcpyType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.VoidPtr, TypeHelper.VoidPtr, TypeHelper.NativeIntType }, false);
+            Memcpy = LLVM.AddFunction(module, "memcpy", memcpyType);
             LLVM.SetLinkage(Newarr, Linkage.ExternalLinkage);
         }
     }
