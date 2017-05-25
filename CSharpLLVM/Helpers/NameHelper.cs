@@ -11,7 +11,7 @@ namespace CSharpLLVM.Helpers
         /// <returns>The type name</returns>
         public static string CreateTypeName(TypeReference typeRef)
         {
-            return typeRef.FullName.Replace('.', '_').Replace('[', '_').Replace(']', '_');
+            return typeRef.FullName.Replace('.', '_').Replace("[", "_0").Replace("]", "0_").Replace("&", "_ref_").Replace("*", "_ptr_");
         }
 
         /// <summary>
