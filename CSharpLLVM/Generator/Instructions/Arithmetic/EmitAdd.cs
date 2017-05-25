@@ -33,9 +33,9 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
                 if (isPtrVal1 || isPtrVal2)
                 {
                     ValueRef result = LLVM.BuildAdd(builder, value1.Value, value2.Value, "addptr");
-                    context.CurrentStack.Push(LLVM.BuildIntToPtr(builder, result, value1.Type, "ptr"));
+                    context.CurrentStack.Push(LLVM.BuildIntToPtr(builder, result, (isPtrVal1 ? value1.Type : value2.Type), "ptr"));
                 }
-                // Just a cast to different int size
+                // Cast to different int size
                 else
                 {
                     CastHelper.HelpIntCast(builder, ref value1, ref value2);

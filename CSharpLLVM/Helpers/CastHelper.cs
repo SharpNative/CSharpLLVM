@@ -15,7 +15,7 @@ namespace CSharpLLVM.Helpers
         {
             if (value1.Type != value2.Type)
             {
-                value2.Value = LLVM.BuildIntCast(builder, value2.Value, value1.Type, "tmp");
+                value2.Value = LLVM.BuildIntCast(builder, value2.Value, value1.Type, "tmpintcast");
             }
         }
 
@@ -32,15 +32,18 @@ namespace CSharpLLVM.Helpers
             isPtrVal1 = TypeHelper.IsPointer(value1);
             isPtrVal2 = TypeHelper.IsPointer(value2);
 
-            if (isPtrVal1)
-                value1.Value = LLVM.BuildPtrToInt(builder, value1.Value, TypeHelper.NativeIntType, "tmp");
-            else
-                value1.Value = LLVM.BuildIntCast(builder, value1.Value, TypeHelper.NativeIntType, "tmp");
+            if (isPtrVal1 || isPtrVal2)
+            {
+                if (isPtrVal1)
+                    value1.Value = LLVM.BuildPtrToInt(builder, value1.Value, TypeHelper.NativeIntType, "tmp");
+                else
+                    value1.Value = LLVM.BuildIntCast(builder, value1.Value, TypeHelper.NativeIntType, "tmp");
 
-            if (isPtrVal2)
-                value2.Value = LLVM.BuildPtrToInt(builder, value2.Value, TypeHelper.NativeIntType, "tmp");
-            else
-                value2.Value = LLVM.BuildIntCast(builder, value2.Value, TypeHelper.NativeIntType, "tmp");
+                if (isPtrVal2)
+                    value2.Value = LLVM.BuildPtrToInt(builder, value2.Value, TypeHelper.NativeIntType, "tmp");
+                else
+                    value2.Value = LLVM.BuildIntCast(builder, value2.Value, TypeHelper.NativeIntType, "tmp");
+            }
         }
 
         /// <summary>

@@ -37,7 +37,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
 
                 val = LLVM.BuildIntCast(builder, val, destType, "stindcast");
             }
-            
+
             LLVM.BuildStore(builder, val, pointer.Value);
         }
     }

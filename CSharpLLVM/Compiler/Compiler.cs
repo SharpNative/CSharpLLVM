@@ -104,8 +104,8 @@ namespace CSharpLLVM.Compiler
             // Optimizer
             // TODO: more optimizations, the ones here are just the basic ones that are always active
             m_passManager = LLVM.CreateFunctionPassManagerForModule(m_module);
-            //LLVM.AddPromoteMemoryToRegisterPass(m_passManager);
-            /*LLVM.AddConstantPropagationPass(m_passManager);
+            /*LLVM.AddPromoteMemoryToRegisterPass(m_passManager);
+            LLVM.AddConstantPropagationPass(m_passManager);
             LLVM.AddReassociatePass(m_passManager);
             LLVM.AddTailCallEliminationPass(m_passManager);
             LLVM.AddInstructionCombiningPass(m_passManager);
