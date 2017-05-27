@@ -31,7 +31,7 @@ namespace CSharpLLVM.Compiler
             bool isEnum = type.IsEnum;
             bool isClass = (!isStruct && !isStruct);
 
-            ConsoleColor color = isStruct ? ConsoleColor.Cyan : isEnum ? ConsoleColor.DarkGreen : ConsoleColor.DarkCyan;
+            ConsoleColor color = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : ConsoleColor.Cyan;
 
             // Log
             Console.ForegroundColor = color;
