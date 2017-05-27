@@ -91,6 +91,7 @@
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr.cs" />
     <Compile Include="Generator\Instructions\InstructionHandlerAttribute.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitLdtoken.cs" />
+    <Compile Include="Generator\Instructions\Objects\EmitNewobj.cs" />
     <Compile Include="Generator\Instructions\Objects\EmitLdfld.cs" />
     <Compile Include="Generator\Instructions\Objects\EmitStfld.cs" />
     <Compile Include="Generator\Instructions\Pointers\EmitLdind.cs" />
