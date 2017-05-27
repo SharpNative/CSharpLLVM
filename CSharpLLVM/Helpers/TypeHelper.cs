@@ -1,4 +1,5 @@
-﻿using CSharpLLVM.Stack;
+﻿using CSharpLLVM.Compiler;
+using CSharpLLVM.Stack;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
@@ -23,11 +24,14 @@ namespace CSharpLLVM.Helpers
 
         public static uint IntPtrSize { get; private set; }
 
+        private static Assembly m_mscorlib;
+        private static Lookup m_lookup;
+
         /// <summary>
         /// Initializes common types
         /// </summary>
         /// <param name="targetData">Target data</param>
-        public static void Init(TargetDataRef targetData)
+        public static void Init(TargetDataRef targetData, Lookup lookup)
         {
             Int64 = LLVM.Int64Type();
             Int32 = LLVM.Int32Type();
@@ -42,6 +46,9 @@ namespace CSharpLLVM.Helpers
             VoidPtr = LLVM.PointerType(LLVM.VoidType(), 0);
             IntPtrSize = (uint)LLVM.ABISizeOfType(targetData, VoidPtr);
             NativeIntType = LLVM.IntType(IntPtrSize * 8);
+
+            m_mscorlib = Assembly.Load("mscorlib");
+            m_lookup = lookup;
         }
 
         /// <summary>
@@ -102,6 +109,9 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.Pinned:
                     PinnedType pinned = (PinnedType)type;
                     return GetTypeRefFromType(pinned.ElementType);
+
+                case MetadataType.ValueType:
+                    return m_lookup.GetTypeRef(type);
 
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
@@ -295,9 +305,9 @@ namespace CSharpLLVM.Helpers
         /// <returns>The type</returns>
         public static Type GetTypeFromTypeReference(Compiler.Compiler compiler, TypeReference typeRef)
         {
-            // TODO: make this nicer
             if (typeRef.FullName.StartsWith("System"))
-                return Assembly.Load("mscorlib").GetType(typeRef.FullName);
+                return m_mscorlib.GetType(typeRef.FullName);
+
             return compiler.Asm.GetType(typeRef.FullName);
         }
 

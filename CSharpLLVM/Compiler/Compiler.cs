@@ -83,7 +83,7 @@ namespace CSharpLLVM.Compiler
             // Initialize types and runtime
             string dataLayout = LLVM.GetDataLayout(Module);
             TargetData = LLVM.CreateTargetData(dataLayout);
-            TypeHelper.Init(TargetData);
+            TypeHelper.Init(TargetData, Lookup);
             RuntimeHelper.ImportFunctions(Module);
             
             // Optimizer

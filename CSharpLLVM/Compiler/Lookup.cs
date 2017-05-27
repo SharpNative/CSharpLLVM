@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil;
 using Swigged.LLVM;
+using System;
 using System.Collections.Generic;
 
 namespace CSharpLLVM.Compiler
@@ -8,6 +9,8 @@ namespace CSharpLLVM.Compiler
     {
         private Dictionary<string, ValueRef> m_functionLookup = new Dictionary<string, ValueRef>();
         private Dictionary<FieldReference, ValueRef> m_staticFieldLookup = new Dictionary<FieldReference, ValueRef>();
+        private Dictionary<TypeReference, TypeRef> m_typeLookup = new Dictionary<TypeReference, TypeRef>();
+
         private List<MethodDefinition> m_cctors = new List<MethodDefinition>();
 
         /// <summary>
@@ -63,6 +66,29 @@ namespace CSharpLLVM.Compiler
         public void AddCctor(MethodDefinition method)
         {
             m_cctors.Add(method);
+        }
+
+        /// <summary>
+        /// Adds a type
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <param name="typeRef">The type</param>
+        public void AddType(TypeReference type, TypeRef typeRef)
+        {
+            m_typeLookup.Add(type, typeRef);
+        }
+
+        /// <summary>
+        /// Gets a type
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>The type</returns>
+        public TypeRef GetTypeRef(TypeReference type)
+        {
+            if (!m_typeLookup.ContainsKey(type))
+                throw new InvalidOperationException("Type " + type + " not found");
+
+            return m_typeLookup[type];
         }
 
         /// <summary>

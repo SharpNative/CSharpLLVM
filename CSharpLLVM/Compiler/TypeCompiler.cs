@@ -38,20 +38,29 @@ namespace CSharpLLVM.Compiler
             Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
             Console.ForegroundColor = ConsoleColor.Gray;
 
-            // Fields
-            foreach (FieldDefinition field in type.Fields)
+            // Enums are treated as 32-bit ints
+            if (isEnum)
             {
-                if (field.FullName[0] == '<')
-                    continue;
-
-                if (field.IsStatic)
+                m_lookup.AddType(type, TypeHelper.Int32);
+            }
+            // Structs and classes
+            else
+            {
+                // Fields
+                foreach (FieldDefinition field in type.Fields)
                 {
-                    TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
-                    ValueRef val = LLVM.AddGlobal(m_compiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
+                    if (field.FullName[0] == '<')
+                        continue;
 
-                    // Note: the initializer may be changed later if the compiler sees that it can be constant
-                    LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
-                    m_lookup.AddStaticField(field, val);
+                    if (field.IsStatic)
+                    {
+                        TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
+                        ValueRef val = LLVM.AddGlobal(m_compiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
+
+                        // Note: the initializer may be changed later if the compiler sees that it can be constant
+                        LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
+                        m_lookup.AddStaticField(field, val);
+                    }
                 }
             }
         }
