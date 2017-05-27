@@ -72,16 +72,7 @@ namespace CSharpLLVM.Stack
             m_phi.Add(0);
             m_stack.Add(element);
         }
-
-        /// <summary>
-        /// Pushes a value as an element on the stack
-        /// </summary>
-        /// <param name="value">The value</param>
-        public void Push(ValueRef value)
-        {
-            Push(new StackElement(value));
-        }
-
+        
         /// <summary>
         /// Update stack with phi nodes
         /// </summary>
@@ -97,7 +88,7 @@ namespace CSharpLLVM.Stack
             {
                 for (int i = 0; i < srcStack.Count; i++)
                 {
-                    Push(srcStack[i].Value);
+                    Push(new StackElement(srcStack[i]));
                 }
             }
             // Multiple references, need to build phi nodes
@@ -105,15 +96,15 @@ namespace CSharpLLVM.Stack
             {
                 // Calculate independent values (not changed by this operation)
                 int difference = 0;
-                if (this.Count > 0 && srcStack.Count > this.Count)
+                if (Count > 0 && srcStack.Count > Count)
                 {
-                    difference = srcStack.Count - this.Count;
+                    difference = srcStack.Count - Count;
                 }
 
                 // Insert values that are independent
                 for (int i = 0; i < difference; i++)
                 {
-                    InsertAtStart(new StackElement(srcStack[i].Value));
+                    InsertAtStart(new StackElement(srcStack[i]));
                 }
 
                 // Insert dependent values
@@ -122,7 +113,7 @@ namespace CSharpLLVM.Stack
                     // First time we're here, so that means no dependencies on this value yet
                     if (m_phi.Count <= i || m_phi[i] == 0)
                     {
-                        Push(srcStack[i].Value);
+                        Push(new StackElement(srcStack[i]));
                         m_oldBlock = oldBlock;
                     }
                     // Use phi
@@ -138,7 +129,7 @@ namespace CSharpLLVM.Stack
                             LLVM.PositionBuilderAtEnd(builder, newBlock);
                             phi = LLVM.BuildPhi(builder, first.Type, "phi");
                             LLVM.PositionBuilderAtEnd(builder, oldBlock);
-                            Push(phi);
+                            Push(new StackElement(phi, first.ILType, first.Type));
                             LLVM.AddIncoming(phi, new ValueRef[] { first.Value }, new BasicBlockRef[] { m_oldBlock });
                         }
                         // > 2 times we've been here for this value, so it depends on multiple blocks

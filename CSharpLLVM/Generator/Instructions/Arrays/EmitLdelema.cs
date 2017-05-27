@@ -19,7 +19,8 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             StackElement index = context.CurrentStack.Pop();
             StackElement array = context.CurrentStack.Pop();
 
-            context.CurrentStack.Push(LLVM.BuildGEP(builder, array.Value, new ValueRef[] { index.Value }, "arrayelemptr"));
+            ValueRef gep = LLVM.BuildGEP(builder, array.Value, new ValueRef[] { index.Value }, "arrayelemptr");
+            context.CurrentStack.Push(new StackElement(gep, array.ILType, array.Type));
         }
     }
 }

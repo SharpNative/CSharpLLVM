@@ -16,6 +16,8 @@ namespace CSharpLLVM.Helpers
             if (value1.Type != value2.Type)
             {
                 value2.Value = LLVM.BuildIntCast(builder, value2.Value, value1.Type, "tmpintcast");
+                value2.Type = value1.Type;
+                value2.ILType = value1.ILType;
             }
         }
 

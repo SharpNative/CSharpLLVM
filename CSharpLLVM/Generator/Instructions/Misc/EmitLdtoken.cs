@@ -4,6 +4,7 @@ using Mono.Cecil.Cil;
 using System;
 using Mono.Cecil;
 using CSharpLLVM.Helpers;
+using CSharpLLVM.Stack;
 
 namespace CSharpLLVM.Generator.Instructions.Misc
 {
@@ -36,12 +37,14 @@ namespace CSharpLLVM.Generator.Instructions.Misc
                         for (int i = 0; i < fieldDef.InitialValue.Length; i++)
                             values[i] = LLVM.ConstInt(TypeHelper.Int8, fieldDef.InitialValue[i], false);
 
-                        ValueRef global = LLVM.AddGlobal(context.Compiler.Module, LLVM.ArrayType(TypeHelper.Int8, (uint)fieldDef.InitialValue.Length), "initarray");
+                        TypeRef globalType = LLVM.ArrayType(TypeHelper.Int8, (uint)fieldDef.InitialValue.Length);
+                        ValueRef global = LLVM.AddGlobal(context.Compiler.Module, globalType, "initarray");
                         LLVM.SetInitializer(global, LLVM.ConstArray(TypeHelper.Int8, values));
 
                         // Push the reference and the size
-                        context.CurrentStack.Push(global);
-                        context.CurrentStack.Push(LLVM.ConstInt(TypeHelper.NativeIntType, (ulong)fieldDef.InitialValue.Length, false));
+                        context.CurrentStack.Push(new StackElement(global, null, globalType));
+                        ValueRef size = LLVM.ConstInt(TypeHelper.NativeIntType, (ulong)fieldDef.InitialValue.Length, false);
+                        context.CurrentStack.Push(new StackElement(size, null, TypeHelper.NativeIntType));
                     }
                     else
                     {

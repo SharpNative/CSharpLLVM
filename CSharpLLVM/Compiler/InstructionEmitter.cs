@@ -1,5 +1,6 @@
 ﻿using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using Swigged.LLVM;
@@ -37,6 +38,7 @@ namespace CSharpLLVM.Compiler
             MethodBody body = m_context.Method.Body;
             m_context.LocalValues = new ValueRef[body.Variables.Count];
             m_context.LocalTypes = new TypeRef[body.Variables.Count];
+            m_context.LocalILTypes = new TypeReference[body.Variables.Count];
 
             // Set to start
             LLVM.PositionBuilderAtEnd(m_builder, m_context.GetBlockOf(body.Instructions[0]));
@@ -46,6 +48,7 @@ namespace CSharpLLVM.Compiler
                 TypeRef type = TypeHelper.GetTypeRefFromType(varDef.VariableType);
                 m_context.LocalValues[varDef.Index] = LLVM.BuildAlloca(m_builder, type, string.Format("local{0}", varDef.Index));
                 m_context.LocalTypes[varDef.Index] = type;
+                m_context.LocalILTypes[varDef.Index] = varDef.VariableType;
             }
         }
 

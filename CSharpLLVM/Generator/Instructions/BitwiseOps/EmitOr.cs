@@ -20,7 +20,8 @@ namespace CSharpLLVM.Generator.Instructions.BitwiseOps
             StackElement value2 = context.CurrentStack.Pop();
             StackElement value1 = context.CurrentStack.Pop();
             CastHelper.HelpIntCast(builder, ref value1, ref value2);
-            context.CurrentStack.Push(LLVM.BuildOr(builder, value1.Value, value2.Value, "or"));
+            ValueRef result = LLVM.BuildOr(builder, value1.Value, value2.Value, "or");
+            context.CurrentStack.Push(new StackElement(result, value1.ILType, value1.Type));
         }
     }
 }

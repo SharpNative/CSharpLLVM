@@ -22,16 +22,20 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
 
             if (TypeHelper.IsFloatingPoint(value1) || TypeHelper.IsFloatingPoint(value2))
             {
-                context.CurrentStack.Push(LLVM.BuildFDiv(builder, value1.Value, value2.Value, "divfp"));
+                ValueRef result = LLVM.BuildFDiv(builder, value1.Value, value2.Value, "divfp");
+                context.CurrentStack.Push(new StackElement(result, value1.ILType, value1.Type));
             }
             else
             {
                 CastHelper.HelpIntCast(builder, ref value1, ref value2);
+                ValueRef result;
 
                 if (instruction.OpCode.Code == Code.Div)
-                    context.CurrentStack.Push(LLVM.BuildSDiv(builder, value1.Value, value2.Value, "divsi"));
+                    result = LLVM.BuildSDiv(builder, value1.Value, value2.Value, "divsi");
                 else /* Div_Un */
-                    context.CurrentStack.Push(LLVM.BuildUDiv(builder, value1.Value, value2.Value, "divui"));
+                    result = LLVM.BuildUDiv(builder, value1.Value, value2.Value, "divui");
+
+                context.CurrentStack.Push(new StackElement(result, value1.ILType, value1.Type));
             }
         }
     }

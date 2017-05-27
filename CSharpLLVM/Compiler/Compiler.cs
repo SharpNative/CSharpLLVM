@@ -5,12 +5,12 @@ using System;
 using System.Collections.Generic;
 using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
+using System.Reflection;
 
 namespace CSharpLLVM.Compiler
 {
     class Compiler
     {
-        private CompilerSettings m_settings;
         private ModuleRef m_module;
         private ContextRef m_context;
         private MethodCompiler m_methodCompiler;
@@ -18,6 +18,8 @@ namespace CSharpLLVM.Compiler
         private PassManagerRef m_functionPassManager;
         private PassManagerRef m_passManager;
 
+        public Assembly Asm;
+        public CompilerSettings Settings { get; private set; }
         public ModuleRef Module { get { return m_module; } }
         public ContextRef ModuleContext { get { return m_context; } }
         public CodeGenerator CodeGen { get; private set; }
@@ -33,7 +35,7 @@ namespace CSharpLLVM.Compiler
         /// <param name="settings">The compiler settings</param>
         public Compiler(CompilerSettings settings)
         {
-            m_settings = settings;
+            Settings = settings;
             m_methodCompiler = new MethodCompiler(this);
             CodeGen = new CodeGenerator();
         }
@@ -91,7 +93,7 @@ namespace CSharpLLVM.Compiler
         {
             // Create LLVM module and its context
             LLVM.EnablePrettyStackTrace();
-            m_module = LLVM.ModuleCreateWithName(m_settings.ModuleName);
+            m_module = LLVM.ModuleCreateWithName(Settings.ModuleName);
             m_context = LLVM.GetModuleContext(m_module);
 
             // Targets
@@ -117,12 +119,13 @@ namespace CSharpLLVM.Compiler
             TargetData = LLVM.CreateTargetData(dataLayout);
             TypeHelper.Init(TargetData);
             RuntimeHelper.ImportFunctions(Module);
-
+            
             // Optimizer
             // TODO: more optimizations, the ones here are just the basic ones that are always active
             m_functionPassManager = LLVM.CreateFunctionPassManagerForModule(m_module);
+            LLVM.InitializeFunctionPassManager(m_functionPassManager);
             LLVM.AddPromoteMemoryToRegisterPass(m_functionPassManager);
-            LLVM.AddConstantPropagationPass(m_functionPassManager);
+            /*LLVM.AddConstantPropagationPass(m_functionPassManager);
             LLVM.AddReassociatePass(m_functionPassManager);
             LLVM.AddInstructionCombiningPass(m_functionPassManager);
             LLVM.AddMemCpyOptPass(m_functionPassManager);
@@ -131,15 +134,13 @@ namespace CSharpLLVM.Compiler
             LLVM.AddTailCallEliminationPass(m_functionPassManager);
             LLVM.AddGVNPass(m_functionPassManager);
             LLVM.AddJumpThreadingPass(m_functionPassManager);
-            LLVM.AddCFGSimplificationPass(m_functionPassManager);
-            LLVM.InitializeFunctionPassManager(m_functionPassManager);
+            LLVM.AddCFGSimplificationPass(m_functionPassManager);*/
 
             m_passManager = LLVM.CreatePassManager();
             LLVM.AddAlwaysInlinerPass(m_passManager);
             LLVM.AddFunctionInliningPass(m_passManager);
-            LLVM.InitializeFunctionPassManager(m_passManager);
-            LLVM.AddStripDeadPrototypesPass(m_passManager);
-            LLVM.AddStripSymbolsPass(m_passManager);
+            /*LLVM.AddStripDeadPrototypesPass(m_passManager);
+            LLVM.AddStripSymbolsPass(m_passManager);*/
 
             compileModules();
 
@@ -176,16 +177,18 @@ namespace CSharpLLVM.Compiler
         /// </summary>
         private void compileModules()
         {
+            Asm = Assembly.LoadFrom(Settings.InputFile);
+            AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(Settings.InputFile);
+
             // Loop through the modules within the IL assembly
             // Note: A single assembly can contain multiple IL modules.
             //       We use a single LLVM module to contain all of this
-            AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(m_settings.InputFile);
             Collection<ModuleDefinition> modules = asmDef.Modules;
             foreach (ModuleDefinition moduleDef in modules)
             {
                 compileModule(moduleDef);
             }
-
+            
             // Create init method containing the calls to the .cctors
             compileInitMethod();
         }

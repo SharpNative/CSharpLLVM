@@ -21,6 +21,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             StackElement countElement = context.CurrentStack.Pop();
             TypeReference type = (TypeReference)instruction.Operand;
             TypeRef typeRef = TypeHelper.GetTypeRefFromType(type);
+            TypeRef arrayType = LLVM.PointerType(typeRef, 0);
 
             // Might need to cast the count (amount of elements)
             ValueRef count = countElement.Value;
@@ -32,8 +33,10 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             // Size of one element
             ulong size = LLVM.SizeOfTypeInBits(context.Compiler.TargetData, typeRef) / 8;
             ValueRef sizeValue = LLVM.ConstInt(TypeHelper.NativeIntType, size, false);
+            ValueRef array = LLVM.BuildCall(builder, RuntimeHelper.Newarr, new ValueRef[] { count, sizeValue }, "array");
+            ValueRef casted = LLVM.BuildPointerCast(builder, array, arrayType, "arraycasted");
 
-            context.CurrentStack.Push(LLVM.BuildCall(builder, RuntimeHelper.Newarr, new ValueRef[] { count, sizeValue }, "array"));
+            context.CurrentStack.Push(new StackElement(casted, TypeHelper.GetTypeFromTypeReference(context.Compiler, type).MakeArrayType(), typeRef));
         }
     }
 }

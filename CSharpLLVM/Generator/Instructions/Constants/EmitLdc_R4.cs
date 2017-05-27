@@ -16,7 +16,8 @@ namespace CSharpLLVM.Generator.Instructions.Constants
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            context.CurrentStack.Push(new StackElement(LLVM.ConstReal(TypeHelper.Float, (float)instruction.Operand)));
+            ValueRef result = LLVM.ConstReal(TypeHelper.Float, (float)instruction.Operand);
+            context.CurrentStack.Push(new StackElement(result, typeof(float), TypeHelper.Float));
         }
     }
 }

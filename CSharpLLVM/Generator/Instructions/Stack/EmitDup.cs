@@ -17,7 +17,7 @@ namespace CSharpLLVM.Generator.Instructions.Stack
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement top = context.CurrentStack.Peek();
-            context.CurrentStack.Push(new StackElement(top.Value));
+            context.CurrentStack.Push(new StackElement(top));
         }
     }
 }

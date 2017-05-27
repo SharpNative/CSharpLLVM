@@ -24,7 +24,9 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             ValueRef offset = LLVM.BuildSub(builder, ptrAddress, LLVM.ConstInt(TypeHelper.NativeIntType, 4, false), "lengthoffset");
             ValueRef ptrOffset = LLVM.BuildIntToPtr(builder, offset, LLVM.PointerType(TypeHelper.Int32, 0), "lengthoffsetptr");
             ValueRef gep = LLVM.BuildGEP(builder, ptrOffset, new ValueRef[] { LLVM.ConstInt(TypeHelper.NativeIntType, 0, false) }, "lengthptr");
-            context.CurrentStack.Push(LLVM.BuildLoad(builder, gep, "length"));
+            ValueRef result = LLVM.BuildLoad(builder, gep, "length");
+            
+            context.CurrentStack.Push(new StackElement(result, typeof(int), TypeHelper.Int32));
         }
     }
 }

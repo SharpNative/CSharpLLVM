@@ -20,27 +20,21 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             StackElement value = context.CurrentStack.Pop();
             StackElement index = context.CurrentStack.Pop();
             StackElement array = context.CurrentStack.Pop();
-
-            ValueRef val = value.Value;
-            TypeRef destType = TypeHelper.GetTypeRefFromStelem(instruction.OpCode.Code);
-            if (LLVM.PointerType(destType, 0) != array.Type)
+            
+            // Convert to "pointer to value type" type
+            if (array.Type == TypeHelper.VoidPtr)
             {
-                // There is no instruction for a stelem to store a boolean, so we need to check manually
-                if (array.Type == LLVM.PointerType(TypeHelper.Boolean, 0))
-                {
-                    destType = TypeHelper.Boolean;
-                }
-                // We treat char as 8-bit
-                if (array.Type == LLVM.PointerType(TypeHelper.Int8, 0))
-                {
-                    destType = TypeHelper.Int8;
-                }
-
-                val = LLVM.BuildIntCast(builder, val, destType, "stelemcast");
+                TypeRef destType = TypeHelper.GetTypeRefFromStelem(instruction.OpCode.Code);
+                TypeRef ptrType = LLVM.PointerType(destType, 0);
+                array.Value = LLVM.BuildPointerCast(builder, array.Value, ptrType, "tmp");
+                array.Type = ptrType;
             }
 
+            TypeRef elementType = TypeHelper.GetTypeRefFromType(array.ILType.GetElementType());
+
             ValueRef ptr = LLVM.BuildGEP(builder, array.Value, new ValueRef[] { index.Value }, "arrayptr");
-            LLVM.BuildStore(builder, val, ptr);
+            CastHelper.HelpIntAndPtrCast(builder, ref value.Value, value.Type, elementType);
+            LLVM.BuildStore(builder, value.Value, ptr);
         }
     }
 }

@@ -20,16 +20,17 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             StackElement value = context.CurrentStack.Pop();
             StackElement index = context.CurrentStack.Pop();
             StackElement array = context.CurrentStack.Pop();
+            
+            TypeRef destType = LLVM.PointerType(value.Type, 0);
 
-            ValueRef val = value.Value;
-            TypeRef destType = LLVM.GetElementType(array.Type);
-            if (destType != array.Type)
+            // Convert to "pointer to value type" type
+            if (array.Type == TypeHelper.VoidPtr || destType != array.Type)
             {
-                val = LLVM.BuildPointerCast(builder, val, destType, "ptrcast");
+                array.Value = LLVM.BuildPointerCast(builder, array.Value, destType, "tmp");
             }
-
+            
             ValueRef ptr = LLVM.BuildGEP(builder, array.Value, new ValueRef[] { index.Value }, "arrayptr");
-            LLVM.BuildStore(builder, val, ptr);
+            LLVM.BuildStore(builder, value.Value, ptr);
         }
     }
 }

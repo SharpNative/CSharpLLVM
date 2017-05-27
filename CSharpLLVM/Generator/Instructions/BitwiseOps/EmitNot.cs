@@ -17,7 +17,8 @@ namespace CSharpLLVM.Generator.Instructions.BitwiseOps
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value = context.CurrentStack.Pop();
-            context.CurrentStack.Push(LLVM.BuildNot(builder, value.Value, "not"));
+            ValueRef result = LLVM.BuildNot(builder, value.Value, "not");
+            context.CurrentStack.Push(new StackElement(result, value.ILType, value.Type));
         }
     }
 }

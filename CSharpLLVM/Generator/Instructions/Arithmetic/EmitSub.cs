@@ -3,6 +3,8 @@ using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
+using Mono.Cecil;
+using System;
 
 namespace CSharpLLVM.Generator.Instructions.Arithmetic
 {
@@ -22,7 +24,8 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
 
             if (TypeHelper.IsFloatingPoint(value1) || TypeHelper.IsFloatingPoint(value2))
             {
-                context.CurrentStack.Push(LLVM.BuildFSub(builder, value1.Value, value2.Value, "subfp"));
+                ValueRef result = LLVM.BuildFSub(builder, value1.Value, value2.Value, "subfp");
+                context.CurrentStack.Push(new StackElement(result, value1.ILType, value1.Type));
             }
             else
             {
@@ -33,13 +36,17 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
                 if (isPtrVal1 || isPtrVal2)
                 {
                     ValueRef result = LLVM.BuildSub(builder, value1.Value, value2.Value, "subptr");
-                    context.CurrentStack.Push(LLVM.BuildIntToPtr(builder, result, (isPtrVal1 ? value1.Type : value2.Type), "ptr"));
+                    TypeRef resultingType = (isPtrVal1 ? value1.Type : value2.Type);
+                    Type resultingILType = (isPtrVal1 ? value1.ILType : value2.ILType);
+                    ValueRef ptr = LLVM.BuildIntToPtr(builder, result, resultingType, "ptr");
+                    context.CurrentStack.Push(new StackElement(ptr, resultingILType, resultingType));
                 }
                 // Cast to different int size
                 else
                 {
                     CastHelper.HelpIntCast(builder, ref value1, ref value2);
-                    context.CurrentStack.Push(LLVM.BuildSub(builder, value1.Value, value2.Value, "subi"));
+                    ValueRef result = LLVM.BuildSub(builder, value1.Value, value2.Value, "subi");
+                    context.CurrentStack.Push(new StackElement(result, value1.ILType, value1.Type));
                 }
             }
         }

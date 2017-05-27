@@ -17,7 +17,8 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value = context.CurrentStack.Pop();
-            context.CurrentStack.Push(LLVM.BuildNeg(builder, value.Value, "neg"));
+            ValueRef result = LLVM.BuildNeg(builder, value.Value, "neg");
+            context.CurrentStack.Push(new StackElement(result, value.ILType, value.Type));
         }
     }
 }

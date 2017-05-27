@@ -18,7 +18,8 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement size = context.CurrentStack.Pop();
-            context.CurrentStack.Push(LLVM.BuildArrayAlloca(builder, TypeHelper.Int8, size.Value, "stackalloc"));
+            ValueRef result = LLVM.BuildArrayAlloca(builder, TypeHelper.Int8, size.Value, "stackalloc");
+            context.CurrentStack.Push(new StackElement(result, typeof(byte[])));
         }
     }
 }

@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
+using CSharpLLVM.Stack;
 
 namespace CSharpLLVM.Generator.Instructions.Constants
 {
@@ -16,33 +17,36 @@ namespace CSharpLLVM.Generator.Instructions.Constants
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             TypeRef type = TypeHelper.Int32;
+            ValueRef result;
 
             Code code = instruction.OpCode.Code;
             if (code >= Code.Ldc_I4_0 && code <= Code.Ldc_I4_8)
             {
-                context.CurrentStack.Push(LLVM.ConstInt(type, (ulong)(instruction.OpCode.Code - Code.Ldc_I4_0), true));
+                result = LLVM.ConstInt(type, (ulong)(instruction.OpCode.Code - Code.Ldc_I4_0), true);
             }
             else if (code == Code.Ldc_I4_M1)
             {
                 unchecked
                 {
-                    context.CurrentStack.Push(LLVM.ConstInt(type, (uint)-1, true));
+                    result = LLVM.ConstInt(type, (uint)-1, true);
                 }
             }
             else
             {
                 if (instruction.Operand is sbyte)
                 {
-                    context.CurrentStack.Push(LLVM.ConstInt(type, (ulong)(sbyte)instruction.Operand, true));
+                    result = LLVM.ConstInt(type, (ulong)(sbyte)instruction.Operand, true);
                 }
                 else
                 {
                     unchecked
                     {
-                        context.CurrentStack.Push(LLVM.ConstInt(type, (uint)(int)instruction.Operand, true));
+                        result = LLVM.ConstInt(type, (uint)(int)instruction.Operand, true);
                     }
                 }
             }
+
+            context.CurrentStack.Push(new StackElement(result, typeof(int), type));
         }
     }
 }

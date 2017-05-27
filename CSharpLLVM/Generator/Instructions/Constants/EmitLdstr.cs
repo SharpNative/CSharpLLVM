@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
+using CSharpLLVM.Stack;
 
 namespace CSharpLLVM.Generator.Instructions.Constants
 {
@@ -24,7 +25,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
             // We need to cast the string
             ValueRef value = LLVM.ConstPointerCast(strValue, TypeHelper.String);
 
-            context.CurrentStack.Push(value);
+            context.CurrentStack.Push(new StackElement(value, typeof(string), TypeHelper.String));
         }
     }
 }

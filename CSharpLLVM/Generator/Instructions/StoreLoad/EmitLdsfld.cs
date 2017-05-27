@@ -3,6 +3,8 @@ using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using System;
 using Mono.Cecil;
+using CSharpLLVM.Stack;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.StoreLoad
 {
@@ -23,7 +25,8 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
                 throw new InvalidOperationException("Unknown static field: " + field);
             
             ValueRef value = LLVM.BuildLoad(builder, fieldValue.Value, "ldsfld");
-            context.CurrentStack.Push(value);
+            TypeRef valueType = LLVM.TypeOf(value);
+            context.CurrentStack.Push(new StackElement(value, TypeHelper.GetBasicTypeFromTypeRef(valueType), valueType));
         }
     }
 }

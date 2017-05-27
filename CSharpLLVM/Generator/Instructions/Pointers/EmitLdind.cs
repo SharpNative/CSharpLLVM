@@ -27,7 +27,8 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
                 code == Code.Ldind_U1 || code == Code.Ldind_U2 || code == Code.Ldind_U4)
                 res = LLVM.BuildIntCast(builder, res, TypeHelper.Int32, "tmp");
 
-            context.CurrentStack.Push(res);
+            TypeRef type = LLVM.TypeOf(res);
+            context.CurrentStack.Push(new StackElement(res, TypeHelper.GetBasicTypeFromTypeRef(type), type));
         }
     }
 }

@@ -14,7 +14,9 @@ namespace CSharpLLVM.Compiler
 
         public ValueRef[] LocalValues { get; set; }
         public TypeRef[] LocalTypes { get; set; }
+        public TypeReference[] LocalILTypes { get; set; }
         public ValueRef[] ArgumentValues { get; set; }
+        public TypeReference[] ArgumentILTypes { get; set; }
 
         // Blocks & branching
         private BasicBlockRef[] m_blocks;
@@ -168,10 +170,12 @@ namespace CSharpLLVM.Compiler
         {
             uint count = LLVM.CountParams(Function);
             ArgumentValues = new ValueRef[count];
+            ArgumentILTypes = new TypeReference[count];
 
             for (uint i = 0; i < count; i++)
             {
                 ArgumentValues[i] = LLVM.GetParam(Function, i);
+                ArgumentILTypes[i] = Method.Parameters[(int)i].ParameterType;
             }
         }
 

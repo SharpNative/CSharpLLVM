@@ -1,6 +1,8 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
+using CSharpLLVM.Stack;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.StoreLoad
 {
@@ -29,7 +31,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             }
 
             ValueRef value = LLVM.BuildLoad(builder, context.LocalValues[index], "ldloc");
-            context.CurrentStack.Push(value);
+            context.CurrentStack.Push(new StackElement(value, TypeHelper.GetTypeFromTypeReference(context.Compiler, context.LocalILTypes[index])));
         }
     }
 }

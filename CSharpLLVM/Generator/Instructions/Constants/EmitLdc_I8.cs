@@ -2,6 +2,7 @@
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
+using CSharpLLVM.Stack;
 
 namespace CSharpLLVM.Generator.Instructions.Constants
 {
@@ -18,7 +19,8 @@ namespace CSharpLLVM.Generator.Instructions.Constants
             TypeRef type = TypeHelper.Int64;
             unchecked
             {
-                context.CurrentStack.Push(LLVM.ConstInt(type, (ulong)(long)instruction.Operand, true));
+                ValueRef result = LLVM.ConstInt(type, (ulong)(long)instruction.Operand, true);
+                context.CurrentStack.Push(new StackElement(result, typeof(long), type));
             }
         }
     }

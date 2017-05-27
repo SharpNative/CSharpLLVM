@@ -80,7 +80,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
 
             // Push return value on stack if it has one
             if (methodRef.ReturnType.MetadataType != MetadataType.Void)
-                context.CurrentStack.Push(retVal);
+                context.CurrentStack.Push(new StackElement(retVal, TypeHelper.GetTypeFromTypeReference(context.Compiler, methodRef.ReturnType)));
         }
 
         /// <summary>
@@ -98,8 +98,9 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 StackElement initialValues = context.CurrentStack.Pop();
                 StackElement array = context.CurrentStack.Pop();
 
-                ValueRef tmp = LLVM.BuildPointerCast(builder, initialValues.Value, TypeHelper.VoidPtr, "callcast");
-                LLVM.BuildCall(builder, RuntimeHelper.Memcpy, new ValueRef[] { array.Value, tmp, count.Value }, string.Empty);
+                ValueRef arrayTmp = LLVM.BuildPointerCast(builder, array.Value, TypeHelper.VoidPtr, "arraytmp");
+                ValueRef initialTmp = LLVM.BuildPointerCast(builder, initialValues.Value, TypeHelper.VoidPtr, "inittmp");
+                LLVM.BuildCall(builder, RuntimeHelper.Memcpy, new ValueRef[] { arrayTmp, initialTmp, count.Value }, string.Empty);
             }
             else
             {
