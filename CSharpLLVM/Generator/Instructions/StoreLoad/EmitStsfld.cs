@@ -26,7 +26,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
 
             FieldReference field = (FieldReference)instruction.Operand;
             TypeReference fieldType = field.FieldType;
-            ValueRef? fieldValue = context.Compiler.GetStaticField(field);
+            ValueRef? fieldValue = context.Compiler.Lookup.GetStaticField(field);
             if (fieldValue == null)
                 throw new InvalidOperationException("Unknown static field: " + field);
 

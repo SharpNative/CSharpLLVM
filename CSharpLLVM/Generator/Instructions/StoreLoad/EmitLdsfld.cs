@@ -20,7 +20,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             FieldReference field = (FieldReference)instruction.Operand;
-            ValueRef? fieldValue = context.Compiler.GetStaticField(field);
+            ValueRef? fieldValue = context.Compiler.Lookup.GetStaticField(field);
             if (fieldValue == null)
                 throw new InvalidOperationException("Unknown static field: " + field);
             

@@ -10,7 +10,7 @@ namespace CSharpLLVM.Compiler
         private Compiler m_compiler;
 
         /// <summary>
-        /// Creates a new InstructionCompiler
+        /// Creates a new MethodCompiler
         /// </summary>
         /// <param name="compiler">The compiler</param>
         public MethodCompiler(Compiler compiler)
@@ -35,7 +35,7 @@ namespace CSharpLLVM.Compiler
             // Do we need to create a new function for this, or is there already been a reference to this function?
             // If there is already a reference, use that empty function instead of creating a new one
             string methodName = NameHelper.CreateMethodName(methodDef);
-            ValueRef? function = m_compiler.GetFunction(methodName);
+            ValueRef? function = m_compiler.Lookup.GetFunction(methodName);
             if (!function.HasValue)
             {
                 int paramCount = methodDef.Parameters.Count;
@@ -49,7 +49,7 @@ namespace CSharpLLVM.Compiler
                 Console.WriteLine("");
                 TypeRef functionType = LLVM.FunctionType(TypeHelper.GetTypeRefFromType(methodDef.ReturnType), argTypes, false);
                 function = LLVM.AddFunction(m_compiler.Module, methodName, functionType);
-                m_compiler.AddFunction(methodName, function.Value);
+                m_compiler.Lookup.AddFunction(methodName, function.Value);
             }
 
             // Private only visible for us

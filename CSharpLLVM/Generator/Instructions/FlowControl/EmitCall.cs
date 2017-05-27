@@ -36,7 +36,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
 
             // Get the method, if it is null, create a new empty one, otherwise reference it
             string methodName = NameHelper.CreateMethodName(methodRef);
-            ValueRef? func = context.Compiler.GetFunction(methodName);
+            ValueRef? func = context.Compiler.Lookup.GetFunction(methodName);
 
             // Process arguments
             // Note: backwards for loop because stack is backwards!
@@ -72,7 +72,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             {
                 TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
                 func = LLVM.AddFunction(context.Compiler.Module, methodName, functionType);
-                context.Compiler.AddFunction(methodName, func.Value);
+                context.Compiler.Lookup.AddFunction(methodName, func.Value);
             }
 
             // Call

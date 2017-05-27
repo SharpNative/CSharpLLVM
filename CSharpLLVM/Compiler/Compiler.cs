@@ -3,9 +3,9 @@ using Mono.Collections.Generic;
 using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
-using System.Reflection;
 
 namespace CSharpLLVM.Compiler
 {
@@ -14,6 +14,7 @@ namespace CSharpLLVM.Compiler
         private ModuleRef m_module;
         private ContextRef m_context;
         private MethodCompiler m_methodCompiler;
+        private TypeCompiler m_typeCompiler;
 
         private PassManagerRef m_functionPassManager;
         private PassManagerRef m_passManager;
@@ -24,11 +25,8 @@ namespace CSharpLLVM.Compiler
         public ContextRef ModuleContext { get { return m_context; } }
         public CodeGenerator CodeGen { get; private set; }
         public TargetDataRef TargetData { get; private set; }
-
-        private Dictionary<string, ValueRef> m_functionLookup = new Dictionary<string, ValueRef>();
-        private Dictionary<FieldReference, ValueRef> m_staticFieldLookup = new Dictionary<FieldReference, ValueRef>();
-        private List<MethodDefinition> m_cctors = new List<MethodDefinition>();
-
+        public Lookup Lookup { get; private set; }
+        
         /// <summary>
         /// Creates a new Compiler
         /// </summary>
@@ -36,46 +34,14 @@ namespace CSharpLLVM.Compiler
         public Compiler(CompilerSettings settings)
         {
             Settings = settings;
-            m_methodCompiler = new MethodCompiler(this);
+            
             CodeGen = new CodeGenerator();
+            Lookup = new Lookup();
+
+            m_methodCompiler = new MethodCompiler(this);
+            m_typeCompiler = new TypeCompiler(this, Lookup);
         }
-
-        /// <summary>
-        /// Gets a function
-        /// </summary>
-        /// <param name="name">The name</param>
-        /// <returns>The function</returns>
-        public ValueRef? GetFunction(string name)
-        {
-            if (m_functionLookup.ContainsKey(name))
-                return m_functionLookup[name];
-
-            return null;
-        }
-
-        /// <summary>
-        /// Adds a function
-        /// </summary>
-        /// <param name="name">The name</param>
-        /// <param name="function">The function</param>
-        public void AddFunction(string name, ValueRef function)
-        {
-            m_functionLookup.Add(name, function);
-        }
-
-        /// <summary>
-        /// Gets a static field
-        /// </summary>
-        /// <param name="field">The static field</param>
-        /// <returns>The field</returns>
-        public ValueRef? GetStaticField(FieldReference field)
-        {
-            if (m_staticFieldLookup.ContainsKey(field))
-                return m_staticFieldLookup[field];
-
-            return null;
-        }
-
+        
         /// <summary>
         /// Verifies and optimizes a function
         /// </summary>
@@ -203,9 +169,10 @@ namespace CSharpLLVM.Compiler
             BuilderRef builder = LLVM.CreateBuilderInContext(ModuleContext);
             LLVM.PositionBuilderAtEnd(builder, LLVM.AppendBasicBlockInContext(ModuleContext, func, string.Empty));
 
-            foreach (MethodDefinition method in m_cctors)
+            MethodDefinition[] cctors = Lookup.GetStaticConstructors();
+            foreach (MethodDefinition method in cctors)
             {
-                LLVM.BuildCall(builder, GetFunction(NameHelper.CreateMethodName(method)).Value, new ValueRef[0], string.Empty);
+                LLVM.BuildCall(builder, Lookup.GetFunction(NameHelper.CreateMethodName(method)).Value, new ValueRef[0], string.Empty);
             }
 
             LLVM.BuildRetVoid(builder);
@@ -232,7 +199,7 @@ namespace CSharpLLVM.Compiler
             {
                 ValueRef? function = compileMethod(method);
                 if (method.Name == ".cctor")
-                    m_cctors.Add(method);
+                    Lookup.AddCctor(method);
             }
         }
 
@@ -248,28 +215,8 @@ namespace CSharpLLVM.Compiler
                 compileType(inner, methods);
             }
 
-            // Log
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
-            Console.ForegroundColor = ConsoleColor.Gray;
-
-            // Fields
-            foreach (FieldDefinition field in type.Fields)
-            {
-                if (field.FullName[0] == '<')
-                    continue;
-
-                if (field.IsStatic)
-                {
-                    TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
-                    ValueRef val = LLVM.AddGlobal(Module, fieldType, NameHelper.CreateFieldName(field.FullName));
-
-                    // Note: the initializer may be changed later if the compiler sees that it can be constant
-                    LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
-                    m_staticFieldLookup.Add(field, val);
-                }
-            }
-
+            m_typeCompiler.Compile(type);
+            
             // Note: we first need all types to generate before we can generate methods
             //       because methods may refer to types that are not yet generated
             methods.AddRange(type.Methods);
