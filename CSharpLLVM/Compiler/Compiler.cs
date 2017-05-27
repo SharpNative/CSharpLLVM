@@ -13,15 +13,19 @@ namespace CSharpLLVM.Compiler
         private CompilerSettings m_settings;
         private ModuleRef m_module;
         private ContextRef m_context;
-        private PassManagerRef m_passManager;
         private MethodCompiler m_methodCompiler;
+
+        private PassManagerRef m_functionPassManager;
+        private PassManagerRef m_passManager;
 
         public ModuleRef Module { get { return m_module; } }
         public ContextRef ModuleContext { get { return m_context; } }
         public CodeGenerator CodeGen { get; private set; }
         public TargetDataRef TargetData { get; private set; }
 
-        public Dictionary<string, ValueRef> m_functionLookup = new Dictionary<string, ValueRef>();
+        private Dictionary<string, ValueRef> m_functionLookup = new Dictionary<string, ValueRef>();
+        private Dictionary<FieldReference, ValueRef> m_staticFieldLookup = new Dictionary<FieldReference, ValueRef>();
+        private List<MethodDefinition> m_cctors = new List<MethodDefinition>();
 
         /// <summary>
         /// Creates a new Compiler
@@ -58,13 +62,26 @@ namespace CSharpLLVM.Compiler
         }
 
         /// <summary>
+        /// Gets a static field
+        /// </summary>
+        /// <param name="field">The static field</param>
+        /// <returns>The field</returns>
+        public ValueRef? GetStaticField(FieldReference field)
+        {
+            if (m_staticFieldLookup.ContainsKey(field))
+                return m_staticFieldLookup[field];
+
+            return null;
+        }
+
+        /// <summary>
         /// Verifies and optimizes a function
         /// </summary>
         /// <param name="function">The function</param>
         public void VerifyAndOptimizeFunction(ValueRef function)
         {
             LLVM.VerifyFunction(function, VerifierFailureAction.PrintMessageAction);
-            LLVM.RunFunctionPassManager(m_passManager, function);
+            LLVM.RunFunctionPassManager(m_functionPassManager, function);
         }
 
         /// <summary>
@@ -103,25 +120,30 @@ namespace CSharpLLVM.Compiler
 
             // Optimizer
             // TODO: more optimizations, the ones here are just the basic ones that are always active
-            m_passManager = LLVM.CreateFunctionPassManagerForModule(m_module);
-            /*LLVM.AddPromoteMemoryToRegisterPass(m_passManager);
-            LLVM.AddConstantPropagationPass(m_passManager);
-            LLVM.AddReassociatePass(m_passManager);
-            LLVM.AddTailCallEliminationPass(m_passManager);
-            LLVM.AddInstructionCombiningPass(m_passManager);
-            LLVM.AddGVNPass(m_passManager);
-            LLVM.AddCFGSimplificationPass(m_passManager);*/
-            LLVM.InitializeFunctionPassManager(m_passManager);
+            m_functionPassManager = LLVM.CreateFunctionPassManagerForModule(m_module);
+            LLVM.AddPromoteMemoryToRegisterPass(m_functionPassManager);
+            LLVM.AddConstantPropagationPass(m_functionPassManager);
+            LLVM.AddReassociatePass(m_functionPassManager);
+            LLVM.AddInstructionCombiningPass(m_functionPassManager);
+            LLVM.AddMemCpyOptPass(m_functionPassManager);
+            LLVM.AddLoopUnrollPass(m_functionPassManager);
+            LLVM.AddLoopUnswitchPass(m_functionPassManager);
+            LLVM.AddTailCallEliminationPass(m_functionPassManager);
+            LLVM.AddGVNPass(m_functionPassManager);
+            LLVM.AddJumpThreadingPass(m_functionPassManager);
+            LLVM.AddCFGSimplificationPass(m_functionPassManager);
+            LLVM.InitializeFunctionPassManager(m_functionPassManager);
 
-            // Loop through the modules within the IL assembly
-            // Note: A single assembly can contain multiple IL modules.
-            //       We use a single LLVM module to contain all of this
-            AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(m_settings.InputFile);
-            Collection<ModuleDefinition> modules = asmDef.Modules;
-            foreach (ModuleDefinition moduleDef in modules)
-            {
-                compileModule(moduleDef);
-            }
+            m_passManager = LLVM.CreatePassManager();
+            LLVM.AddAlwaysInlinerPass(m_passManager);
+            LLVM.AddFunctionInliningPass(m_passManager);
+            LLVM.InitializeFunctionPassManager(m_passManager);
+            LLVM.AddStripDeadPrototypesPass(m_passManager);
+            LLVM.AddStripSymbolsPass(m_passManager);
+
+            compileModules();
+
+            LLVM.RunPassManager(m_passManager, Module);
 
             // Debug: print LLVM assembly code
             Console.WriteLine(LLVM.PrintModuleToString(m_module));
@@ -150,15 +172,64 @@ namespace CSharpLLVM.Compiler
         }
 
         /// <summary>
+        /// Compiles the modules
+        /// </summary>
+        private void compileModules()
+        {
+            // Loop through the modules within the IL assembly
+            // Note: A single assembly can contain multiple IL modules.
+            //       We use a single LLVM module to contain all of this
+            AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(m_settings.InputFile);
+            Collection<ModuleDefinition> modules = asmDef.Modules;
+            foreach (ModuleDefinition moduleDef in modules)
+            {
+                compileModule(moduleDef);
+            }
+
+            // Create init method containing the calls to the .cctors
+            compileInitMethod();
+        }
+
+        /// <summary>
+        /// Compiles the init method
+        /// </summary>
+        private void compileInitMethod()
+        {
+            TypeRef type = LLVM.FunctionType(TypeHelper.Void, new TypeRef[0], false);
+            ValueRef func = LLVM.AddFunction(Module, "initCctors", type);
+            BuilderRef builder = LLVM.CreateBuilderInContext(ModuleContext);
+            LLVM.PositionBuilderAtEnd(builder, LLVM.AppendBasicBlockInContext(ModuleContext, func, string.Empty));
+
+            foreach (MethodDefinition method in m_cctors)
+            {
+                LLVM.BuildCall(builder, GetFunction(NameHelper.CreateMethodName(method)).Value, new ValueRef[0], string.Empty);
+            }
+
+            LLVM.BuildRetVoid(builder);
+            LLVM.DisposeBuilder(builder);
+        }
+
+        /// <summary>
         /// Compiles a module
         /// </summary>
         /// <param name="moduleDef">The IL module definition</param>
         private void compileModule(ModuleDefinition moduleDef)
         {
+            List<MethodDefinition> methods = new List<MethodDefinition>();
             Collection<TypeDefinition> types = moduleDef.Types;
+
+            // Compiles types and adds methods
             foreach (TypeDefinition type in types)
             {
-                compileType(type);
+                compileType(type, methods);
+            }
+
+            // Compile methods
+            foreach (MethodDefinition method in methods)
+            {
+                ValueRef? function = compileMethod(method);
+                if (method.Name == ".cctor")
+                    m_cctors.Add(method);
             }
         }
 
@@ -166,22 +237,49 @@ namespace CSharpLLVM.Compiler
         /// Compiles a type
         /// </summary>
         /// <param name="type">The type definition</param>
-        private void compileType(TypeDefinition type)
+        private void compileType(TypeDefinition type, List<MethodDefinition> methods)
         {
-            Collection<MethodDefinition> methods = type.Methods;
-            foreach (MethodDefinition methodDef in methods)
+            // Nested types
+            foreach (TypeDefinition inner in type.NestedTypes)
             {
-                compileMethod(methodDef);
+                compileType(inner, methods);
             }
+
+            // Log
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
+            Console.ForegroundColor = ConsoleColor.Gray;
+
+            // Fields
+            foreach (FieldDefinition field in type.Fields)
+            {
+                if (field.FullName[0] == '<')
+                    continue;
+
+                if (field.IsStatic)
+                {
+                    TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
+                    ValueRef val = LLVM.AddGlobal(Module, fieldType, NameHelper.CreateFieldName(field.FullName));
+
+                    // Note: the initializer may be changed later if the compiler sees that it can be constant
+                    LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
+                    m_staticFieldLookup.Add(field, val);
+                }
+            }
+
+            // Note: we first need all types to generate before we can generate methods
+            //       because methods may refer to types that are not yet generated
+            methods.AddRange(type.Methods);
         }
 
         /// <summary>
         /// Compiles a method
         /// </summary>
         /// <param name="methodDef">The method definition</param>
-        private void compileMethod(MethodDefinition methodDef)
+        /// <returns>The function</returns>
+        private ValueRef? compileMethod(MethodDefinition methodDef)
         {
-            m_methodCompiler.Compile(methodDef);
+            return m_methodCompiler.Compile(methodDef);
         }
     }
 }

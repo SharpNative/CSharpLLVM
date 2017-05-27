@@ -93,6 +93,8 @@
     <Compile Include="Generator\Instructions\Pointers\EmitLocalloc.cs" />
     <Compile Include="Generator\Instructions\Pointers\EmitStind.cs" />
     <Compile Include="Generator\Instructions\Stack\EmitDup.cs" />
+    <Compile Include="Generator\Instructions\StoreLoad\EmitLdsfld.cs" />
+    <Compile Include="Generator\Instructions\StoreLoad\EmitStsfld.cs" />
     <Compile Include="Helpers\CastHelper.cs" />
     <Compile Include="Helpers\NameHelper.cs" />
     <Compile Include="Helpers\PredicateHelper.cs" />

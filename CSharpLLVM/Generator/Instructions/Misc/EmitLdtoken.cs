@@ -41,10 +41,7 @@ namespace CSharpLLVM.Generator.Instructions.Misc
 
                         // Push the reference and the size
                         context.CurrentStack.Push(global);
-                        unchecked
-                        {
-                            context.CurrentStack.Push(LLVM.ConstInt(TypeHelper.NativeIntType, (ulong)fieldDef.InitialValue.Length, false));
-                        }
+                        context.CurrentStack.Push(LLVM.ConstInt(TypeHelper.NativeIntType, (ulong)fieldDef.InitialValue.Length, false));
                     }
                     else
                     {

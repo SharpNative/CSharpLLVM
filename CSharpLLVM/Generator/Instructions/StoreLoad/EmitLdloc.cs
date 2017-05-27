@@ -28,7 +28,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
                 index = def.Index;
             }
 
-            ValueRef value = LLVM.BuildLoad(builder, context.LocalValues[index], string.Empty);
+            ValueRef value = LLVM.BuildLoad(builder, context.LocalValues[index], "ldloc");
             context.CurrentStack.Push(value);
         }
     }

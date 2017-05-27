@@ -22,13 +22,14 @@ namespace CSharpLLVM.Compiler
         /// Compiles a method
         /// </summary>
         /// <param name="methodDef">The method</param>
-        public void Compile(MethodDefinition methodDef)
+        /// <returns>The function</returns>
+        public ValueRef? Compile(MethodDefinition methodDef)
         {
             // TODO: fixme
             if (methodDef.Name.Contains(".ctor"))
             {
                 Console.WriteLine("SKIPPED .ctor");
-                return;
+                return null;
             }
 
             // Do we need to create a new function for this, or is there already been a reference to this function?
@@ -51,11 +52,15 @@ namespace CSharpLLVM.Compiler
                 m_compiler.AddFunction(methodName, function.Value);
             }
 
+            // Private only visible for us
+            if (methodDef.IsPrivate)
+                LLVM.SetLinkage(function.Value, Linkage.InternalLinkage);
+
             // Only generate if it has a body
             if (methodDef.Body == null)
             {
                 LLVM.SetLinkage(function.Value, Linkage.ExternalLinkage);
-                return;
+                return null;
             }
 
             // Compile instructions
@@ -65,6 +70,8 @@ namespace CSharpLLVM.Compiler
 
             // Verify & optimize
             m_compiler.VerifyAndOptimizeFunction(function.Value);
+
+            return function;
         }
     }
 }

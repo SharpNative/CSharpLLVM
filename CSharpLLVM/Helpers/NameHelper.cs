@@ -5,13 +5,23 @@ namespace CSharpLLVM.Helpers
     static class NameHelper
     {
         /// <summary>
-        /// Creates a type name from a IL type
+        /// Creates a type name from an IL type
         /// </summary>
         /// <param name="typeRef">The IL type</param>
         /// <returns>The type name</returns>
         public static string CreateTypeName(TypeReference typeRef)
         {
             return typeRef.FullName.Replace('.', '_').Replace("[", "_0").Replace("]", "0_").Replace("&", "_ref_").Replace("*", "_ptr_");
+        }
+
+        /// <summary>
+        /// Creates a field name from an IL field name
+        /// </summary>
+        /// <param name="name">The IL field name</param>
+        /// <returns>The field name</returns>
+        public static string CreateFieldName(string name)
+        {
+            return name.Replace('.', '_').Replace(' ', '_').Replace("::", "__");
         }
 
         /// <summary>
