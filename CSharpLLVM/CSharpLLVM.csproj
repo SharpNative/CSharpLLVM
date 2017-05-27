@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="Compiler\Lookup.cs" />
     <Compile Include="Compiler\TypeCompiler.cs" />
+    <Compile Include="Generator\Instructions\Arithmetic\EmitRem.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdlen.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelema.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem.cs" />
