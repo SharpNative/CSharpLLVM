@@ -87,7 +87,7 @@ namespace CSharpLLVM.Compiler
             RuntimeHelper.ImportFunctions(Module);
             
             // Optimizer
-            // TODO: more optimizations, the ones here are just the basic ones that are always active
+            // TODO
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
             LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
@@ -99,8 +99,8 @@ namespace CSharpLLVM.Compiler
             LLVM.AddLoopUnswitchPass(mFunctionPassManager);
             LLVM.AddTailCallEliminationPass(mFunctionPassManager);
             LLVM.AddGVNPass(mFunctionPassManager);
-            LLVM.AddJumpThreadingPass(mFunctionPassManager);
-            LLVM.AddCFGSimplificationPass(mFunctionPassManager);*/
+            LLVM.AddJumpThreadingPass(mFunctionPassManager);*/
+            LLVM.AddCFGSimplificationPass(mFunctionPassManager);
 
             mPassManager = LLVM.CreatePassManager();
             LLVM.AddAlwaysInlinerPass(mPassManager);

@@ -1,7 +1,6 @@
 ﻿using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Swigged.LLVM;
-using System;
 
 namespace CSharpLLVM.Compiler
 {
@@ -25,28 +24,35 @@ namespace CSharpLLVM.Compiler
         /// <returns>The function</returns>
         public ValueRef? Compile(MethodDefinition methodDef)
         {
-            // TODO: fixme
-            if (methodDef.Name.Contains(".ctor"))
-            {
-                Console.WriteLine("SKIPPED .ctor");
-                return null;
-            }
-
             // Do we need to create a new function for this, or is there already been a reference to this function?
             // If there is already a reference, use that empty function instead of creating a new one
             string methodName = NameHelper.CreateMethodName(methodDef);
             ValueRef? function = mCompiler.Lookup.GetFunction(methodName);
             if (!function.HasValue)
             {
+                // If we expect an instance reference as first argument, then we need to make sure our for loop has an offset
                 int paramCount = methodDef.Parameters.Count;
-                TypeRef[] argTypes = new TypeRef[paramCount];
-                Console.Write(methodDef.Name+": ");
-                for (int i = 0; i < paramCount; i++)
+                int offset = 0;
+                if (methodDef.HasThis)
                 {
-                    Console.Write(methodDef.Parameters[i].ParameterType+", ");
-                    argTypes[i] = TypeHelper.GetTypeRefFromType(methodDef.Parameters[i].ParameterType);
+                    paramCount++;
+                    offset = 1;
                 }
-                Console.WriteLine("");
+
+                // Fill in arguments
+                TypeRef[] argTypes = new TypeRef[paramCount];
+                for (int i = offset; i < paramCount; i++)
+                {
+                    argTypes[i] = TypeHelper.GetTypeRefFromType(methodDef.Parameters[i - offset].ParameterType);
+                }
+
+                // If needed, fill in the instance reference
+                if (methodDef.HasThis)
+                {
+                    argTypes[0] = LLVM.PointerType(TypeHelper.GetTypeRefFromType(methodDef.DeclaringType), 0);
+                }
+
+                // Create LLVM function type and add function to lookup table
                 TypeRef functionType = LLVM.FunctionType(TypeHelper.GetTypeRefFromType(methodDef.ReturnType), argTypes, false);
                 function = LLVM.AddFunction(mCompiler.Module, methodName, functionType);
                 mCompiler.Lookup.AddFunction(methodName, function.Value);

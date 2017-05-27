@@ -103,8 +103,8 @@ namespace CSharpLLVM.Helpers
                     return LLVM.PointerType(GetTypeRefFromType(ptr.ElementType), 0);
 
                 case MetadataType.ByReference:
-                    ByReferenceType byref = (ByReferenceType)type;
-                    return LLVM.PointerType(GetTypeRefFromType(byref.ElementType), 0);
+                    ByReferenceType byRef = (ByReferenceType)type;
+                    return LLVM.PointerType(GetTypeRefFromType(byRef.ElementType), 0);
 
                 case MetadataType.Pinned:
                     PinnedType pinned = (PinnedType)type;
@@ -308,7 +308,7 @@ namespace CSharpLLVM.Helpers
             if (typeRef.FullName.StartsWith("System"))
                 return mMSCorlib.GetType(typeRef.FullName);
 
-            return compiler.Asm.GetType(typeRef.FullName);
+            return compiler.Asm.GetType(typeRef.FullName.Replace('/', '+'), true);
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ namespace CSharpLLVM.Helpers
     {
         public static ValueRef Newarr { get; private set; }
         public static ValueRef Memcpy { get; private set; }
+        public static ValueRef Memset { get; private set; }
 
         /// <summary>
         /// Initializes runtime functions
@@ -21,7 +22,12 @@ namespace CSharpLLVM.Helpers
             // Memcpy
             TypeRef memcpyType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.VoidPtr, TypeHelper.VoidPtr, TypeHelper.NativeIntType }, false);
             Memcpy = LLVM.AddFunction(module, "memcpy", memcpyType);
-            LLVM.SetLinkage(Newarr, Linkage.ExternalLinkage);
+            LLVM.SetLinkage(Memcpy, Linkage.ExternalLinkage);
+
+            // Memcpy
+            TypeRef memsetType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.VoidPtr, TypeHelper.Int32, TypeHelper.NativeIntType }, false);
+            Memset = LLVM.AddFunction(module, "memset", memsetType);
+            LLVM.SetLinkage(Memset, Linkage.ExternalLinkage);
         }
     }
 }

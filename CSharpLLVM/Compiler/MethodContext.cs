@@ -172,10 +172,19 @@ namespace CSharpLLVM.Compiler
             ArgumentValues = new ValueRef[count];
             ArgumentILTypes = new TypeReference[count];
 
-            for (uint i = 0; i < count; i++)
+            // It is possible that the first argument is an instance reference
+            int offset = (Method.HasThis) ? 1 : 0;
+            for (int i = offset; i < count; i++)
             {
-                ArgumentValues[i] = LLVM.GetParam(Function, i);
-                ArgumentILTypes[i] = Method.Parameters[(int)i].ParameterType;
+                ArgumentValues[i] = LLVM.GetParam(Function, (uint)i);
+                ArgumentILTypes[i] = Method.Parameters[i - offset].ParameterType;
+            }
+
+            // Instance reference
+            if (Method.HasThis)
+            {
+                ArgumentValues[0] = LLVM.GetParam(Function, 0);
+                ArgumentILTypes[0] = new PointerType(Method.DeclaringType);
             }
         }
 

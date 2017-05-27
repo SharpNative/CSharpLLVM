@@ -2,6 +2,7 @@
 using Mono.Cecil;
 using Swigged.LLVM;
 using System;
+using System.Collections.Generic;
 
 namespace CSharpLLVM.Compiler
 {
@@ -46,22 +47,45 @@ namespace CSharpLLVM.Compiler
             // Structs and classes
             else
             {
+                // Create struct for this type
+                TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
+                mLookup.AddType(type, data);
+                List<TypeRef> structData = new List<TypeRef>();
+
                 // Fields
                 foreach (FieldDefinition field in type.Fields)
                 {
+                    // Internal
                     if (field.FullName[0] == '<')
                         continue;
 
+                    TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
+
+                    // Static field
                     if (field.IsStatic)
                     {
-                        TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
                         ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
 
                         // Note: the initializer may be changed later if the compiler sees that it can be constant
                         LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
                         mLookup.AddStaticField(field, val);
                     }
+                    // Field for type instance
+                    else
+                    {
+                        structData.Add(fieldType);
+                    }
                 }
+
+                // Packing?
+                bool packed = (type.PackingSize != -1);
+                if (type.PackingSize != 1 && type.PackingSize != -1)
+                {
+                    throw new NotImplementedException("The packing size " + type.PackingSize + " is not implemented");
+                }
+
+                // Set struct data
+                LLVM.StructSetBody(data, structData.ToArray(), packed);
             }
         }
     }

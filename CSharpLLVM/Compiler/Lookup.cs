@@ -99,5 +99,30 @@ namespace CSharpLLVM.Compiler
         {
             return mcctors.ToArray();
         }
+
+        /// <summary>
+        /// Gets the field index of a field
+        /// </summary>
+        /// <param name="field">The field</param>
+        /// <returns>The field index</returns>
+        public uint GetFieldIndex(FieldReference field)
+        {
+            TypeDefinition type = field.DeclaringType.Resolve();
+
+            uint i = 0;
+            foreach (FieldDefinition child in type.Fields)
+            {
+                // Internal
+                if (field.FullName[0] == '<')
+                    continue;
+
+                if (field == child)
+                    return i;
+
+                i++;
+            }
+
+            throw new Exception("Could not find field index for: " + field);
+        }
     }
 }
