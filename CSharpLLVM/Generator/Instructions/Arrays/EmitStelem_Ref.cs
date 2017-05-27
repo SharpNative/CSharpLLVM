@@ -7,10 +7,10 @@ using CSharpLLVM.Helpers;
 namespace CSharpLLVM.Generator.Instructions.Arrays
 {
     [InstructionHandler(Code.Stelem_Ref)]
-    class EmitStelem_Ref : ICodeEmitter
+    class EmitStelemRef : ICodeEmitter
     {
         /// <summary>
-        /// Emits a stelem_ref instruction
+        /// Emits a stelemref instruction
         /// </summary>
         /// <param name="instruction">The instruction</param>
         /// <param name="context">The context</param>

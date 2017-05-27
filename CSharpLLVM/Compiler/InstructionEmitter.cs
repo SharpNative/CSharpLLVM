@@ -9,8 +9,8 @@ namespace CSharpLLVM.Compiler
 {
     class InstructionEmitter
     {
-        private MethodContext m_context;
-        private BuilderRef m_builder;
+        private MethodContext mcontext;
+        private BuilderRef mbuilder;
 
         /// <summary>
         /// Creates a new InstructionEmitter
@@ -18,8 +18,8 @@ namespace CSharpLLVM.Compiler
         /// <param name="context">The method context</param>
         public InstructionEmitter(MethodContext context)
         {
-            m_context = context;
-            m_builder = LLVM.CreateBuilderInContext(context.Compiler.ModuleContext);
+            mcontext = context;
+            mbuilder = LLVM.CreateBuilderInContext(context.Compiler.ModuleContext);
         }
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace CSharpLLVM.Compiler
         /// </summary>
         ~InstructionEmitter()
         {
-            LLVM.DisposeBuilder(m_builder);
+            LLVM.DisposeBuilder(mbuilder);
         }
 
         /// <summary>
@@ -35,20 +35,20 @@ namespace CSharpLLVM.Compiler
         /// </summary>
         private void createLocals()
         {
-            MethodBody body = m_context.Method.Body;
-            m_context.LocalValues = new ValueRef[body.Variables.Count];
-            m_context.LocalTypes = new TypeRef[body.Variables.Count];
-            m_context.LocalILTypes = new TypeReference[body.Variables.Count];
+            MethodBody body = mcontext.Method.Body;
+            mcontext.LocalValues = new ValueRef[body.Variables.Count];
+            mcontext.LocalTypes = new TypeRef[body.Variables.Count];
+            mcontext.LocalILTypes = new TypeReference[body.Variables.Count];
 
             // Set to start
-            LLVM.PositionBuilderAtEnd(m_builder, m_context.GetBlockOf(body.Instructions[0]));
+            LLVM.PositionBuilderAtEnd(mbuilder, mcontext.GetBlockOf(body.Instructions[0]));
 
             foreach (VariableDefinition varDef in body.Variables)
             {
                 TypeRef type = TypeHelper.GetTypeRefFromType(varDef.VariableType);
-                m_context.LocalValues[varDef.Index] = LLVM.BuildAlloca(m_builder, type, string.Format("local{0}", varDef.Index));
-                m_context.LocalTypes[varDef.Index] = type;
-                m_context.LocalILTypes[varDef.Index] = varDef.VariableType;
+                mcontext.LocalValues[varDef.Index] = LLVM.BuildAlloca(mbuilder, type, string.Format("local{0}", varDef.Index));
+                mcontext.LocalTypes[varDef.Index] = type;
+                mcontext.LocalILTypes[varDef.Index] = varDef.VariableType;
             }
         }
 
@@ -59,21 +59,21 @@ namespace CSharpLLVM.Compiler
         public void EmitInstructions(CodeGenerator codeGen)
         {
             // Init
-            m_context.Init();
+            mcontext.Init();
             createLocals();
 
             // Process instructions
-            Collection<Instruction> instructions = m_context.Method.Body.Instructions;
+            Collection<Instruction> instructions = mcontext.Method.Body.Instructions;
             foreach (Instruction instruction in instructions)
             {
                 // Switch branch
-                if (m_context.IsNewBlock(instruction))
+                if (mcontext.IsNewBlock(instruction))
                 {
-                    LLVM.PositionBuilderAtEnd(m_builder, m_context.GetBlockOf(instruction));
+                    LLVM.PositionBuilderAtEnd(mbuilder, mcontext.GetBlockOf(instruction));
 
-                    if (m_context.IsNewStack(instruction))
+                    if (mcontext.IsNewStack(instruction))
                     {
-                        m_context.SetStack(instruction);
+                        mcontext.SetStack(instruction);
                     }
                 }
 
@@ -81,28 +81,28 @@ namespace CSharpLLVM.Compiler
                 if (instruction.OpCode.FlowControl == FlowControl.Branch || instruction.OpCode.FlowControl == FlowControl.Cond_Branch)
                 {
                     Instruction dest = (Instruction)instruction.Operand;
-                    if (m_context.IsNewBlock(dest))
+                    if (mcontext.IsNewBlock(dest))
                     {
-                        m_context.UpdateStack(m_builder, instruction, dest);
+                        mcontext.UpdateStack(mbuilder, instruction, dest);
                     }
                 }
 
-                codeGen.Emit(instruction, m_context, m_builder);
+                codeGen.Emit(instruction, mcontext, mbuilder);
 
                 // If the next instruction is a new block, and we didn't have an explicit branch instruction to the next block
                 // then we need to create the branch instruction explicitely
-                if (m_context.IsNewBlock(instruction.Next))
+                if (mcontext.IsNewBlock(instruction.Next))
                 {
                     // If this instruction did not already branch...
                     if (instruction.OpCode.FlowControl != FlowControl.Branch && instruction.OpCode.FlowControl != FlowControl.Cond_Branch)
                     {
-                        if (m_context.IsNewBlock(instruction.Next))
+                        if (mcontext.IsNewBlock(instruction.Next))
                         {
-                            m_context.UpdateStack(m_builder, instruction, instruction.Next);
+                            mcontext.UpdateStack(mbuilder, instruction, instruction.Next);
                         }
 
-                        m_context.SetStack(instruction.Next);
-                        LLVM.BuildBr(m_builder, m_context.GetBlockOf(instruction.Next));
+                        mcontext.SetStack(instruction.Next);
+                        LLVM.BuildBr(mbuilder, mcontext.GetBlockOf(instruction.Next));
                     }
                 }
             }

@@ -6,21 +6,21 @@ namespace CSharpLLVM.Stack
 {
     class ILStack
     {
-        private List<StackElement> m_stack;
-        private List<int> m_phi;
-        private BasicBlockRef m_oldBlock;
+        private List<StackElement> mstack;
+        private List<int> mphi;
+        private BasicBlockRef moldBlock;
 
-        public StackElement this[int index] { get { return m_stack[index]; } }
+        public StackElement this[int index] { get { return mstack[index]; } }
 
-        public int Count { get { return m_stack.Count; } }
+        public int Count { get { return mstack.Count; } }
 
         /// <summary>
         /// Creates a new ILStack
         /// </summary>
         public ILStack()
         {
-            m_stack = new List<StackElement>();
-            m_phi = new List<int>();
+            mstack = new List<StackElement>();
+            mphi = new List<int>();
         }
 
         /// <summary>
@@ -28,8 +28,8 @@ namespace CSharpLLVM.Stack
         /// </summary>
         public void Clear()
         {
-            m_stack.Clear();
-            m_phi.Clear();
+            mstack.Clear();
+            mphi.Clear();
         }
 
         /// <summary>
@@ -38,8 +38,8 @@ namespace CSharpLLVM.Stack
         /// <param name="element">The element</param>
         public void InsertAtStart(StackElement element)
         {
-            m_stack.Insert(0, element);
-            m_phi.Insert(0, 0);
+            mstack.Insert(0, element);
+            mphi.Insert(0, 0);
         }
 
         /// <summary>
@@ -48,9 +48,9 @@ namespace CSharpLLVM.Stack
         /// <returns>The popped element</returns>
         public StackElement Pop()
         {
-            m_phi.RemoveAt(m_phi.Count - 1);
-            StackElement top = m_stack[m_stack.Count - 1];
-            m_stack.RemoveAt(m_stack.Count - 1);
+            mphi.RemoveAt(mphi.Count - 1);
+            StackElement top = mstack[mstack.Count - 1];
+            mstack.RemoveAt(mstack.Count - 1);
             return top;
         }
 
@@ -60,7 +60,7 @@ namespace CSharpLLVM.Stack
         /// <returns>The top element</returns>
         public StackElement Peek()
         {
-            return m_stack[m_stack.Count - 1];
+            return mstack[mstack.Count - 1];
         }
 
         /// <summary>
@@ -69,8 +69,8 @@ namespace CSharpLLVM.Stack
         /// <param name="element">The element</param>
         public void Push(StackElement element)
         {
-            m_phi.Add(0);
-            m_stack.Add(element);
+            mphi.Add(0);
+            mstack.Add(element);
         }
         
         /// <summary>
@@ -111,18 +111,18 @@ namespace CSharpLLVM.Stack
                 for (int i = difference; i < srcStack.Count; i++)
                 {
                     // First time we're here, so that means no dependencies on this value yet
-                    if (m_phi.Count <= i || m_phi[i] == 0)
+                    if (mphi.Count <= i || mphi[i] == 0)
                     {
                         Push(new StackElement(srcStack[i]));
-                        m_oldBlock = oldBlock;
+                        moldBlock = oldBlock;
                     }
                     // Use phi
-                    else if (m_phi[i] >= 1)
+                    else if (mphi[i] >= 1)
                     {
                         ValueRef phi;
 
                         // Second time for this value, so it depends on two blocks
-                        if (m_phi[i] == 1)
+                        if (mphi[i] == 1)
                         {
                             StackElement first = Pop();
 
@@ -130,7 +130,7 @@ namespace CSharpLLVM.Stack
                             phi = LLVM.BuildPhi(builder, first.Type, "phi");
                             LLVM.PositionBuilderAtEnd(builder, oldBlock);
                             Push(new StackElement(phi, first.ILType, first.Type));
-                            LLVM.AddIncoming(phi, new ValueRef[] { first.Value }, new BasicBlockRef[] { m_oldBlock });
+                            LLVM.AddIncoming(phi, new ValueRef[] { first.Value }, new BasicBlockRef[] { moldBlock });
                         }
                         // > 2 times we've been here for this value, so it depends on multiple blocks
                         else
@@ -156,7 +156,7 @@ namespace CSharpLLVM.Stack
                         LLVM.AddIncoming(phi, new ValueRef[] { newValue }, new BasicBlockRef[] { oldBlock });
                     }
 
-                    m_phi[i]++;
+                    mphi[i]++;
                 }
             }
         }
