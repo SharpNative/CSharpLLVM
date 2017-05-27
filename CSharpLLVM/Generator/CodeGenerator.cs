@@ -10,7 +10,7 @@ namespace CSharpLLVM.Generator
 {
     class CodeGenerator
     {
-        private Dictionary<Code, ICodeEmitter> memitters = new Dictionary<Code, ICodeEmitter>();
+        private Dictionary<Code, ICodeEmitter> mEmitters = new Dictionary<Code, ICodeEmitter>();
 
         /// <summary>
         /// Creates a new CodeGenerator
@@ -29,11 +29,11 @@ namespace CSharpLLVM.Generator
                 // Register emitter
                 ICodeEmitter emitter = (ICodeEmitter)Activator.CreateInstance(type);
                 foreach (Code code in attrib.Codes)
-                    memitters.Add(code, emitter);
+                    mEmitters.Add(code, emitter);
             }
 
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(string.Format("{0} code emitters registered", memitters.Count));
+            Console.WriteLine(string.Format("{0} code emitters registered", mEmitters.Count));
             Console.ForegroundColor = ConsoleColor.Gray;
         }
 
@@ -46,7 +46,7 @@ namespace CSharpLLVM.Generator
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             ICodeEmitter emitter = null;
-            if (memitters.TryGetValue(instruction.OpCode.Code, out emitter))
+            if (mEmitters.TryGetValue(instruction.OpCode.Code, out emitter))
             {
                 emitter.Emit(instruction, context, builder);
             }

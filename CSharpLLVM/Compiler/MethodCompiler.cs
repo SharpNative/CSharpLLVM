@@ -7,7 +7,7 @@ namespace CSharpLLVM.Compiler
 {
     class MethodCompiler
     {
-        private Compiler mcompiler;
+        private Compiler mCompiler;
 
         /// <summary>
         /// Creates a new MethodCompiler
@@ -15,7 +15,7 @@ namespace CSharpLLVM.Compiler
         /// <param name="compiler">The compiler</param>
         public MethodCompiler(Compiler compiler)
         {
-            mcompiler = compiler;
+            mCompiler = compiler;
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace CSharpLLVM.Compiler
             // Do we need to create a new function for this, or is there already been a reference to this function?
             // If there is already a reference, use that empty function instead of creating a new one
             string methodName = NameHelper.CreateMethodName(methodDef);
-            ValueRef? function = mcompiler.Lookup.GetFunction(methodName);
+            ValueRef? function = mCompiler.Lookup.GetFunction(methodName);
             if (!function.HasValue)
             {
                 int paramCount = methodDef.Parameters.Count;
@@ -48,8 +48,8 @@ namespace CSharpLLVM.Compiler
                 }
                 Console.WriteLine("");
                 TypeRef functionType = LLVM.FunctionType(TypeHelper.GetTypeRefFromType(methodDef.ReturnType), argTypes, false);
-                function = LLVM.AddFunction(mcompiler.Module, methodName, functionType);
-                mcompiler.Lookup.AddFunction(methodName, function.Value);
+                function = LLVM.AddFunction(mCompiler.Module, methodName, functionType);
+                mCompiler.Lookup.AddFunction(methodName, function.Value);
             }
 
             // Private only visible for us
@@ -64,12 +64,12 @@ namespace CSharpLLVM.Compiler
             }
 
             // Compile instructions
-            MethodContext ctx = new MethodContext(mcompiler, methodDef, function.Value);
+            MethodContext ctx = new MethodContext(mCompiler, methodDef, function.Value);
             InstructionEmitter emitter = new InstructionEmitter(ctx);
-            emitter.EmitInstructions(mcompiler.CodeGen);
+            emitter.EmitInstructions(mCompiler.CodeGen);
 
             // Verify & optimize
-            mcompiler.VerifyAndOptimizeFunction(function.Value);
+            mCompiler.VerifyAndOptimizeFunction(function.Value);
 
             return function;
         }

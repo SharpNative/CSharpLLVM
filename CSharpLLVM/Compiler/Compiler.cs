@@ -11,18 +11,18 @@ namespace CSharpLLVM.Compiler
 {
     class Compiler
     {
-        private ModuleRef mmodule;
-        private ContextRef mcontext;
-        private MethodCompiler mmethodCompiler;
-        private TypeCompiler mtypeCompiler;
+        private ModuleRef mModule;
+        private ContextRef mContext;
+        private MethodCompiler mMethodCompiler;
+        private TypeCompiler mTypeCompiler;
 
-        private PassManagerRef mfunctionPassManager;
-        private PassManagerRef mpassManager;
+        private PassManagerRef mFunctionPassManager;
+        private PassManagerRef mPassManager;
 
         public Assembly Asm;
         public CompilerSettings Settings { get; private set; }
-        public ModuleRef Module { get { return mmodule; } }
-        public ContextRef ModuleContext { get { return mcontext; } }
+        public ModuleRef Module { get { return mModule; } }
+        public ContextRef ModuleContext { get { return mContext; } }
         public CodeGenerator CodeGen { get; private set; }
         public TargetDataRef TargetData { get; private set; }
         public Lookup Lookup { get; private set; }
@@ -38,8 +38,8 @@ namespace CSharpLLVM.Compiler
             CodeGen = new CodeGenerator();
             Lookup = new Lookup();
 
-            mmethodCompiler = new MethodCompiler(this);
-            mtypeCompiler = new TypeCompiler(this, Lookup);
+            mMethodCompiler = new MethodCompiler(this);
+            mTypeCompiler = new TypeCompiler(this, Lookup);
         }
         
         /// <summary>
@@ -49,7 +49,7 @@ namespace CSharpLLVM.Compiler
         public void VerifyAndOptimizeFunction(ValueRef function)
         {
             LLVM.VerifyFunction(function, VerifierFailureAction.PrintMessageAction);
-            LLVM.RunFunctionPassManager(mfunctionPassManager, function);
+            LLVM.RunFunctionPassManager(mFunctionPassManager, function);
         }
 
         /// <summary>
@@ -59,8 +59,8 @@ namespace CSharpLLVM.Compiler
         {
             // Create LLVM module and its context
             LLVM.EnablePrettyStackTrace();
-            mmodule = LLVM.ModuleCreateWithName(Settings.ModuleName);
-            mcontext = LLVM.GetModuleContext(mmodule);
+            mModule = LLVM.ModuleCreateWithName(Settings.ModuleName);
+            mContext = LLVM.GetModuleContext(mModule);
 
             // Targets
             LLVM.InitializeAllTargetInfos();
@@ -73,7 +73,7 @@ namespace CSharpLLVM.Compiler
             string triplet = "x86_64-pc-linux";
             string error;
 
-            LLVM.SetTarget(mmodule, triplet);
+            LLVM.SetTarget(mModule, triplet);
             TargetRef target;
             if (LLVM.GetTargetFromTriple(triplet, out target, out error))
             {
@@ -88,48 +88,48 @@ namespace CSharpLLVM.Compiler
             
             // Optimizer
             // TODO: more optimizations, the ones here are just the basic ones that are always active
-            mfunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mmodule);
-            LLVM.InitializeFunctionPassManager(mfunctionPassManager);
-            LLVM.AddPromoteMemoryToRegisterPass(mfunctionPassManager);
-            /*LLVM.AddConstantPropagationPass(mfunctionPassManager);
-            LLVM.AddReassociatePass(mfunctionPassManager);
-            LLVM.AddInstructionCombiningPass(mfunctionPassManager);
-            LLVM.AddMemCpyOptPass(mfunctionPassManager);
-            LLVM.AddLoopUnrollPass(mfunctionPassManager);
-            LLVM.AddLoopUnswitchPass(mfunctionPassManager);
-            LLVM.AddTailCallEliminationPass(mfunctionPassManager);
-            LLVM.AddGVNPass(mfunctionPassManager);
-            LLVM.AddJumpThreadingPass(mfunctionPassManager);
-            LLVM.AddCFGSimplificationPass(mfunctionPassManager);*/
+            mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
+            LLVM.InitializeFunctionPassManager(mFunctionPassManager);
+            LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
+            /*LLVM.AddConstantPropagationPass(mFunctionPassManager);
+            LLVM.AddReassociatePass(mFunctionPassManager);
+            LLVM.AddInstructionCombiningPass(mFunctionPassManager);
+            LLVM.AddMemCpyOptPass(mFunctionPassManager);
+            LLVM.AddLoopUnrollPass(mFunctionPassManager);
+            LLVM.AddLoopUnswitchPass(mFunctionPassManager);
+            LLVM.AddTailCallEliminationPass(mFunctionPassManager);
+            LLVM.AddGVNPass(mFunctionPassManager);
+            LLVM.AddJumpThreadingPass(mFunctionPassManager);
+            LLVM.AddCFGSimplificationPass(mFunctionPassManager);*/
 
-            mpassManager = LLVM.CreatePassManager();
-            LLVM.AddAlwaysInlinerPass(mpassManager);
-            LLVM.AddFunctionInliningPass(mpassManager);
-            /*LLVM.AddStripDeadPrototypesPass(mpassManager);
-            LLVM.AddStripSymbolsPass(mpassManager);*/
+            mPassManager = LLVM.CreatePassManager();
+            LLVM.AddAlwaysInlinerPass(mPassManager);
+            LLVM.AddFunctionInliningPass(mPassManager);
+            /*LLVM.AddStripDeadPrototypesPass(mPassManager);
+            LLVM.AddStripSymbolsPass(mPassManager);*/
 
             compileModules();
 
-            LLVM.RunPassManager(mpassManager, Module);
+            LLVM.RunPassManager(mPassManager, Module);
 
             // Debug: print LLVM assembly code
-            Console.WriteLine(LLVM.PrintModuleToString(mmodule));
+            Console.WriteLine(LLVM.PrintModuleToString(mModule));
 
             // Verify and throw exception on error
-            if (LLVM.VerifyModule(mmodule, VerifierFailureAction.PrintMessageAction, out error))
+            if (LLVM.VerifyModule(mModule, VerifierFailureAction.PrintMessageAction, out error))
             {
                 throw new InvalidOperationException(error);
             }
 
             // Output
             TargetMachineRef machine = LLVM.CreateTargetMachine(target, triplet, "generic", "", CodeGenOptLevel.CodeGenLevelDefault, RelocMode.RelocDefault, CodeModel.CodeModelDefault);
-            LLVM.SetModuleDataLayout(mmodule, LLVM.CreateTargetDataLayout(machine));
-            if (LLVM.TargetMachineEmitToFile(machine, mmodule, "./out.o", CodeGenFileType.ObjectFile, out error))
+            LLVM.SetModuleDataLayout(mModule, LLVM.CreateTargetDataLayout(machine));
+            if (LLVM.TargetMachineEmitToFile(machine, mModule, "./out.o", CodeGenFileType.ObjectFile, out error))
             {
                 throw new InvalidOperationException(error);
             }
 
-            if (LLVM.TargetMachineEmitToFile(machine, mmodule, "./out.s", CodeGenFileType.AssemblyFile, out error))
+            if (LLVM.TargetMachineEmitToFile(machine, mModule, "./out.s", CodeGenFileType.AssemblyFile, out error))
             {
                 throw new InvalidOperationException(error);
             }
@@ -215,7 +215,7 @@ namespace CSharpLLVM.Compiler
                 compileType(inner, methods);
             }
 
-            mtypeCompiler.Compile(type);
+            mTypeCompiler.Compile(type);
             
             // Note: we first need all types to generate before we can generate methods
             //       because methods may refer to types that are not yet generated
@@ -229,7 +229,7 @@ namespace CSharpLLVM.Compiler
         /// <returns>The function</returns>
         private ValueRef? compileMethod(MethodDefinition methodDef)
         {
-            return mmethodCompiler.Compile(methodDef);
+            return mMethodCompiler.Compile(methodDef);
         }
     }
 }

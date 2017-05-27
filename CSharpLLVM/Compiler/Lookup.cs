@@ -7,9 +7,9 @@ namespace CSharpLLVM.Compiler
 {
     class Lookup
     {
-        private Dictionary<string, ValueRef> mfunctionLookup = new Dictionary<string, ValueRef>();
-        private Dictionary<FieldReference, ValueRef> mstaticFieldLookup = new Dictionary<FieldReference, ValueRef>();
-        private Dictionary<TypeReference, TypeRef> mtypeLookup = new Dictionary<TypeReference, TypeRef>();
+        private Dictionary<string, ValueRef> mFunctionLookup = new Dictionary<string, ValueRef>();
+        private Dictionary<FieldReference, ValueRef> mStaticFieldLookup = new Dictionary<FieldReference, ValueRef>();
+        private Dictionary<TypeReference, TypeRef> mTypeLookup = new Dictionary<TypeReference, TypeRef>();
 
         private List<MethodDefinition> mcctors = new List<MethodDefinition>();
 
@@ -20,8 +20,8 @@ namespace CSharpLLVM.Compiler
         /// <returns>The function</returns>
         public ValueRef? GetFunction(string name)
         {
-            if (mfunctionLookup.ContainsKey(name))
-                return mfunctionLookup[name];
+            if (mFunctionLookup.ContainsKey(name))
+                return mFunctionLookup[name];
 
             return null;
         }
@@ -33,7 +33,7 @@ namespace CSharpLLVM.Compiler
         /// <param name="function">The function</param>
         public void AddFunction(string name, ValueRef function)
         {
-            mfunctionLookup.Add(name, function);
+            mFunctionLookup.Add(name, function);
         }
 
         /// <summary>
@@ -43,8 +43,8 @@ namespace CSharpLLVM.Compiler
         /// <returns>The field</returns>
         public ValueRef? GetStaticField(FieldReference field)
         {
-            if (mstaticFieldLookup.ContainsKey(field))
-                return mstaticFieldLookup[field];
+            if (mStaticFieldLookup.ContainsKey(field))
+                return mStaticFieldLookup[field];
 
             return null;
         }
@@ -56,7 +56,7 @@ namespace CSharpLLVM.Compiler
         /// <param name="val">The value</param>
         public void AddStaticField(FieldReference field, ValueRef val)
         {
-            mstaticFieldLookup.Add(field, val);
+            mStaticFieldLookup.Add(field, val);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace CSharpLLVM.Compiler
         /// <param name="typeRef">The type</param>
         public void AddType(TypeReference type, TypeRef typeRef)
         {
-            mtypeLookup.Add(type, typeRef);
+            mTypeLookup.Add(type, typeRef);
         }
 
         /// <summary>
@@ -85,10 +85,10 @@ namespace CSharpLLVM.Compiler
         /// <returns>The type</returns>
         public TypeRef GetTypeRef(TypeReference type)
         {
-            if (!mtypeLookup.ContainsKey(type))
+            if (!mTypeLookup.ContainsKey(type))
                 throw new InvalidOperationException("Type " + type + " not found");
 
-            return mtypeLookup[type];
+            return mTypeLookup[type];
         }
 
         /// <summary>

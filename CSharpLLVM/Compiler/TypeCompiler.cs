@@ -7,8 +7,8 @@ namespace CSharpLLVM.Compiler
 {
     class TypeCompiler
     {
-        private Compiler mcompiler;
-        private Lookup mlookup;
+        private Compiler mCompiler;
+        private Lookup mLookup;
 
         /// <summary>
         /// Creates a new TypeCompiler
@@ -17,8 +17,8 @@ namespace CSharpLLVM.Compiler
         /// <param name="lookup">The lookup</param>
         public TypeCompiler(Compiler compiler, Lookup lookup)
         {
-            mcompiler = compiler;
-            mlookup = lookup;
+            mCompiler = compiler;
+            mLookup = lookup;
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace CSharpLLVM.Compiler
             // Enums are treated as 32-bit ints
             if (isEnum)
             {
-                mlookup.AddType(type, TypeHelper.Int32);
+                mLookup.AddType(type, TypeHelper.Int32);
             }
             // Structs and classes
             else
@@ -55,11 +55,11 @@ namespace CSharpLLVM.Compiler
                     if (field.IsStatic)
                     {
                         TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
-                        ValueRef val = LLVM.AddGlobal(mcompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
+                        ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
 
                         // Note: the initializer may be changed later if the compiler sees that it can be constant
                         LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
-                        mlookup.AddStaticField(field, val);
+                        mLookup.AddStaticField(field, val);
                     }
                 }
             }

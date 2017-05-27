@@ -24,8 +24,8 @@ namespace CSharpLLVM.Helpers
 
         public static uint IntPtrSize { get; private set; }
 
-        private static Assembly mmscorlib;
-        private static Lookup mlookup;
+        private static Assembly mMSCorlib;
+        private static Lookup mLookup;
 
         /// <summary>
         /// Initializes common types
@@ -47,8 +47,8 @@ namespace CSharpLLVM.Helpers
             IntPtrSize = (uint)LLVM.ABISizeOfType(targetData, VoidPtr);
             NativeIntType = LLVM.IntType(IntPtrSize * 8);
 
-            mmscorlib = Assembly.Load("mscorlib");
-            mlookup = lookup;
+            mMSCorlib = Assembly.Load("mscorlib");
+            mLookup = lookup;
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace CSharpLLVM.Helpers
                     return GetTypeRefFromType(pinned.ElementType);
 
                 case MetadataType.ValueType:
-                    return mlookup.GetTypeRef(type);
+                    return mLookup.GetTypeRef(type);
 
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
@@ -306,7 +306,7 @@ namespace CSharpLLVM.Helpers
         public static Type GetTypeFromTypeReference(Compiler.Compiler compiler, TypeReference typeRef)
         {
             if (typeRef.FullName.StartsWith("System"))
-                return mmscorlib.GetType(typeRef.FullName);
+                return mMSCorlib.GetType(typeRef.FullName);
 
             return compiler.Asm.GetType(typeRef.FullName);
         }
