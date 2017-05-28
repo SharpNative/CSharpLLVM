@@ -1,10 +1,5 @@
 ﻿using CSharpLLVM.Helpers;
 using Swigged.LLVM;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CSharpLLVM.Compiler
 {
@@ -27,22 +22,21 @@ namespace CSharpLLVM.Compiler
         public void Compile()
         {
             BuilderRef builder = LLVM.CreateBuilderInContext(mCompiler.ModuleContext);
-            CreateStringGetCharsFunction(mCompiler.Module, builder);
+            createStringGetCharsFunction(builder);
             LLVM.DisposeBuilder(builder);
         }
 
         /// <summary>
-        /// 
+        /// Creates the System.String::get_Chars(int32) function
         /// </summary>
-        /// <param name="module"></param>
-        /// <param name="builder"></param>
-        public void CreateStringGetCharsFunction(ModuleRef module, BuilderRef builder)
+        /// <param name="builder">The builder</param>
+        private void createStringGetCharsFunction(BuilderRef builder)
         {
             const string funcName = "System_Char_System_String_get_Chars_System_Int32";
 
             // Create function and set linkage
             TypeRef type = LLVM.FunctionType(TypeHelper.Int8, new TypeRef[] { TypeHelper.String, TypeHelper.Int32 }, false);
-            ValueRef func = LLVM.AddFunction(module, funcName, type);
+            ValueRef func = LLVM.AddFunction(mCompiler.Module, funcName, type);
             LLVM.SetLinkage(func, Linkage.InternalLinkage);
 
             // Arguments
