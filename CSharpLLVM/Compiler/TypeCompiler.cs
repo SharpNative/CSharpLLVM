@@ -23,15 +23,37 @@ namespace CSharpLLVM.Compiler
         }
 
         /// <summary>
+        /// Gets the fields of a type including the inherited fields
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>The list of fields</returns>
+        private List<FieldDefinition> getFields(TypeDefinition type)
+        {
+            List<FieldDefinition> fields = new List<FieldDefinition>();
+            TypeDefinition parent = type.BaseType.Resolve();
+
+            // First add parent fields, then our own fields
+            if(parent.HasFields)
+                fields.AddRange(getFields(parent));
+
+            fields.AddRange(type.Fields);
+
+            return fields;
+        }
+
+        /// <summary>
         /// Compiles a type
         /// </summary>
         /// <param name="type">The type</param>
         public void Compile(TypeDefinition type)
         {
+            // Internal
+            if (type.FullName == "<Module>")
+                return;
+            
             bool isStruct = (!type.IsEnum && type.IsValueType);
             bool isEnum = type.IsEnum;
             bool isClass = (!isStruct && !isStruct);
-
             ConsoleColor color = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : ConsoleColor.Cyan;
 
             // Log
@@ -51,9 +73,10 @@ namespace CSharpLLVM.Compiler
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
                 mLookup.AddType(type, data);
                 List<TypeRef> structData = new List<TypeRef>();
+                List<FieldDefinition> fields = getFields(type);
 
                 // Fields
-                foreach (FieldDefinition field in type.Fields)
+                foreach (FieldDefinition field in fields)
                 {
                     // Internal
                     if (field.FullName[0] == '<')

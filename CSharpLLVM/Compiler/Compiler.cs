@@ -90,7 +90,7 @@ namespace CSharpLLVM.Compiler
             // TODO
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
-            LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
+            /*LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
             LLVM.AddConstantPropagationPass(mFunctionPassManager);
             LLVM.AddReassociatePass(mFunctionPassManager);
             LLVM.AddInstructionCombiningPass(mFunctionPassManager);
@@ -99,14 +99,14 @@ namespace CSharpLLVM.Compiler
             LLVM.AddLoopUnrollPass(mFunctionPassManager);
             LLVM.AddTailCallEliminationPass(mFunctionPassManager);
             LLVM.AddGVNPass(mFunctionPassManager);
-            LLVM.AddJumpThreadingPass(mFunctionPassManager);
+            LLVM.AddJumpThreadingPass(mFunctionPassManager);*/
             LLVM.AddCFGSimplificationPass(mFunctionPassManager);
 
             mPassManager = LLVM.CreatePassManager();
-            LLVM.AddAlwaysInlinerPass(mPassManager);
+            /*LLVM.AddAlwaysInlinerPass(mPassManager);
             LLVM.AddFunctionInliningPass(mPassManager);
             LLVM.AddStripDeadPrototypesPass(mPassManager);
-            LLVM.AddStripSymbolsPass(mPassManager);
+            LLVM.AddStripSymbolsPass(mPassManager);*/
 
             compileModules();
 

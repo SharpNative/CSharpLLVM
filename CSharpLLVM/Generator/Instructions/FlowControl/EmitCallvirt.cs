@@ -35,13 +35,17 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             for (int i = paramCount - 1; i >= 1; i--)
             {
                 StackElement element = context.CurrentStack.Pop();
+                TypeReference type = methodRef.Parameters[i - 1].ParameterType;
                 argVals[i] = element.Value;
-                paramTypes[i] = TypeHelper.GetTypeRefFromType(methodRef.Parameters[i - 1].ParameterType);
 
+                paramTypes[i] = TypeHelper.GetTypeRefFromType(type);
+                if (TypeHelper.IsClass(type))
+                    paramTypes[i] = LLVM.PointerType(paramTypes[i], 0);
+                
                 // Cast needed?
                 if (element.Type != paramTypes[i])
                 {
-                    argVals[i] = LLVM.BuildIntCast(builder, argVals[i], paramTypes[i], "callcast");
+                    CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
                 }
             }
 

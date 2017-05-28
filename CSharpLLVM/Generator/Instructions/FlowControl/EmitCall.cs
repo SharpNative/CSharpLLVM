@@ -51,26 +51,31 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             TypeRef[] paramTypes = new TypeRef[paramCount];
             for (int i = paramCount - 1; i >= 0; i--)
             {
+                TypeReference type;
                 StackElement element = context.CurrentStack.Pop();
                 argVals[i] = element.Value;
-
+                
                 // Note: the instance pointer is not included in the parameters explicitely
                 if (methodRef.HasThis)
                 {
                     if (i == 0)
-                        paramTypes[i] = element.Type;
+                        type = methodRef.DeclaringType;
                     else
-                        paramTypes[i] = TypeHelper.GetTypeRefFromType(methodRef.Parameters[i - 1].ParameterType);
+                        type = methodRef.Parameters[i - 1].ParameterType;
                 }
                 else
                 {
-                    paramTypes[i] = TypeHelper.GetTypeRefFromType(methodRef.Parameters[i].ParameterType);
+                    type = methodRef.Parameters[i].ParameterType;
                 }
+
+                paramTypes[i] = TypeHelper.GetTypeRefFromType(type);
+                if (TypeHelper.IsClass(type))
+                    paramTypes[i] = LLVM.PointerType(paramTypes[i], 0);
 
                 // Cast needed?
                 if (element.Type != paramTypes[i])
                 {
-                    argVals[i] = LLVM.BuildIntCast(builder, argVals[i], paramTypes[i], "callcast");
+                    CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
                 }
             }
 
