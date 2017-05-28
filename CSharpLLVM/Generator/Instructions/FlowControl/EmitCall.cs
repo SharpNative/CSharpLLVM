@@ -69,7 +69,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 }
 
                 paramTypes[i] = TypeHelper.GetTypeRefFromType(type);
-                if (TypeHelper.IsClass(type))
+                if (TypeHelper.DoesClassNeedPointer(type))
                     paramTypes[i] = LLVM.PointerType(paramTypes[i], 0);
 
                 // Cast needed?

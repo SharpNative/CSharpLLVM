@@ -333,23 +333,24 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Checks if a type is a class
+        /// Checks if a type is a class and if it needs a pointer
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>If the type is a class</returns>
-        public static bool IsClass(TypeReference type)
+        public static bool DoesClassNeedPointer(TypeReference type)
         {
-            return IsClass(type.Resolve());
+            return DoesClassNeedPointer(type.Resolve());
         }
 
         /// <summary>
-        /// Checks if a type is a class
+        /// Checks if a type is a class and if it needs a pointer
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>If the type is a class</returns>
-        public static bool IsClass(TypeDefinition type)
+        public static bool DoesClassNeedPointer(TypeDefinition type)
         {
-            return (type.IsClass && !type.IsValueType);
+            // Note: We don't treat strings like the C-way
+            return (type.IsClass && !type.IsValueType && type.FullName != "System.String");
         }
     }
 }

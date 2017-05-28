@@ -21,7 +21,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             MethodReference ctor = (MethodReference)instruction.Operand;
             TypeRef type = context.Compiler.Lookup.GetTypeRef(ctor.DeclaringType);
 
-            bool isClass = TypeHelper.IsClass(ctor.DeclaringType);
+            bool isClass = TypeHelper.DoesClassNeedPointer(ctor.DeclaringType);
             ValueRef objPtr = (isClass) ? LLVM.BuildMalloc(builder, type, "newobj") : LLVM.BuildAlloca(builder, type, "newobj");
             
             // Call .ctor

@@ -15,6 +15,7 @@ namespace CSharpLLVM.Compiler
         private ContextRef mContext;
         private MethodCompiler mMethodCompiler;
         private TypeCompiler mTypeCompiler;
+        private BuiltinRuntimeFunctions mBuiltinCompiler;
 
         private PassManagerRef mFunctionPassManager;
         private PassManagerRef mPassManager;
@@ -39,6 +40,7 @@ namespace CSharpLLVM.Compiler
             Lookup = new Lookup();
 
             mMethodCompiler = new MethodCompiler(this);
+            mBuiltinCompiler = new BuiltinRuntimeFunctions(this);
             mTypeCompiler = new TypeCompiler(this, Lookup);
         }
         
@@ -79,12 +81,6 @@ namespace CSharpLLVM.Compiler
             {
                 throw new InvalidOperationException(error);
             }
-
-            // Initialize types and runtime
-            string dataLayout = LLVM.GetDataLayout(Module);
-            TargetData = LLVM.CreateTargetData(dataLayout);
-            TypeHelper.Init(TargetData, Lookup);
-            RuntimeHelper.ImportFunctions(Module);
             
             // Optimizer
             // TODO
@@ -99,8 +95,8 @@ namespace CSharpLLVM.Compiler
             LLVM.AddLoopUnrollPass(mFunctionPassManager);
             LLVM.AddTailCallEliminationPass(mFunctionPassManager);
             LLVM.AddGVNPass(mFunctionPassManager);
-            LLVM.AddJumpThreadingPass(mFunctionPassManager);*/
-            LLVM.AddCFGSimplificationPass(mFunctionPassManager);
+            LLVM.AddJumpThreadingPass(mFunctionPassManager);
+            LLVM.AddCFGSimplificationPass(mFunctionPassManager);*/
 
             mPassManager = LLVM.CreatePassManager();
             /*LLVM.AddAlwaysInlinerPass(mPassManager);
@@ -108,8 +104,14 @@ namespace CSharpLLVM.Compiler
             LLVM.AddStripDeadPrototypesPass(mPassManager);
             LLVM.AddStripSymbolsPass(mPassManager);*/
 
-            compileModules();
+            // Initialize types and runtime
+            string dataLayout = LLVM.GetDataLayout(Module);
+            TargetData = LLVM.CreateTargetData(dataLayout);
 
+            TypeHelper.Init(TargetData, Lookup);
+            RuntimeHelper.ImportFunctions(Module);
+            mBuiltinCompiler.Compile();
+            compileModules();
             LLVM.RunPassManager(mPassManager, Module);
 
             // Debug: print LLVM assembly code

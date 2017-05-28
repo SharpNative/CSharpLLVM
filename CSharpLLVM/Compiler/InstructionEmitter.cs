@@ -49,7 +49,7 @@ namespace CSharpLLVM.Compiler
                 TypeRef type = TypeHelper.GetTypeRefFromType(varDef.VariableType);
 
                 // Pointer for classes
-                bool isClass = TypeHelper.IsClass(varDef.VariableType);
+                bool isClass = TypeHelper.DoesClassNeedPointer(varDef.VariableType);
                 if (isClass)
                 {
                     type = LLVM.PointerType(type, 0);
