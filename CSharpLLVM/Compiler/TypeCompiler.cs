@@ -21,7 +21,7 @@ namespace CSharpLLVM.Compiler
             mCompiler = compiler;
             mLookup = lookup;
         }
-        
+
         /// <summary>
         /// Compiles a type
         /// </summary>
@@ -31,7 +31,7 @@ namespace CSharpLLVM.Compiler
             // Internal
             if (type.FullName == "<Module>")
                 return;
-            
+
             bool isStruct = (!type.IsEnum && type.IsValueType);
             bool isEnum = type.IsEnum;
             bool isClass = (!isStruct && !isStruct);
@@ -68,11 +68,15 @@ namespace CSharpLLVM.Compiler
                     // Static field
                     if (field.IsStatic)
                     {
-                        ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
+                        // Only add it if we don't have it already (is possible when inheriting classes)
+                        if (!mLookup.HasStaticField(field))
+                        {
+                            ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
 
-                        // Note: the initializer may be changed later if the compiler sees that it can be constant
-                        LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
-                        mLookup.AddStaticField(field, val);
+                            // Note: the initializer may be changed later if the compiler sees that it can be constant
+                            LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
+                            mLookup.AddStaticField(field, val);
+                        }
                     }
                     // Field for type instance
                     else
