@@ -21,26 +21,7 @@ namespace CSharpLLVM.Compiler
             mCompiler = compiler;
             mLookup = lookup;
         }
-
-        /// <summary>
-        /// Gets the fields of a type including the inherited fields
-        /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The list of fields</returns>
-        private List<FieldDefinition> getFields(TypeDefinition type)
-        {
-            List<FieldDefinition> fields = new List<FieldDefinition>();
-            TypeDefinition parent = type.BaseType.Resolve();
-
-            // First add parent fields, then our own fields
-            if (parent.HasFields)
-                fields.AddRange(getFields(parent));
-
-            fields.AddRange(type.Fields);
-
-            return fields;
-        }
-
+        
         /// <summary>
         /// Compiles a type
         /// </summary>
@@ -73,7 +54,7 @@ namespace CSharpLLVM.Compiler
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
                 mLookup.AddType(type, data);
                 List<TypeRef> structData = new List<TypeRef>();
-                List<FieldDefinition> fields = getFields(type);
+                List<FieldDefinition> fields = mLookup.GetFields(type);
 
                 // Fields
                 foreach (FieldDefinition field in fields)

@@ -10,8 +10,9 @@ namespace CSharpLLVM.Compiler
         private Dictionary<string, ValueRef> mFunctionLookup = new Dictionary<string, ValueRef>();
         private Dictionary<FieldReference, ValueRef> mStaticFieldLookup = new Dictionary<FieldReference, ValueRef>();
         private Dictionary<TypeReference, TypeRef> mTypeLookup = new Dictionary<TypeReference, TypeRef>();
+        private Dictionary<TypeReference, List<FieldDefinition>> mFieldLookup = new Dictionary<TypeReference, List<FieldDefinition>>();
 
-        private List<MethodDefinition> mcctors = new List<MethodDefinition>();
+        private List<MethodDefinition> mCctors = new List<MethodDefinition>();
 
         /// <summary>
         /// Gets a function
@@ -66,7 +67,7 @@ namespace CSharpLLVM.Compiler
         /// <param name="method">The method</param>
         public void AddCctor(MethodDefinition method)
         {
-            mcctors.Add(method);
+            mCctors.Add(method);
         }
 
         /// <summary>
@@ -98,7 +99,34 @@ namespace CSharpLLVM.Compiler
         /// <returns>An array containing the static constructors</returns>
         public MethodDefinition[] GetStaticConstructors()
         {
-            return mcctors.ToArray();
+            return mCctors.ToArray();
+        }
+        
+        /// <summary>
+        /// Gets the fields of a type including the inherited fields
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>The list of fields</returns>
+        public List<FieldDefinition> GetFields(TypeReference type)
+        {
+            // Cached?
+            if (mFieldLookup.ContainsKey(type))
+                return mFieldLookup[type];
+
+            TypeDefinition typeDef = type.Resolve();
+            List<FieldDefinition> fields = new List<FieldDefinition>();
+            TypeDefinition parent = typeDef.BaseType.Resolve();
+
+            // First add parent fields, then our own fields
+            if (parent.HasFields)
+                fields.AddRange(GetFields(parent));
+
+            fields.AddRange(typeDef.Fields);
+
+            // Add to cache
+            mFieldLookup.Add(type, fields);
+
+            return fields;
         }
 
         /// <summary>
@@ -108,15 +136,20 @@ namespace CSharpLLVM.Compiler
         /// <returns>The field index</returns>
         public uint GetFieldIndex(FieldReference field)
         {
-            TypeDefinition type = field.DeclaringType.Resolve();
-
+            List<FieldDefinition> fields = GetFields(field.DeclaringType);
+            
             uint i = 0;
-            foreach (FieldDefinition child in type.Fields)
+            foreach (FieldDefinition child in fields)
             {
                 // Internal
                 if (field.FullName[0] == '<')
                     continue;
 
+                // Static fields don't count
+                if (child.IsStatic)
+                    continue;
+
+                // Found
                 if (field == child)
                     return i;
 

@@ -33,6 +33,12 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             }
 
             ValueRef ptr = LLVM.BuildInBoundsGEP(builder, obj.Value, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "field");
+
+            // Possible cast needed
+            TypeRef destType = TypeHelper.GetTypeRefFromType(field.FieldType);
+            if (value.Type != destType)
+                CastHelper.HelpIntAndPtrCast(builder, ref value.Value, value.Type, destType);
+
             LLVM.BuildStore(builder, value.Value, ptr);
         }
     }
