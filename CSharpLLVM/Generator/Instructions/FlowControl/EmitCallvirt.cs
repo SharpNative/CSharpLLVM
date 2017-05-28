@@ -20,7 +20,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
         {
             MethodReference methodRef = (MethodReference)instruction.Operand;
             TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
-            
+
             // Build parameter value and types arrays
             int paramCount = 1 + methodRef.Parameters.Count;
 
@@ -32,27 +32,28 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             // Note: backwards for loop because stack is backwards!
             ValueRef[] argVals = new ValueRef[paramCount];
             TypeRef[] paramTypes = new TypeRef[paramCount];
-            for (int i = paramCount - 1; i >= 1; i--)
+            for (int i = paramCount - 1; i >= 0; i--)
             {
+                TypeReference type;
                 StackElement element = context.CurrentStack.Pop();
-                TypeReference type = methodRef.Parameters[i - 1].ParameterType;
                 argVals[i] = element.Value;
+
+                // Get type of parameter
+                if (i == 0)
+                    type = methodRef.DeclaringType;
+                else
+                    type = methodRef.Parameters[i - 1].ParameterType;
 
                 paramTypes[i] = TypeHelper.GetTypeRefFromType(type);
                 if (TypeHelper.IsClass(type))
                     paramTypes[i] = LLVM.PointerType(paramTypes[i], 0);
-                
+
                 // Cast needed?
                 if (element.Type != paramTypes[i])
                 {
                     CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
                 }
             }
-
-            // Instance pointer was pushed first
-            StackElement instance = context.CurrentStack.Pop();
-            paramTypes[0] = instance.Type;
-            argVals[0] = instance.Value;
 
             // Call
             ValueRef retVal = LLVM.BuildCall(builder, func.Value, argVals, string.Empty);

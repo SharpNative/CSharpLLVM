@@ -33,7 +33,7 @@ namespace CSharpLLVM.Compiler
             TypeDefinition parent = type.BaseType.Resolve();
 
             // First add parent fields, then our own fields
-            if(parent.HasFields)
+            if (parent.HasFields)
                 fields.AddRange(getFields(parent));
 
             fields.AddRange(type.Fields);

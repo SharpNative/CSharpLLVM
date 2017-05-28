@@ -56,7 +56,8 @@ namespace CSharpLLVM.Compiler
         /// <param name="val">The value</param>
         public void AddStaticField(FieldReference field, ValueRef val)
         {
-            mStaticFieldLookup.Add(field, val);
+            if (!mStaticFieldLookup.ContainsKey(field))
+                mStaticFieldLookup.Add(field, val);
         }
 
         /// <summary>
