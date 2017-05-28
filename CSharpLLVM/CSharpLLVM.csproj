@@ -90,6 +90,7 @@
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShl.cs" />
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr_Un.cs" />
     <Compile Include="Generator\Instructions\BitwiseOps\EmitShr.cs" />
+    <Compile Include="Generator\Instructions\FlowControl\EmitCallvirt.cs" />
     <Compile Include="Generator\Instructions\InstructionHandlerAttribute.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitLdtoken.cs" />
     <Compile Include="Generator\Instructions\Objects\EmitNewobj.cs" />

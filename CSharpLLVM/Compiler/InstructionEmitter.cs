@@ -4,6 +4,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using Swigged.LLVM;
+using System;
 
 namespace CSharpLLVM.Compiler
 {
@@ -46,9 +47,17 @@ namespace CSharpLLVM.Compiler
             foreach (VariableDefinition varDef in body.Variables)
             {
                 TypeRef type = TypeHelper.GetTypeRefFromType(varDef.VariableType);
+
+                // Pointer for classes
+                bool isClass = TypeHelper.IsClass(varDef.VariableType);
+                if (isClass)
+                {
+                    type = LLVM.PointerType(type, 0);
+                }
+
                 mContext.LocalValues[varDef.Index] = LLVM.BuildAlloca(mBuilder, type, string.Format("local{0}", varDef.Index));
                 mContext.LocalTypes[varDef.Index] = type;
-                mContext.LocalILTypes[varDef.Index] = varDef.VariableType;
+                mContext.LocalILTypes[varDef.Index] = (isClass) ? new PointerType(varDef.VariableType) : varDef.VariableType;
             }
         }
 

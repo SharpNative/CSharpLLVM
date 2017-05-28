@@ -110,6 +110,7 @@ namespace CSharpLLVM.Helpers
                     PinnedType pinned = (PinnedType)type;
                     return GetTypeRefFromType(pinned.ElementType);
 
+                case MetadataType.Class:
                 case MetadataType.ValueType:
                     return mLookup.GetTypeRef(type);
 
@@ -293,7 +294,7 @@ namespace CSharpLLVM.Helpers
                 return typeof(double);
             else if (typeRef == Boolean)
                 return typeof(bool);
-            
+
             throw new InvalidOperationException("Could not get basic type from typeref: " + typeRef);
         }
 
@@ -329,6 +330,26 @@ namespace CSharpLLVM.Helpers
         public static bool IsPointer(StackElement element)
         {
             return (LLVM.GetTypeKind(element.Type) == TypeKind.PointerTypeKind);
+        }
+
+        /// <summary>
+        /// Checks if a type is a class
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>If the type is a class</returns>
+        public static bool IsClass(TypeReference type)
+        {
+            return IsClass(type.Resolve());
+        }
+
+        /// <summary>
+        /// Checks if a type is a class
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>If the type is a class</returns>
+        public static bool IsClass(TypeDefinition type)
+        {
+            return (type.IsClass && !type.IsValueType);
         }
     }
 }

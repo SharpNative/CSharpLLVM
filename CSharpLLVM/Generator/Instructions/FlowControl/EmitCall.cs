@@ -19,16 +19,23 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
+            MethodReference methodRef = (MethodReference)instruction.Operand;
+            TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
+
             // Check for special cases
-            if(instruction.Previous.OpCode.Code == Code.Ldtoken)
+            if (instruction.Previous != null && instruction.Previous.OpCode.Code == Code.Ldtoken)
             {
                 emitFromLdtoken(instruction, context, builder);
                 return;
             }
+            // Call System.Object::.ctor() ?
+            else if (methodRef.FullName == "System.Void System.Object::.ctor()")
+            {
+                // Delete object reference from stack and ignore this
+                context.CurrentStack.Pop();
+                return;
+            }
             
-            MethodReference methodRef = (MethodReference)instruction.Operand;
-            TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
-
             // Build parameter value and types arrays
             int paramCount = methodRef.Parameters.Count;
             if (methodRef.HasThis)
