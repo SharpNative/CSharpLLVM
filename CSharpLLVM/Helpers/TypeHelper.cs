@@ -333,24 +333,24 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Checks if a type is a class and if it needs a pointer
+        /// Checks if a type needs a pointer
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>If the type is a class</returns>
-        public static bool DoesClassNeedPointer(TypeReference type)
+        public static bool RequiresExtraPointer(TypeReference type)
         {
-            return DoesClassNeedPointer(type.Resolve());
+            return RequiresExtraPointer(type.Resolve());
         }
 
         /// <summary>
-        /// Checks if a type is a class and if it needs a pointer
+        /// Checks if a type needs a pointer
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>If the type is a class</returns>
-        public static bool DoesClassNeedPointer(TypeDefinition type)
+        public static bool RequiresExtraPointer(TypeDefinition type)
         {
-            // Note: We don't treat strings like the C-way
-            return (type.IsClass && !type.IsValueType && type.FullName != "System.String");
+            // Note: We treat strings like the C-way, not really as a class
+            return ((type.IsInterface) || (type.IsClass && !type.IsValueType && type.FullName != "System.String"));
         }
     }
 }

@@ -49,15 +49,15 @@ namespace CSharpLLVM.Compiler
                 TypeRef type = TypeHelper.GetTypeRefFromType(varDef.VariableType);
 
                 // Pointer for classes
-                bool isClass = TypeHelper.DoesClassNeedPointer(varDef.VariableType);
-                if (isClass)
+                bool ptr = TypeHelper.RequiresExtraPointer(varDef.VariableType);
+                if (ptr)
                 {
                     type = LLVM.PointerType(type, 0);
                 }
 
                 mContext.LocalValues[varDef.Index] = LLVM.BuildAlloca(mBuilder, type, string.Format("local{0}", varDef.Index));
                 mContext.LocalTypes[varDef.Index] = type;
-                mContext.LocalILTypes[varDef.Index] = (isClass) ? new PointerType(varDef.VariableType) : varDef.VariableType;
+                mContext.LocalILTypes[varDef.Index] = (ptr) ? new PointerType(varDef.VariableType) : varDef.VariableType;
             }
         }
 

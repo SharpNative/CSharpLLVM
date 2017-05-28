@@ -87,7 +87,7 @@ namespace CSharpLLVM.Compiler
 
                 // Packing?
                 bool packed = (type.PackingSize != -1);
-                if (type.PackingSize != 1 && type.PackingSize != -1)
+                if (type.PackingSize != 1 && type.PackingSize != -1 && type.PackingSize != 0)
                 {
                     throw new NotImplementedException("The packing size " + type.PackingSize + " is not implemented");
                 }

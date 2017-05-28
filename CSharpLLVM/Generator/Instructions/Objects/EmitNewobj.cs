@@ -21,8 +21,8 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             MethodReference ctor = (MethodReference)instruction.Operand;
             TypeRef type = context.Compiler.Lookup.GetTypeRef(ctor.DeclaringType);
 
-            bool isClass = TypeHelper.DoesClassNeedPointer(ctor.DeclaringType);
-            ValueRef objPtr = (isClass) ? LLVM.BuildMalloc(builder, type, "newobj") : LLVM.BuildAlloca(builder, type, "newobj");
+            bool ptr = TypeHelper.RequiresExtraPointer(ctor.DeclaringType);
+            ValueRef objPtr = (ptr) ? LLVM.BuildMalloc(builder, type, "newobj") : LLVM.BuildAlloca(builder, type, "newobj");
             
             // Call .ctor
             int paramCount = 1 + ctor.Parameters.Count;
@@ -37,7 +37,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             LLVM.BuildCall(builder, context.Compiler.Lookup.GetFunction(NameHelper.CreateMethodName(ctor)).Value, values, string.Empty);
 
             // Load and push object on stack
-            ValueRef obj = (isClass) ? objPtr : LLVM.BuildLoad(builder, objPtr, "obj");
+            ValueRef obj = (ptr) ? objPtr : LLVM.BuildLoad(builder, objPtr, "obj");
             context.CurrentStack.Push(new StackElement(obj, TypeHelper.GetTypeFromTypeReference(context.Compiler, ctor.DeclaringType), type));
         }
     }

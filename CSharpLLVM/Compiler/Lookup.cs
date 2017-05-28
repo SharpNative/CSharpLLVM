@@ -122,8 +122,11 @@ namespace CSharpLLVM.Compiler
             if (mFieldLookup.ContainsKey(type))
                 return mFieldLookup[type];
 
-            TypeDefinition typeDef = type.Resolve();
             List<FieldDefinition> fields = new List<FieldDefinition>();
+            TypeDefinition typeDef = type.Resolve();
+            if (typeDef.BaseType == null)
+                return fields;
+
             TypeDefinition parent = typeDef.BaseType.Resolve();
 
             // First add parent fields, then our own fields
