@@ -27,7 +27,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             // Get the method, if it is null, create a new empty one, otherwise reference it
             string methodName = NameHelper.CreateMethodName(methodRef);
             ValueRef? func = context.Compiler.Lookup.GetFunction(methodName);
-
+            
             // Process arguments
             // Note: backwards for loop because stack is backwards!
             ValueRef[] argVals = new ValueRef[paramCount];
@@ -53,6 +53,14 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 {
                     CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
                 }
+            }
+
+            // Function does not exist, create a declaration for the function
+            if (!func.HasValue)
+            {
+                TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
+                func = LLVM.AddFunction(context.Compiler.Module, methodName, functionType);
+                context.Compiler.Lookup.AddFunction(methodName, func.Value);
             }
 
             // Call

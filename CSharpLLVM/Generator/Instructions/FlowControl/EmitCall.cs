@@ -79,7 +79,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 }
             }
 
-            // Function does not exist, create new empty function
+            // Function does not exist, create a declaration for the function
             if (!func.HasValue)
             {
                 TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
