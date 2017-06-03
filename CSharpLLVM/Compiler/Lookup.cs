@@ -11,6 +11,7 @@ namespace CSharpLLVM.Compiler
         private Dictionary<FieldReference, ValueRef> mStaticFieldLookup = new Dictionary<FieldReference, ValueRef>();
         private Dictionary<TypeReference, TypeRef> mTypeLookup = new Dictionary<TypeReference, TypeRef>();
         private Dictionary<TypeReference, List<FieldDefinition>> mFieldLookup = new Dictionary<TypeReference, List<FieldDefinition>>();
+        private Dictionary<TypeReference, VTable> mVTableLookup = new Dictionary<TypeReference, VTable>();
 
         private List<MethodDefinition> mCctors = new List<MethodDefinition>();
 
@@ -100,6 +101,28 @@ namespace CSharpLLVM.Compiler
                 throw new InvalidOperationException("Type " + type + " not found");
 
             return mTypeLookup[type];
+        }
+
+        /// <summary>
+        /// Adds a new VTable
+        /// </summary>
+        /// <param name="table">The table</param>
+        public void AddVTable(VTable table)
+        {
+            mVTableLookup.Add(table.Type, table);
+        }
+
+        /// <summary>
+        /// Gets a VTable
+        /// </summary>
+        /// <param name="type">The type for which the VTable is</param>
+        /// <returns>The VTable</returns>
+        public VTable GetVTable(TypeReference type)
+        {
+            if (!mVTableLookup.ContainsKey(type))
+                throw new InvalidOperationException("VTable for type " + type + " not found");
+
+            return mVTableLookup[type];
         }
 
         /// <summary>

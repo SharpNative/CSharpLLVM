@@ -21,7 +21,7 @@ namespace CSharpLLVM.Compiler
             mCompiler = compiler;
             mLookup = lookup;
         }
-
+        
         /// <summary>
         /// Compiles a type
         /// </summary>
@@ -34,11 +34,11 @@ namespace CSharpLLVM.Compiler
 
             bool isStruct = (!type.IsEnum && type.IsValueType);
             bool isEnum = type.IsEnum;
-            bool isClass = (!isStruct && !isStruct);
-            ConsoleColor color = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : ConsoleColor.Cyan;
-
+            bool isInterface = type.IsInterface;
+            bool isClass = (!isStruct && !isInterface);
+            
             // Log
-            Console.ForegroundColor = color;
+            Console.ForegroundColor = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : isInterface ? ConsoleColor.DarkMagenta : ConsoleColor.Cyan; ;
             Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
             Console.ForegroundColor = ConsoleColor.Gray;
 
@@ -50,6 +50,12 @@ namespace CSharpLLVM.Compiler
             // Structs and classes
             else
             {
+                // VTable
+                VTable vtable = new VTable(mCompiler, type);
+                mLookup.AddVTable(vtable);
+                vtable.Create();
+                vtable.Dump();
+
                 // Create struct for this type
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
                 mLookup.AddType(type, data);

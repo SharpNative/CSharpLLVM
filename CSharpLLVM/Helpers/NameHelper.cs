@@ -32,8 +32,20 @@ namespace CSharpLLVM.Helpers
         public static string CreateMethodName(MethodReference methodRef)
         {
             string returnType = CreateTypeName(methodRef.ReturnType);
-            string methodName = methodRef.Name.Replace('.', '_');
             string parentType = CreateTypeName(methodRef.DeclaringType);
+            
+            // Format: returnType_parentType_methodName_parameters
+            return string.Format("{0}_{1}_{2}", returnType, parentType, CreateShortMethodName(methodRef));
+        }
+
+        /// <summary>
+        /// Creates a short method name from an IL method
+        /// </summary>
+        /// <param name="methodRef">The IL method</param>
+        /// <returns>The short method name</returns>
+        public static string CreateShortMethodName(MethodReference methodRef)
+        {
+            string methodName = methodRef.Name.Replace('.', '_');
 
             // Generate list of parameters
             string paramList = "";
@@ -41,9 +53,8 @@ namespace CSharpLLVM.Helpers
             {
                 paramList += CreateTypeName(param.ParameterType);
             }
-
-            // Format: returnType_parentType_methodName_parameters
-            return string.Format("{0}_{1}_{2}_{3}", returnType, parentType, methodName, paramList);
+            
+            return string.Format("{0}_{1}", methodName, paramList);
         }
     }
 }

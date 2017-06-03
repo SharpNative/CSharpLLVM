@@ -24,8 +24,10 @@ namespace CSharpLLVM
             Version version = Assembly.GetEntryAssembly().GetName().Version;
             Console.WriteLine("CSharpLLVM version " + version);
 
+            // No input?
             if (args.Length == 0)
             {
+                Console.WriteLine("No input");
                 printUsage();
                 return;
             }
