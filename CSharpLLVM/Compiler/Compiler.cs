@@ -210,6 +210,9 @@ namespace CSharpLLVM.Compiler
             // Sort types to help dependencies
             foreach (TypeDefinition type in types)
             {
+                if (type.FullName == "<Module>")
+                    continue;
+
                 sortedTypes.Add(type);
             }
             sortedTypes.Sort(sortTypes);

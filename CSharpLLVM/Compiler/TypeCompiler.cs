@@ -28,10 +28,6 @@ namespace CSharpLLVM.Compiler
         /// <param name="type">The type</param>
         public void Compile(TypeDefinition type)
         {
-            // Internal
-            if (type.FullName == "<Module>")
-                return;
-
             bool isStruct = (!type.IsEnum && type.IsValueType);
             bool isEnum = type.IsEnum;
             bool isInterface = type.IsInterface;
