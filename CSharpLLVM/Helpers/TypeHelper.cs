@@ -352,5 +352,30 @@ namespace CSharpLLVM.Helpers
             // Note: We treat strings like the C-way, not really as a class
             return ((type.IsInterface) || (type.IsClass && !type.IsValueType && type.FullName != "System.String"));
         }
+
+        /// <summary>
+        /// Checks if a type inherits the other type
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <param name="baseType">The base type</param>
+        /// <returns>If the type inherits from the base type</returns>
+        public static bool InheritsFrom(TypeDefinition type, TypeDefinition baseType)
+        {
+            if (baseType.IsInterface)
+                return type.Interfaces.Contains(baseType);
+
+            TypeDefinition current = type;
+            while (current != null)
+            {
+                if (current.BaseType == baseType)
+                    return true;
+                else if (current.BaseType == null)
+                    return false;
+
+                current = current.BaseType.Resolve();
+            }
+
+            return false;
+        }
     }
 }

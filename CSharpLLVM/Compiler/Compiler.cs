@@ -27,7 +27,7 @@ namespace CSharpLLVM.Compiler
         public CodeGenerator CodeGen { get; private set; }
         public TargetDataRef TargetData { get; private set; }
         public Lookup Lookup { get; private set; }
-        
+
         /// <summary>
         /// Creates a new Compiler
         /// </summary>
@@ -35,7 +35,7 @@ namespace CSharpLLVM.Compiler
         public Compiler(CompilerSettings settings)
         {
             Settings = settings;
-            
+
             CodeGen = new CodeGenerator();
             Lookup = new Lookup();
 
@@ -43,7 +43,7 @@ namespace CSharpLLVM.Compiler
             mBuiltinCompiler = new BuiltinRuntimeFunctions(this);
             mTypeCompiler = new TypeCompiler(this, Lookup);
         }
-        
+
         /// <summary>
         /// Verifies and optimizes a function
         /// </summary>
@@ -81,7 +81,7 @@ namespace CSharpLLVM.Compiler
             {
                 throw new InvalidOperationException(error);
             }
-            
+
             // Optimizer
             // TODO
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
@@ -156,7 +156,7 @@ namespace CSharpLLVM.Compiler
             {
                 compileModule(moduleDef);
             }
-            
+
             // Create init method containing the calls to the .cctors
             compileInitMethod();
         }
@@ -182,6 +182,22 @@ namespace CSharpLLVM.Compiler
         }
 
         /// <summary>
+        /// Method to sort types based on dependencies
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Order number</returns>
+        private static int sortTypes(TypeDefinition left, TypeDefinition right)
+        {
+            if (TypeHelper.InheritsFrom(left, right))
+                return 1;
+            else if (TypeHelper.InheritsFrom(right, left))
+                return -1;
+
+            return 0;
+        }
+
+        /// <summary>
         /// Compiles a module
         /// </summary>
         /// <param name="moduleDef">The IL module definition</param>
@@ -189,13 +205,21 @@ namespace CSharpLLVM.Compiler
         {
             List<MethodDefinition> methods = new List<MethodDefinition>();
             Collection<TypeDefinition> types = moduleDef.Types;
+            List<TypeDefinition> sortedTypes = new List<TypeDefinition>();
 
-            // Compiles types and adds methods
+            // Sort types to help dependencies
             foreach (TypeDefinition type in types)
+            {
+                sortedTypes.Add(type);
+            }
+            sortedTypes.Sort(sortTypes);
+            
+            // Compiles types and adds methods
+            foreach (TypeDefinition type in sortedTypes)
             {
                 compileType(type, methods);
             }
-
+            
             // Compile methods
             foreach (MethodDefinition method in methods)
             {
@@ -218,7 +242,7 @@ namespace CSharpLLVM.Compiler
             }
 
             mTypeCompiler.Compile(type);
-            
+
             // Note: we first need all types to generate before we can generate methods
             //       because methods may refer to types that are not yet generated
             methods.AddRange(type.Methods);

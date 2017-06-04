@@ -124,7 +124,7 @@ namespace CSharpLLVM.Compiler
 
             return mVTableLookup[type];
         }
-
+        
         /// <summary>
         /// Returns the static constructors (.cctor)
         /// </summary>
