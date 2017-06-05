@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
+using System.Diagnostics;
 
 namespace CSharpLLVM.Compiler
 {
@@ -59,6 +60,9 @@ namespace CSharpLLVM.Compiler
         /// </summary>
         public void Compile()
         {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             // Create LLVM module and its context
             LLVM.EnablePrettyStackTrace();
             mModule = LLVM.ModuleCreateWithName(Settings.ModuleName);
@@ -113,6 +117,12 @@ namespace CSharpLLVM.Compiler
             mBuiltinCompiler.Compile();
             compileModules();
             LLVM.RunPassManager(mPassManager, Module);
+
+            // Log time
+            stopWatch.Stop();
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.WriteLine("Compilation time: " + stopWatch.Elapsed);
+            Console.ForegroundColor = ConsoleColor.Gray;
 
             // Debug: print LLVM assembly code
             Console.WriteLine(LLVM.PrintModuleToString(mModule));
@@ -216,13 +226,13 @@ namespace CSharpLLVM.Compiler
                 sortedTypes.Add(type);
             }
             sortedTypes.Sort(sortTypes);
-            
+
             // Compiles types and adds methods
             foreach (TypeDefinition type in sortedTypes)
             {
                 compileType(type, methods);
             }
-            
+
             // Compile methods
             foreach (MethodDefinition method in methods)
             {
@@ -232,7 +242,7 @@ namespace CSharpLLVM.Compiler
             }
 
             // Compile VTables
-            foreach(VTable vtable in Lookup.VTables)
+            foreach (VTable vtable in Lookup.VTables)
             {
                 vtable.Compile();
             }

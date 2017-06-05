@@ -4,8 +4,6 @@ using CSharpLLVM.Compiler;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
-using System;
-using System.Collections.Generic;
 
 namespace CSharpLLVM.Generator.Instructions.Objects
 {
