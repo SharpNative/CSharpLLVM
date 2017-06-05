@@ -1,4 +1,5 @@
-﻿using CSharpLLVM.Helpers;
+﻿using CSharpLLVM.Generator;
+using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Swigged.LLVM;
 
@@ -66,9 +67,9 @@ namespace CSharpLLVM.Compiler
             if (methodDef.Body == null)
             {
                 LLVM.SetLinkage(function.Value, Linkage.ExternalLinkage);
-                return null;
+                return /*null*/function;
             }
-
+            
             // Compile instructions
             MethodContext ctx = new MethodContext(mCompiler, methodDef, function.Value);
             InstructionEmitter emitter = new InstructionEmitter(ctx);

@@ -1,12 +1,11 @@
-﻿using CSharpLLVM.Generator;
+﻿using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Collections.Generic;
 using Swigged.LLVM;
-using System;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Generator
 {
     class InstructionEmitter
     {

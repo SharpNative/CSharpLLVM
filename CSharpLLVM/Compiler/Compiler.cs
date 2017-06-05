@@ -86,8 +86,8 @@ namespace CSharpLLVM.Compiler
             // TODO
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
-            /*LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
-            LLVM.AddConstantPropagationPass(mFunctionPassManager);
+            //LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
+            /*LLVM.AddConstantPropagationPass(mFunctionPassManager);
             LLVM.AddReassociatePass(mFunctionPassManager);
             LLVM.AddInstructionCombiningPass(mFunctionPassManager);
             LLVM.AddMemCpyOptPass(mFunctionPassManager);
@@ -229,6 +229,12 @@ namespace CSharpLLVM.Compiler
                 ValueRef? function = compileMethod(method);
                 if (method.Name == ".cctor")
                     Lookup.AddCctor(method);
+            }
+
+            // Compile VTables
+            foreach(VTable vtable in Lookup.VTables)
+            {
+                vtable.Compile();
             }
         }
 

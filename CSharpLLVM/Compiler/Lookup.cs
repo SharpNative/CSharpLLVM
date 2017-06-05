@@ -15,6 +15,8 @@ namespace CSharpLLVM.Compiler
 
         private List<MethodDefinition> mCctors = new List<MethodDefinition>();
 
+        public Dictionary<TypeReference, VTable>.ValueCollection VTables { get { return mVTableLookup.Values; } }
+
         /// <summary>
         /// Gets a function
         /// </summary>
@@ -135,7 +137,7 @@ namespace CSharpLLVM.Compiler
         }
         
         /// <summary>
-        /// Gets the fields of a type including the inherited fields
+        /// Gets the fields of a type including the inherited fields, we use "null" to mark a barrier between types
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>The list of fields</returns>
@@ -153,15 +155,47 @@ namespace CSharpLLVM.Compiler
             TypeDefinition parent = typeDef.BaseType.Resolve();
 
             // First add parent fields, then our own fields
-            if (parent.HasFields)
-                fields.AddRange(GetFields(parent));
-
+            fields.AddRange(GetFields(parent));
             fields.AddRange(typeDef.Fields);
+            fields.Add(null);
 
             // Add to cache
             mFieldLookup.Add(type, fields);
 
             return fields;
+        }
+
+        public uint GetVTableIndex(TypeReference type)
+        {
+            List<FieldDefinition> fields = GetFields(type);
+
+            uint i = 0;
+            TypeReference currentType = null;
+            foreach (FieldDefinition child in fields)
+            {
+                if (child == null)
+                {
+                    i++;
+                    if (currentType == type)
+                        return i;
+                    
+                    continue;
+                }
+
+                // Internal
+                if (child.FullName[0] == '<')
+                    continue;
+
+                // Static fields don't count
+                if (child.IsStatic)
+                    continue;
+
+                currentType = child.DeclaringType;
+            }
+
+            throw new Exception("Could not find VTable index for: " + type);
+
+            //return 0;
         }
 
         /// <summary>
@@ -176,8 +210,14 @@ namespace CSharpLLVM.Compiler
             uint i = 0;
             foreach (FieldDefinition child in fields)
             {
+                if (child == null)
+                {
+                    i++;
+                    continue;
+                }
+
                 // Internal
-                if (field.FullName[0] == '<')
+                if (child.FullName[0] == '<')
                     continue;
 
                 // Static fields don't count

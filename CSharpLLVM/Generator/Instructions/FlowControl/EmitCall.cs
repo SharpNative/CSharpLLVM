@@ -116,7 +116,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             }
             else
             {
-                throw new NotImplementedException("Can't handle special case of call: " + methodRef.FullName);
+                throw new NotImplementedException("Can't handle special case of call: " + methodRef);
             }
         }
     }

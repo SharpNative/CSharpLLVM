@@ -137,7 +137,7 @@
     <Compile Include="Generator\Instructions\FlowControl\EmitRet.cs" />
     <Compile Include="Helpers\TypeHelper.cs" />
     <Compile Include="Generator\ICodeEmitter.cs" />
-    <Compile Include="Compiler\InstructionEmitter.cs" />
+    <Compile Include="Generator\InstructionEmitter.cs" />
     <Compile Include="Compiler\MethodCompiler.cs" />
     <Compile Include="Compiler\MethodContext.cs" />
     <Compile Include="Program.cs" />

@@ -21,7 +21,7 @@ namespace CSharpLLVM.Compiler
             mCompiler = compiler;
             mLookup = lookup;
         }
-        
+
         /// <summary>
         /// Compiles a type
         /// </summary>
@@ -32,9 +32,9 @@ namespace CSharpLLVM.Compiler
             bool isEnum = type.IsEnum;
             bool isInterface = type.IsInterface;
             bool isClass = (!isStruct && !isInterface);
-            
+
             // Log
-            Console.ForegroundColor = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : isInterface ? ConsoleColor.DarkMagenta : ConsoleColor.Cyan; ;
+            Console.ForegroundColor = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : isInterface ? ConsoleColor.DarkMagenta : ConsoleColor.Cyan;
             Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
             Console.ForegroundColor = ConsoleColor.Gray;
 
@@ -59,13 +59,22 @@ namespace CSharpLLVM.Compiler
                 List<FieldDefinition> fields = mLookup.GetFields(type);
 
                 // Fields
+                TypeDefinition currentType = type;
                 foreach (FieldDefinition field in fields)
                 {
+                    // Barrier
+                    if (field == null)
+                    {
+                        structData.Add(LLVM.PointerType(vtable.GetEntry(currentType).Item1, 0));
+                        continue;
+                    }
+
                     // Internal
                     if (field.FullName[0] == '<')
                         continue;
 
                     TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
+                    currentType = field.DeclaringType;
 
                     // Static field
                     if (field.IsStatic)

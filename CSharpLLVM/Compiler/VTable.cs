@@ -1,5 +1,6 @@
 ﻿using CSharpLLVM.Helpers;
 using Mono.Cecil;
+using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
 
@@ -13,6 +14,9 @@ namespace CSharpLLVM.Compiler
         // Contains pairs of methods and their indices, must match correct parent types (if any)
         private Dictionary<TypeReference, Dictionary<int, MethodReference>> mTable = new Dictionary<TypeReference, Dictionary<int, MethodReference>>();
         private Dictionary<TypeReference, Dictionary<string, int>> mNameTable = new Dictionary<TypeReference, Dictionary<string, int>>();
+
+        // Lookup for generated code of VTable
+        private Dictionary<TypeReference, Tuple<TypeRef, ValueRef>> mGeneratedTable = new Dictionary<TypeReference, Tuple<TypeRef, ValueRef>>();
 
         public TypeReference Type { get { return mType; } }
 
@@ -139,6 +143,72 @@ namespace CSharpLLVM.Compiler
                 index++;
             }
         }
+
+        /// <summary>
+        /// Creates the LLVM types
+        /// </summary>
+        private void createTypes()
+        {
+            string typeName = NameHelper.CreateTypeName(mType);
+            foreach (KeyValuePair<TypeReference, Dictionary<string, int>> names in mNameTable)
+            {
+                string name = string.Format("vtable_{0}_part_{1}", typeName, NameHelper.CreateTypeName(names.Key));
+
+                // Initialize to pointers
+                TypeRef[] types = new TypeRef[names.Value.Count];
+                for (int i = 0; i < names.Value.Count; i++)
+                {
+                    types[i] = TypeHelper.VoidPtr;
+                }
+                
+                TypeRef type = LLVM.StructType(types, false);
+                ValueRef global = LLVM.AddGlobal(mCompiler.Module, type, name);
+                
+                mGeneratedTable.Add(names.Key, new Tuple<TypeRef, ValueRef>(type, global));
+            }
+        }
+
+        public void Compile()
+        {
+            foreach(KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>> pair in mGeneratedTable)
+            {
+                Dictionary<int, MethodReference> lookup = mTable[pair.Key];
+
+                int i = 0;
+                ValueRef[] values = new ValueRef[lookup.Count];
+                foreach(KeyValuePair<int, MethodReference> entry in lookup)
+                {
+                    ValueRef? function = mCompiler.Lookup.GetFunction(NameHelper.CreateMethodName(entry.Value));
+                    if (!function.HasValue)
+                        throw new InvalidOperationException("Could not find function for: " + entry.Key);
+
+                    values[i++] = LLVM.ConstPointerCast(function.Value, TypeHelper.VoidPtr);
+                }
+
+                ValueRef initialValues = LLVM.ConstStruct(values, false);
+                LLVM.SetInitializer(pair.Value.Item2, initialValues);
+            }
+        }
+
+        public int GetMethodIndex(TypeReference type, MethodReference method)
+        {
+            string name = NameHelper.CreateShortMethodName(method);
+            return mNameTable[type][name];
+        }
+
+        /// <summary>
+        /// Gets an entry for a vtable type
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>The VTable</returns>
+        public Tuple<TypeRef, ValueRef> GetEntry(TypeReference type)
+        {
+            // TODO: remove this?
+            if (!mGeneratedTable.ContainsKey(type))
+                throw new InvalidOperationException("Cannot find the created vtable for type: " + type);
+
+            return mGeneratedTable[type];
+        }
         
         /// <summary>
         /// Creates a VTable
@@ -150,6 +220,8 @@ namespace CSharpLLVM.Compiler
             // Parent table
             if (mType.BaseType != null && mType.BaseType.FullName != "System.Object")
                 createParentTable(mType.BaseType.Resolve());
+
+            createTypes();
         }
 
         /// <summary>
