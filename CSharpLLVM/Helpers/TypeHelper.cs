@@ -115,7 +115,8 @@ namespace CSharpLLVM.Helpers
                     return mLookup.GetTypeRef(type);
 
                 case MetadataType.Object:
-                    return VoidPtr;
+                    // Note: an object is a "void pointer", but the "pointer" is implied because it is an object
+                    return Void;
 
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);

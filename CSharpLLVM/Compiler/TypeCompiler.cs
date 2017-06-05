@@ -50,7 +50,7 @@ namespace CSharpLLVM.Compiler
                 VTable vtable = new VTable(mCompiler, type);
                 mLookup.AddVTable(vtable);
                 vtable.Create();
-                vtable.Dump();
+                //vtable.Dump();
 
                 // Create struct for this type
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));

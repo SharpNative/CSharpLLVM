@@ -5,6 +5,7 @@ using CSharpLLVM.Stack;
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using System;
+using System.Collections.Generic;
 
 namespace CSharpLLVM.Generator.Instructions.Objects
 {
@@ -37,30 +38,23 @@ namespace CSharpLLVM.Generator.Instructions.Objects
 
             LLVM.BuildCall(builder, context.Compiler.Lookup.GetFunction(NameHelper.CreateMethodName(ctor)).Value, values, string.Empty);
 
-            // Initialize VTables
-            TypeDefinition myType = ctor.DeclaringType.Resolve();
-            createVTableInitCode(context, builder, objPtr, myType, myType);//TODO: move to .ctor!
+            // Initialize VTables, TODO: move newobj stuff to seperate (internal) method
+            Lookup lookup = context.Compiler.Lookup;
+            //createVTableInitCode(context, builder, objPtr, myType, myType);//TODO: move to .ctor!
+            VTable vtable = lookup.GetVTable(ctor.DeclaringType);
+            KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>>[] others = vtable.GetOtherEntries();
+            foreach(KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>> pair in others)
+            {
+                uint index = lookup.GetVTableIndex(pair.Key);
+                ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");
+                LLVM.BuildStore(builder, pair.Value.Item2, vTableGep);
+            }
+            
+            vtable.Dump();
 
             // Load and push object on stack
             ValueRef obj = (ptr) ? objPtr : LLVM.BuildLoad(builder, objPtr, "obj");
             context.CurrentStack.Push(new StackElement(obj, TypeHelper.GetTypeFromTypeReference(context.Compiler, ctor.DeclaringType), type));
-        }
-
-        private void createVTableInitCode(MethodContext context, BuilderRef builder, ValueRef objPtr, TypeDefinition baseType, TypeDefinition myType)
-        {
-            if (baseType == null || baseType.FullName == "System.Object")
-                return;
-
-            Lookup lookup = context.Compiler.Lookup;
-            Tuple<TypeRef, ValueRef> tuple = lookup.GetVTable(myType).GetEntry(baseType);
-
-            uint index = lookup.GetVTableIndex(baseType);
-            ValueRef ptr = LLVM.BuildGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");
-            ValueRef castedPtr = LLVM.BuildPointerCast(builder, ptr, LLVM.PointerType(tuple.Item1, 0), "ptrcast");
-            LLVM.BuildStore(builder, LLVM.BuildLoad(builder, tuple.Item2, "abc"), LLVM.BuildPointerCast(builder,ptr,LLVM.PointerType(tuple.Item1,0),"jiji"));
-            //LLVM.BuildStore(builder, tuple.Item2/*valPtr*/, castedPtr);
-
-            createVTableInitCode(context, builder, objPtr, baseType.BaseType.Resolve(), myType);
         }
     }
 }

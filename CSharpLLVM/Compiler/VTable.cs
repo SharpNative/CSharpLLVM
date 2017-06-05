@@ -3,6 +3,7 @@ using Mono.Cecil;
 using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CSharpLLVM.Compiler
 {
@@ -209,7 +210,12 @@ namespace CSharpLLVM.Compiler
 
             return mGeneratedTable[type];
         }
-        
+
+        public KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>>[] GetOtherEntries()
+        {
+            return mGeneratedTable.Where(kv => kv.Key != mType).ToArray();
+        }
+
         /// <summary>
         /// Creates a VTable
         /// </summary>

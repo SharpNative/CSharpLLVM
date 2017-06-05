@@ -44,7 +44,10 @@ namespace CSharpLLVM.Compiler
                 TypeRef[] argTypes = new TypeRef[paramCount];
                 for (int i = offset; i < paramCount; i++)
                 {
-                    argTypes[i] = TypeHelper.GetTypeRefFromType(methodDef.Parameters[i - offset].ParameterType);
+                    TypeReference type = methodDef.Parameters[i - offset].ParameterType;
+                    argTypes[i] = TypeHelper.GetTypeRefFromType(type);
+                    if (TypeHelper.RequiresExtraPointer(type.Resolve()))
+                        argTypes[i] = LLVM.PointerType(argTypes[i], 0);
                 }
 
                 // If needed, fill in the instance reference
@@ -64,7 +67,7 @@ namespace CSharpLLVM.Compiler
                 LLVM.SetLinkage(function.Value, Linkage.InternalLinkage);
 
             // Only generate if it has a body
-            if (methodDef.Body == null)
+            if (!methodDef.HasBody || methodDef.Body.CodeSize == 0)
             {
                 LLVM.SetLinkage(function.Value, Linkage.ExternalLinkage);
                 return /*null*/function;
