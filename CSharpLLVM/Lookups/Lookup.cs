@@ -159,11 +159,21 @@ namespace CSharpLLVM.Lookups
             return mNewobjFunctions[type];
         }
 
+        /// <summary>
+        /// If a type needs virtual calls
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <param name="need">If it needs virtual calls</param>
         public void SetNeedVirtualCall(TypeReference type, bool need)
         {
             mNeedsVirtualCall[type] = need;
         }
 
+        /// <summary>
+        /// Return true if a type needs virtual calls
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>If it needs virtual calls</returns>
         public bool NeedsVirtualCall(TypeReference type)
         {
             bool needs = false;
