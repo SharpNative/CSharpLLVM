@@ -70,7 +70,7 @@ namespace CSharpLLVM.Compiler
             if (!methodDef.HasBody || methodDef.Body.CodeSize == 0)
             {
                 LLVM.SetLinkage(function.Value, Linkage.ExternalLinkage);
-                return /*null*/function;
+                return function;
             }
             
             // Compile instructions

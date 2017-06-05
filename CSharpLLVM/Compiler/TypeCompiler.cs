@@ -140,8 +140,8 @@ namespace CSharpLLVM.Compiler
             // Initialize VTables
             Lookup lookup = mCompiler.Lookup;
             VTable vtable = lookup.GetVTable(type);
-            KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>>[] others = vtable.GetOtherEntries();
-            foreach (KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>> pair in others)
+            KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] others = vtable.GetOtherEntries();
+            foreach (KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>> pair in others)
             {
                 uint index = lookup.GetClassVTableIndex(pair.Key);
                 ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");

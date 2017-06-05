@@ -13,13 +13,13 @@ namespace CSharpLLVM.Compiler
         private TypeDefinition mType;
 
         // Contains pairs of methods and their indices, must match correct parent types (if any)
-        private Dictionary<TypeReference, Dictionary<int, MethodReference>> mTable = new Dictionary<TypeReference, Dictionary<int, MethodReference>>();
-        private Dictionary<TypeReference, Dictionary<string, int>> mNameTable = new Dictionary<TypeReference, Dictionary<string, int>>();
+        private Dictionary<TypeDefinition, Dictionary<int, MethodReference>> mTable = new Dictionary<TypeDefinition, Dictionary<int, MethodReference>>();
+        private Dictionary<TypeDefinition, Dictionary<string, int>> mNameTable = new Dictionary<TypeDefinition, Dictionary<string, int>>();
 
         // Lookup for generated code of VTable
-        private Dictionary<TypeReference, Tuple<TypeRef, ValueRef>> mGeneratedTable = new Dictionary<TypeReference, Tuple<TypeRef, ValueRef>>();
+        private Dictionary<TypeDefinition, Tuple<TypeRef, ValueRef>> mGeneratedTable = new Dictionary<TypeDefinition, Tuple<TypeRef, ValueRef>>();
 
-        public TypeReference Type { get { return mType; } }
+        public TypeDefinition Type { get { return mType; } }
 
         protected Dictionary<int, MethodReference> MyTable { get { return mTable[mType]; } }
         protected Dictionary<string, int> MyNameTable { get { return mNameTable[mType]; } }
@@ -89,7 +89,7 @@ namespace CSharpLLVM.Compiler
             mNameTable.Add(parentType, nameTable);
 
             // Add other tables that are inside the parent table
-            foreach(KeyValuePair<TypeReference, Dictionary<string, int>> pair in parentTable.mNameTable)
+            foreach (KeyValuePair<TypeDefinition, Dictionary<string, int>> pair in parentTable.mNameTable)
             {
                 // Skip parent type itself
                 if (pair.Key == parentType)
@@ -151,8 +151,12 @@ namespace CSharpLLVM.Compiler
         private void createTypes()
         {
             string typeName = NameHelper.CreateTypeName(mType);
-            foreach (KeyValuePair<TypeReference, Dictionary<string, int>> names in mNameTable)
+            foreach (KeyValuePair<TypeDefinition, Dictionary<string, int>> names in mNameTable)
             {
+                // Don't generate types for an interface please
+                if (names.Key.IsInterface)
+                    continue;
+
                 string name = string.Format("vtable_{0}_part_{1}", typeName, NameHelper.CreateTypeName(names.Key));
 
                 // Initialize to pointers
@@ -161,23 +165,26 @@ namespace CSharpLLVM.Compiler
                 {
                     types[i] = TypeHelper.VoidPtr;
                 }
-                
+
                 TypeRef type = LLVM.StructType(types, false);
                 ValueRef global = LLVM.AddGlobal(mCompiler.Module, type, name);
-                
+
                 mGeneratedTable.Add(names.Key, new Tuple<TypeRef, ValueRef>(type, global));
             }
         }
 
+        /// <summary>
+        /// Compiles the code for the VTable
+        /// </summary>
         public void Compile()
         {
-            foreach(KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>> pair in mGeneratedTable)
+            foreach (KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>> pair in mGeneratedTable)
             {
                 Dictionary<int, MethodReference> lookup = mTable[pair.Key];
 
                 int i = 0;
                 ValueRef[] values = new ValueRef[lookup.Count];
-                foreach(KeyValuePair<int, MethodReference> entry in lookup)
+                foreach (KeyValuePair<int, MethodReference> entry in lookup)
                 {
                     ValueRef? function = mCompiler.Lookup.GetFunction(NameHelper.CreateMethodName(entry.Value));
                     if (!function.HasValue)
@@ -191,18 +198,24 @@ namespace CSharpLLVM.Compiler
             }
         }
 
-        public int GetMethodIndex(TypeReference type, MethodReference method)
+        /// <summary>
+        /// Gets the index of a method in the corresponding VTable
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <param name="method">The method</param>
+        /// <returns>The index inside the table of the type</returns>
+        public int GetMethodIndex(TypeDefinition type, MethodReference method)
         {
             string name = NameHelper.CreateShortMethodName(method);
             return mNameTable[type][name];
         }
 
         /// <summary>
-        /// Gets an entry for a vtable type
+        /// Gets an entry for a VTable type
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>The VTable</returns>
-        public Tuple<TypeRef, ValueRef> GetEntry(TypeReference type)
+        public Tuple<TypeRef, ValueRef> GetEntry(TypeDefinition type)
         {
             // TODO: remove this?
             if (!mGeneratedTable.ContainsKey(type))
@@ -211,7 +224,11 @@ namespace CSharpLLVM.Compiler
             return mGeneratedTable[type];
         }
 
-        public KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>>[] GetOtherEntries()
+        /// <summary>
+        /// Gets entries of the VTable structs other than the owning type
+        /// </summary>
+        /// <returns>An array of entries for VTable structs</returns>
+        public KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] GetOtherEntries()
         {
             return mGeneratedTable.Where(kv => kv.Key != mType).ToArray();
         }
@@ -236,7 +253,7 @@ namespace CSharpLLVM.Compiler
         public void Dump()
         {
             Console.WriteLine("----- VTable for type " + mType + " -----");
-            foreach (KeyValuePair<TypeReference, Dictionary<int, MethodReference>> entry in mTable)
+            foreach (KeyValuePair<TypeDefinition, Dictionary<int, MethodReference>> entry in mTable)
             {
                 Console.WriteLine("  Type: " + entry.Key);
                 foreach (KeyValuePair<int, MethodReference> methods in entry.Value)

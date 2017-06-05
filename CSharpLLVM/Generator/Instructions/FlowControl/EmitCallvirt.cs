@@ -73,7 +73,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             // Get a function pointer
             ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
             ValueRef vTableInstance = LLVM.BuildLoad(builder, vTableGep, "vtable");
-            ValueRef methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodRef.DeclaringType, methodRef), false) }, "methodptr");
+            ValueRef methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodRef.DeclaringType.Resolve(), methodRef), false) }, "methodptr");
             ValueRef methodPtr = LLVM.BuildLoad(builder, methodGep, "methodptr");
             ValueRef method = LLVM.BuildPointerCast(builder, methodPtr, funcPtrType, "method");
 
