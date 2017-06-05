@@ -36,7 +36,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             if (instruction.HasPrefix(Code.Volatile))
                 LLVM.SetVolatile(result, true);
 
-            context.CurrentStack.Push(new StackElement(result, TypeHelper.GetTypeFromTypeReference(context.Compiler, field.FieldType)));
+            context.CurrentStack.Push(new StackElement(result, field.FieldType));
         }
     }
 }

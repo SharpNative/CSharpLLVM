@@ -2,7 +2,6 @@
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compilation;
 using CSharpLLVM.Stack;
-using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.StoreLoad
 {
@@ -31,7 +30,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             }
             
             ValueRef value = context.ArgumentValues[index];
-            context.CurrentStack.Push(new StackElement(value, TypeHelper.GetTypeFromTypeReference(context.Compiler, context.ArgumentILTypes[index])));
+            context.CurrentStack.Push(new StackElement(value, context.ArgumentILTypes[index]));
         }
     }
 }

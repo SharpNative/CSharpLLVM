@@ -17,7 +17,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             ValueRef result = LLVM.ConstReal(TypeHelper.Double, (double)instruction.Operand);
-            context.CurrentStack.Push(new StackElement(result, typeof(double), TypeHelper.Double));
+            context.CurrentStack.Push(new StackElement(result, typeof(double).GetTypeReference(context.Compiler), TypeHelper.Double));
         }
     }
 }

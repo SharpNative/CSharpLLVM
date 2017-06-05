@@ -19,7 +19,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
         {
             StackElement size = context.CurrentStack.Pop();
             ValueRef result = LLVM.BuildArrayAlloca(builder, TypeHelper.Int8, size.Value, "stackalloc");
-            context.CurrentStack.Push(new StackElement(result, typeof(byte[])));
+            context.CurrentStack.Push(new StackElement(result, typeof(byte[]).GetTypeReference(context.Compiler)));
         }
     }
 }

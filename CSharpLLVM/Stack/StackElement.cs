@@ -1,12 +1,12 @@
-﻿using Swigged.LLVM;
-using System;
+﻿using Mono.Cecil;
+using Swigged.LLVM;
 
 namespace CSharpLLVM.Stack
 {
     struct StackElement
     {
         public TypeRef Type;
-        public Type ILType;
+        public TypeReference ILType;
         public ValueRef Value;
 
         /// <summary>
@@ -14,7 +14,7 @@ namespace CSharpLLVM.Stack
         /// </summary>
         /// <param name="value">The value</param>
         /// <param name="ilType">The IL type</param>
-        public StackElement(ValueRef value, Type ilType)
+        public StackElement(ValueRef value, TypeReference ilType)
         {
             Type = LLVM.TypeOf(value);
             ILType = ilType;
@@ -27,7 +27,7 @@ namespace CSharpLLVM.Stack
         /// <param name="value">The value</param>
         /// <param name="ilType">The IL type</param>
         /// <param name="type">The type</param>
-        public StackElement(ValueRef value, Type ilType, TypeRef type)
+        public StackElement(ValueRef value, TypeReference ilType, TypeRef type)
         {
             Type = type;
             ILType = ilType;

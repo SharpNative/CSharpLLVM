@@ -25,7 +25,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
             // We need to cast the string
             ValueRef value = LLVM.ConstPointerCast(strValue, TypeHelper.String);
 
-            context.CurrentStack.Push(new StackElement(value, typeof(string), TypeHelper.String));
+            context.CurrentStack.Push(new StackElement(value, typeof(string).GetTypeReference(context.Compiler), TypeHelper.String));
         }
     }
 }

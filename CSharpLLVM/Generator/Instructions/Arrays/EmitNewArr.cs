@@ -36,7 +36,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             ValueRef array = LLVM.BuildCall(builder, RuntimeHelper.Newarr, new ValueRef[] { count, sizeValue }, "array");
             ValueRef casted = LLVM.BuildPointerCast(builder, array, arrayType, "arraycasted");
 
-            context.CurrentStack.Push(new StackElement(casted, TypeHelper.GetTypeFromTypeReference(context.Compiler, type).MakeArrayType(), typeRef));
+            context.CurrentStack.Push(new StackElement(casted, new ArrayType(type), typeRef));
         }
     }
 }

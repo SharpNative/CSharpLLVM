@@ -1,10 +1,10 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
-using CSharpLLVM.Compilation;
-using System;
 using Mono.Cecil;
+using CSharpLLVM.Compilation;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Helpers;
+using System;
 
 namespace CSharpLLVM.Generator.Instructions.StoreLoad
 {
@@ -29,7 +29,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
                 LLVM.SetVolatile(result, true);
 
             TypeRef resultType = LLVM.TypeOf(result);
-            context.CurrentStack.Push(new StackElement(result, TypeHelper.GetTypeFromTypeReference(context.Compiler, field.FieldType), resultType));
+            context.CurrentStack.Push(new StackElement(result, field.FieldType, resultType));
         }
     }
 }

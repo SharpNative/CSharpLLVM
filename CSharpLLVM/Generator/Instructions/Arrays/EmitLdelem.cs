@@ -7,7 +7,7 @@ using System;
 
 namespace CSharpLLVM.Generator.Instructions.Arrays
 {
-    [InstructionHandler(Code.Ldelem_I, Code.Ldelem_I1, Code.Ldelem_I2, Code.Ldelem_I4, Code.Ldelem_I8, Code.Ldelem_U1, Code.Ldelem_U2, Code.Ldelem_U4, Code.Ldelem_R4, Code.Ldelem_R8, Code.Ldelem_Ref)]
+    [InstructionHandler(Code.Ldelem_I, Code.Ldelem_I1, Code.Ldelem_I2, Code.Ldelem_I4, Code.Ldelem_I8, Code.Ldelem_U1, Code.Ldelem_U2, Code.Ldelem_U4, Code.Ldelem_R4, Code.Ldelem_R8)]
     class EmitLdelem : ICodeEmitter
     {
         /// <summary>
@@ -57,7 +57,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             }
 
             TypeRef type = LLVM.TypeOf(res);
-            context.CurrentStack.Push(new StackElement(res, ilType, type));
+            context.CurrentStack.Push(new StackElement(res, ilType.GetTypeReference(context.Compiler), type));
         }
     }
 }

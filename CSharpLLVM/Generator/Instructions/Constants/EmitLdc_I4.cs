@@ -16,37 +16,36 @@ namespace CSharpLLVM.Generator.Instructions.Constants
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            TypeRef type = TypeHelper.Int32;
             ValueRef result;
 
             Code code = instruction.OpCode.Code;
             if (code >= Code.Ldc_I4_0 && code <= Code.Ldc_I4_8)
             {
-                result = LLVM.ConstInt(type, (ulong)(instruction.OpCode.Code - Code.Ldc_I4_0), true);
+                result = LLVM.ConstInt(TypeHelper.Int32, (ulong)(instruction.OpCode.Code - Code.Ldc_I4_0), true);
             }
             else if (code == Code.Ldc_I4_M1)
             {
                 unchecked
                 {
-                    result = LLVM.ConstInt(type, (uint)-1, true);
+                    result = LLVM.ConstInt(TypeHelper.Int32, (uint)-1, true);
                 }
             }
             else
             {
                 if (instruction.Operand is sbyte)
                 {
-                    result = LLVM.ConstInt(type, (ulong)(sbyte)instruction.Operand, true);
+                    result = LLVM.ConstInt(TypeHelper.Int32, (ulong)(sbyte)instruction.Operand, true);
                 }
                 else
                 {
                     unchecked
                     {
-                        result = LLVM.ConstInt(type, (uint)(int)instruction.Operand, true);
+                        result = LLVM.ConstInt(TypeHelper.Int32, (uint)(int)instruction.Operand, true);
                     }
                 }
             }
 
-            context.CurrentStack.Push(new StackElement(result, typeof(int), type));
+            context.CurrentStack.Push(new StackElement(result, typeof(int).GetTypeReference(context.Compiler), TypeHelper.Int32));
         }
     }
 }

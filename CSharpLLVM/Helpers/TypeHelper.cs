@@ -287,42 +287,32 @@ namespace CSharpLLVM.Helpers
         /// <summary>
         /// Get basic type from typeref
         /// </summary>
+        /// <param name="compiler">The compiler instance</param>
         /// <param name="typeRef">The typeref</param>
-        /// <returns>The basic type</returns>
-        public static Type GetBasicTypeFromTypeRef(TypeRef typeRef)
+        /// <returns>The basic type reference</returns>
+        public static TypeReference GetBasicTypeFromTypeRef(Compiler compiler, TypeRef typeRef)
         {
+            Type type = null;
             if (typeRef == Int8)
-                return typeof(byte);
+                type = typeof(byte);
             else if (typeRef == Int16)
-                return typeof(short);
+                type = typeof(short);
             else if (typeRef == Int32)
-                return typeof(int);
+                type = typeof(int);
             else if (typeRef == Int64)
-                return typeof(long);
+                type = typeof(long);
             else if (typeRef == String)
-                return typeof(string);
+                type = typeof(string);
             else if (typeRef == Float)
-                return typeof(float);
+                type = typeof(float);
             else if (typeRef == Double)
-                return typeof(double);
+                type = typeof(double);
             else if (typeRef == Boolean)
-                return typeof(bool);
+                type = typeof(bool);
+            else
+                throw new InvalidOperationException("Could not get basic type from typeref: " + typeRef);
 
-            throw new InvalidOperationException("Could not get basic type from typeref: " + typeRef);
-        }
-
-        /// <summary>
-        /// Gets a type from a type reference
-        /// </summary>
-        /// <param name="compiler">The compiler</param>
-        /// <param name="typeRef">The type reference</param>
-        /// <returns>The type</returns>
-        public static Type GetTypeFromTypeReference(Compiler compiler, TypeReference typeRef)
-        {
-            if (typeRef.FullName.StartsWith("System"))
-                return mMSCorlib.GetType(typeRef.FullName);
-
-            return compiler.Asm.GetType(typeRef.FullName.Replace('/', '+'), true);
+            return type.GetTypeReference(compiler);
         }
 
         /// <summary>
@@ -389,6 +379,17 @@ namespace CSharpLLVM.Helpers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Gets a type reference from a type
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <param name="compiler">The compiler instance</param>
+        /// <returns>The type reference</returns>
+        public static TypeReference GetTypeReference(this Type type, Compiler compiler)
+        {
+            return compiler.AssemblyDef.MainModule.Import(type);
         }
     }
 }

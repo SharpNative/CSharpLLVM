@@ -28,7 +28,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
                 res = LLVM.BuildIntCast(builder, res, TypeHelper.Int32, "tmp");
 
             TypeRef type = LLVM.TypeOf(res);
-            context.CurrentStack.Push(new StackElement(res, TypeHelper.GetBasicTypeFromTypeRef(type), type));
+            context.CurrentStack.Push(new StackElement(res, TypeHelper.GetBasicTypeFromTypeRef(context.Compiler, type), type));
         }
     }
 }

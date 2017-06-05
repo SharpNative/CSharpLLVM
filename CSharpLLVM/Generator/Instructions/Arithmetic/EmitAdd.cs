@@ -1,8 +1,8 @@
 ﻿using Swigged.LLVM;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
-using System;
 using CSharpLLVM.Compilation;
 
 namespace CSharpLLVM.Generator.Instructions.Arithmetic
@@ -36,7 +36,7 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
                 {
                     ValueRef result = LLVM.BuildAdd(builder, value1.Value, value2.Value, "addptr");
                     TypeRef resultingType = (isPtrVal1 ? value1.Type : value2.Type);
-                    Type resultingILType = (isPtrVal1 ? value1.ILType : value2.ILType);
+                    TypeReference resultingILType = (isPtrVal1 ? value1.ILType : value2.ILType);
                     ValueRef ptr = LLVM.BuildIntToPtr(builder, result, resultingType, "ptr");
                     context.CurrentStack.Push(new StackElement(ptr, resultingILType, resultingType));
                 }

@@ -1,8 +1,7 @@
 ﻿using Swigged.LLVM;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using CSharpLLVM.Compilation;
-using System;
-using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
 
 namespace CSharpLLVM.Generator.Instructions.StoreLoad
@@ -22,9 +21,8 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             
             VariableDefinition def = (VariableDefinition)instruction.Operand;
             int index = def.Index;
-
-            Type type = TypeHelper.GetTypeFromTypeReference(context.Compiler, context.LocalILTypes[index]);
-            context.CurrentStack.Push(new StackElement(context.LocalValues[index], type.MakePointerType()));
+            
+            context.CurrentStack.Push(new StackElement(context.LocalValues[index], new PointerType(context.LocalILTypes[index])));
         }
     }
 }

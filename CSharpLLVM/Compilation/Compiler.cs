@@ -3,7 +3,6 @@ using Mono.Collections.Generic;
 using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Diagnostics;
 using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
@@ -21,8 +20,8 @@ namespace CSharpLLVM.Compilation
 
         private PassManagerRef mFunctionPassManager;
         private PassManagerRef mPassManager;
-
-        public Assembly Asm;
+        
+        public AssemblyDefinition AssemblyDef { get; private set; }
         public CompilerSettings Settings { get; private set; }
         public ModuleRef Module { get { return mModule; } }
         public ContextRef ModuleContext { get { return mContext; } }
@@ -156,13 +155,12 @@ namespace CSharpLLVM.Compilation
         /// </summary>
         private void compileModules()
         {
-            Asm = Assembly.LoadFrom(Settings.InputFile);
-            AssemblyDefinition asmDef = AssemblyDefinition.ReadAssembly(Settings.InputFile);
+            AssemblyDef = AssemblyDefinition.ReadAssembly(Settings.InputFile);
 
             // Loop through the modules within the IL assembly
             // Note: A single assembly can contain multiple IL modules.
             //       We use a single LLVM module to contain all of this
-            Collection<ModuleDefinition> modules = asmDef.Modules;
+            Collection<ModuleDefinition> modules = AssemblyDef.Modules;
             foreach (ModuleDefinition moduleDef in modules)
             {
                 compileModule(moduleDef);

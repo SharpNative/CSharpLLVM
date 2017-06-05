@@ -49,7 +49,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
 
             // Load and push object on stack
             ValueRef obj = (ptr) ? objPtr : LLVM.BuildLoad(builder, objPtr, "obj");
-            context.CurrentStack.Push(new StackElement(obj, TypeHelper.GetTypeFromTypeReference(context.Compiler, ctor.DeclaringType), type));
+            context.CurrentStack.Push(new StackElement(obj, ctor.DeclaringType, type));
         }
     }
 }

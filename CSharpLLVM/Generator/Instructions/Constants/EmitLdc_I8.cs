@@ -20,7 +20,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
             unchecked
             {
                 ValueRef result = LLVM.ConstInt(type, (ulong)(long)instruction.Operand, true);
-                context.CurrentStack.Push(new StackElement(result, typeof(long), type));
+                context.CurrentStack.Push(new StackElement(result, typeof(long).GetTypeReference(context.Compiler), type));
             }
         }
     }

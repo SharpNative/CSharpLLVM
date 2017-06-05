@@ -4,7 +4,6 @@ using CSharpLLVM.Compilation;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
 using Mono.Cecil;
-using System;
 
 namespace CSharpLLVM.Generator.Instructions.Arithmetic
 {
@@ -37,7 +36,7 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
                 {
                     ValueRef result = LLVM.BuildSub(builder, value1.Value, value2.Value, "subptr");
                     TypeRef resultingType = (isPtrVal1 ? value1.Type : value2.Type);
-                    Type resultingILType = (isPtrVal1 ? value1.ILType : value2.ILType);
+                    TypeReference resultingILType = (isPtrVal1 ? value1.ILType : value2.ILType);
                     ValueRef ptr = LLVM.BuildIntToPtr(builder, result, resultingType, "ptr");
                     context.CurrentStack.Push(new StackElement(ptr, resultingILType, resultingType));
                 }

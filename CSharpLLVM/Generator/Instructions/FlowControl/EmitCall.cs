@@ -92,7 +92,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
 
             // Push return value on stack if it has one
             if (methodRef.ReturnType.MetadataType != MetadataType.Void)
-                context.CurrentStack.Push(new StackElement(retVal, TypeHelper.GetTypeFromTypeReference(context.Compiler, methodRef.ReturnType)));
+                context.CurrentStack.Push(new StackElement(retVal, methodRef.ReturnType));
         }
 
         /// <summary>
