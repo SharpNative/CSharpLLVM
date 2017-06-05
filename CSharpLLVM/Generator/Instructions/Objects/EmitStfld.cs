@@ -39,7 +39,9 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             if (value.Type != destType)
                 CastHelper.HelpIntAndPtrCast(builder, ref value.Value, value.Type, destType);
 
-            LLVM.BuildStore(builder, value.Value, ptr);
+            ValueRef store = LLVM.BuildStore(builder, value.Value, ptr);
+            if (instruction.HasPrefix(Code.Volatile))
+                LLVM.SetVolatile(store, true);
         }
     }
 }

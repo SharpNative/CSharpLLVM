@@ -119,6 +119,14 @@ namespace CSharpLLVM.Helpers
                     // Note: an object is a "void pointer", but the "pointer" is implied because it is an object
                     return Void;
 
+                case MetadataType.RequiredModifier:
+                    RequiredModifierType requiredModifier = (RequiredModifierType)type;
+                    return GetTypeRefFromType(requiredModifier.ElementType);
+
+                case MetadataType.OptionalModifier:
+                    OptionalModifierType optionalModifier = (OptionalModifierType)type;
+                    return GetTypeRefFromType(optionalModifier.ElementType);
+
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
             }

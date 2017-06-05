@@ -24,9 +24,12 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             if (fieldValue == null)
                 throw new InvalidOperationException("Unknown static field: " + field);
             
-            ValueRef value = LLVM.BuildLoad(builder, fieldValue.Value, "ldsfld");
-            TypeRef valueType = LLVM.TypeOf(value);
-            context.CurrentStack.Push(new StackElement(value, TypeHelper.GetBasicTypeFromTypeRef(valueType), valueType));
+            ValueRef result = LLVM.BuildLoad(builder, fieldValue.Value, "ldsfld");
+            if (instruction.HasPrefix(Code.Volatile))
+                LLVM.SetVolatile(result, true);
+
+            TypeRef resultType = LLVM.TypeOf(result);
+            context.CurrentStack.Push(new StackElement(result, TypeHelper.GetTypeFromTypeReference(context.Compiler, field.FieldType), resultType));
         }
     }
 }

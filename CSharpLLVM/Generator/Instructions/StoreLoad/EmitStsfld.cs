@@ -51,9 +51,15 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
 
             // If we're in a cctor and it is a number or string, we can just set the initializer
             if (isCctor && useInitializer.Contains(fieldType.FullName))
+            {
                 LLVM.SetInitializer(fieldValue.Value, data.Value);
+            }
             else
-                LLVM.BuildStore(builder, data.Value, fieldValue.Value);
+            {
+                ValueRef store = LLVM.BuildStore(builder, data.Value, fieldValue.Value);
+                if (instruction.HasPrefix(Code.Volatile))
+                    LLVM.SetVolatile(store, true);
+            }
         }
     }
 }

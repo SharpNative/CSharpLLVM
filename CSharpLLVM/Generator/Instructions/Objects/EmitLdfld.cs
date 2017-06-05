@@ -33,6 +33,8 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             
             ValueRef ptr = LLVM.BuildInBoundsGEP(builder, obj.Value, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "field");
             ValueRef result = LLVM.BuildLoad(builder, ptr, "field");
+            if (instruction.HasPrefix(Code.Volatile))
+                LLVM.SetVolatile(result, true);
 
             context.CurrentStack.Push(new StackElement(result, TypeHelper.GetTypeFromTypeReference(context.Compiler, field.FieldType)));
         }
