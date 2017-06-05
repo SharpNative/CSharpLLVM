@@ -128,7 +128,7 @@ namespace CSharpLLVM.Lookups
 
             return mVTableLookup[type];
         }
-        
+
         /// <summary>
         /// Returns the static constructors (.cctor)
         /// </summary>
@@ -157,7 +157,7 @@ namespace CSharpLLVM.Lookups
         {
             return mNewobjFunctions[type];
         }
-        
+
         /// <summary>
         /// Gets the struct layout of a type
         /// </summary>
@@ -170,16 +170,25 @@ namespace CSharpLLVM.Lookups
                 return mLayoutLookup[type];
 
             List<IStructEntry> fields = new List<IStructEntry>();
-            TypeDefinition typeDef = type.Resolve();
-            if (typeDef.BaseType == null)
-                return fields;
 
-            TypeDefinition parent = typeDef.BaseType.Resolve();
+            // Value types only have fields and can't be inherited
+            if (type.IsValueType)
+            {
+                fields.AddRange(type.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
+            }
+            // Can have "more" than fields
+            else
+            {
+                if (type.BaseType == null)
+                    return fields;
 
-            // First add parent fields, then our own fields
-            fields.AddRange(GetStructLayout(parent));
-            fields.AddRange(typeDef.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
-            fields.Add(new StructBarrierEntry(typeDef));
+                TypeDefinition parent = type.BaseType.Resolve();
+
+                // First add parent fields, then our own fields
+                fields.AddRange(GetStructLayout(parent));
+                fields.AddRange(type.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
+                fields.Add(new StructBarrierEntry(type));
+            }
 
             // Add to cache
             mLayoutLookup.Add(type, fields);

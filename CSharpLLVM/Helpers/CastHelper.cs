@@ -63,7 +63,7 @@ namespace CSharpLLVM.Helpers
             // Convert to pointer
             if (kind == TypeKind.PointerTypeKind)
             {
-                // Two cases: pointer to pointer, or int to int
+                // Two cases: pointer to pointer, or int to ptr
                 if (LLVM.GetTypeKind(dataType) == TypeKind.PointerTypeKind)
                     data = LLVM.BuildPointerCast(builder, data, destType, "tmpptr");
                 else
@@ -73,6 +73,27 @@ namespace CSharpLLVM.Helpers
             else
             {
                 data = LLVM.BuildIntCast(builder, data, destType, "tmpint");
+            }
+        }
+
+        /// <summary>
+        /// Helps ptr casting to a destination type
+        /// </summary>
+        /// <param name="builder">The builder</param>
+        /// <param name="data">The data (int or pointer)</param>
+        /// <param name="dataType">The data type</param>
+        /// <param name="destType">The destination type</param>
+        public static void HelpPtrCast(BuilderRef builder, ref ValueRef data, TypeRef dataType, TypeRef destType)
+        {
+            TypeKind kind = LLVM.GetTypeKind(destType);
+
+            // Convert to pointer
+            if (kind == TypeKind.PointerTypeKind)
+            {
+                if (LLVM.GetTypeKind(dataType) == TypeKind.PointerTypeKind)
+                    data = LLVM.BuildPointerCast(builder, data, destType, "tmpptr");
+                else
+                    data = LLVM.BuildIntToPtr(builder, data, destType, "tmpptr");
             }
         }
     }

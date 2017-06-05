@@ -50,17 +50,16 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                     paramTypes[i] = LLVM.PointerType(paramTypes[i], 0);
 
                 // Cast needed?
-                if (element.Type != paramTypes[i])
+                if (element.Type != paramTypes[i] && element.ILType.Resolve().IsClass)
                 {
-                    CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
+                    CastHelper.HelpPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
                 }
             }
 
             // Function does not exist, create a declaration for the function
-            TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false); //TODO:cleanup
+            TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
             if (!func.HasValue)
             {
-                //TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
                 func = LLVM.AddFunction(context.Compiler.Module, methodName, functionType);
                 context.Compiler.Lookup.AddFunction(methodName, func.Value);
             }

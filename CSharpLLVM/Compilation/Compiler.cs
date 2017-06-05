@@ -90,7 +90,7 @@ namespace CSharpLLVM.Compilation
             // TODO
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
-            //LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
+            LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
             /*LLVM.AddConstantPropagationPass(mFunctionPassManager);
             LLVM.AddReassociatePass(mFunctionPassManager);
             LLVM.AddInstructionCombiningPass(mFunctionPassManager);

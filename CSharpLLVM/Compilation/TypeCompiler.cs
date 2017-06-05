@@ -49,10 +49,14 @@ namespace CSharpLLVM.Compilation
             else
             {
                 // VTable
-                VTable vtable = new VTable(mCompiler, type);
-                mLookup.AddVTable(vtable);
-                vtable.Create();
-                vtable.Dump();
+                VTable vtable = null;
+                if (isClass || isInterface)
+                {
+                    vtable = new VTable(mCompiler, type);
+                    mLookup.AddVTable(vtable);
+                    vtable.Create();
+                    //vtable.Dump();
+                }
 
                 // Create struct for this type
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));

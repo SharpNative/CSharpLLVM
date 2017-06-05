@@ -35,7 +35,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 context.CurrentStack.Pop();
                 return;
             }
-            
+
             // Build parameter value and types arrays
             int paramCount = methodRef.Parameters.Count;
             if (methodRef.HasThis)
@@ -54,7 +54,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 TypeReference type;
                 StackElement element = context.CurrentStack.Pop();
                 argVals[i] = element.Value;
-                
+
                 // Note: the instance pointer is not included in the parameters explicitely
                 if (methodRef.HasThis)
                 {
@@ -73,9 +73,9 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                     paramTypes[i] = LLVM.PointerType(paramTypes[i], 0);
 
                 // Cast needed?
-                if (element.Type != paramTypes[i])
+                if (element.Type != paramTypes[i] && element.ILType.Resolve().IsClass)
                 {
-                    CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
+                    CastHelper.HelpPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
                 }
             }
 
