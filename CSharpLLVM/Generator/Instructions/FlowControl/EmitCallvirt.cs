@@ -5,6 +5,7 @@ using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Compilation;
 using CSharpLLVM.Lookups;
+using System;
 
 namespace CSharpLLVM.Generator.Instructions.FlowControl
 {
@@ -21,6 +22,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
         {
             MethodReference methodRef = (MethodReference)instruction.Operand;
             TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
+            bool needsVirtualCall = context.Compiler.Lookup.NeedsVirtualCall(methodRef.DeclaringType);
 
             // Build parameter value and types arrays
             int paramCount = 1 + methodRef.Parameters.Count;
@@ -65,17 +67,27 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             }
 
             // Call
-            TypeRef funcPtrType = LLVM.PointerType(functionType, 0);
-            Lookup lookup = context.Compiler.Lookup;
-            VTable vTable = lookup.GetVTable(methodRef.DeclaringType);
-            uint index = lookup.GetClassVTableIndex(methodRef.DeclaringType.Resolve());
+            ValueRef method;
+            if (needsVirtualCall)
+            {
+                // We need a virtual call
+                TypeRef funcPtrType = LLVM.PointerType(functionType, 0);
+                Lookup lookup = context.Compiler.Lookup;
+                VTable vTable = lookup.GetVTable(methodRef.DeclaringType);
+                uint index = lookup.GetClassVTableIndex(methodRef.DeclaringType.Resolve());
 
-            // Get a function pointer
-            ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
-            ValueRef vTableInstance = LLVM.BuildLoad(builder, vTableGep, "vtable");
-            ValueRef methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodRef.DeclaringType.Resolve(), methodRef), false) }, "methodptr");
-            ValueRef methodPtr = LLVM.BuildLoad(builder, methodGep, "methodptr");
-            ValueRef method = LLVM.BuildPointerCast(builder, methodPtr, funcPtrType, "method");
+                // Get a function pointer
+                ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
+                ValueRef vTableInstance = LLVM.BuildLoad(builder, vTableGep, "vtable");
+                ValueRef methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodRef.DeclaringType.Resolve(), methodRef), false) }, "methodptr");
+                ValueRef methodPtr = LLVM.BuildLoad(builder, methodGep, "methodptr");
+                method = LLVM.BuildPointerCast(builder, methodPtr, funcPtrType, "method");
+            }
+            else
+            {
+                // We can call it directly without VTable lookup
+                method = func.Value;
+            }
 
             ValueRef retVal = LLVM.BuildCall(builder, method, argVals, string.Empty);
 

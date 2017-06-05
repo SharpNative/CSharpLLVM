@@ -196,12 +196,18 @@ namespace CSharpLLVM.Compilation
         /// <param name="left">Left</param>
         /// <param name="right">Right</param>
         /// <returns>Order number</returns>
-        private static int sortTypes(TypeDefinition left, TypeDefinition right)
+        private int sortTypes(TypeDefinition left, TypeDefinition right)
         {
             if (TypeHelper.InheritsFrom(left, right))
+            {
+                Lookup.SetNeedVirtualCall(right, true);
                 return 1;
+            }
             else if (TypeHelper.InheritsFrom(right, left))
+            {
+                Lookup.SetNeedVirtualCall(left, true);
                 return -1;
+            }
 
             return 0;
         }

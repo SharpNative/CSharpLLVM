@@ -14,6 +14,7 @@ namespace CSharpLLVM.Lookups
         private Dictionary<TypeReference, List<IStructEntry>> mLayoutLookup = new Dictionary<TypeReference, List<IStructEntry>>();
         private Dictionary<TypeReference, VTable> mVTableLookup = new Dictionary<TypeReference, VTable>();
         private Dictionary<TypeDefinition, ValueRef> mNewobjFunctions = new Dictionary<TypeDefinition, ValueRef>();
+        private Dictionary<TypeReference, bool> mNeedsVirtualCall = new Dictionary<TypeReference, bool>();
 
         private List<MethodDefinition> mCctors = new List<MethodDefinition>();
 
@@ -156,6 +157,18 @@ namespace CSharpLLVM.Lookups
         public ValueRef GetNewobjMethod(TypeDefinition type)
         {
             return mNewobjFunctions[type];
+        }
+
+        public void SetNeedVirtualCall(TypeReference type, bool need)
+        {
+            mNeedsVirtualCall[type] = need;
+        }
+
+        public bool NeedsVirtualCall(TypeReference type)
+        {
+            bool needs = false;
+            mNeedsVirtualCall.TryGetValue(type, out needs);
+            return needs;
         }
 
         /// <summary>

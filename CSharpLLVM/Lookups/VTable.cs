@@ -62,22 +62,16 @@ namespace CSharpLLVM.Lookups
                     continue;
 
                 string shortName = NameHelper.CreateShortMethodName(method);
-
-                Console.WriteLine(parentType + " | " + method + " " + method.IsNewSlot + " " + method.IsVirtual);
-
-
-
+                
                 // This type overrides the method in the parent type
                 if (MyNameTable.ContainsKey(shortName) && MyTable[MyNameTable[shortName]].IsVirtual)
                 {
-                    Console.WriteLine(" will use own method");
                     int nameTableIndex = MyNameTable[shortName];
                     own.Add(parentTable.MyNameTable[shortName], MyTable[nameTableIndex]);
                 }
                 // Use parent method definition
                 else
                 {
-                    Console.WriteLine(" will use parent method");
                     int nameTableIndex = parentTable.MyNameTable[shortName];
                     own.Add(nameTableIndex, method);
                 }
@@ -110,14 +104,11 @@ namespace CSharpLLVM.Lookups
                 foreach (KeyValuePair<string, int> methodPair in pair.Value)
                 {
                     string shortName = methodPair.Key;
-
                     
-
                     // Did we override this method?
-                    if (MyNameTable.ContainsKey(shortName)/* && (MyTable[MyNameTable[shortName]].IsVirtual || MyTable[MyNameTable[shortName]].IsNewSlot)*/)
+                    if (MyNameTable.ContainsKey(shortName) && (MyTable[MyNameTable[shortName]].IsVirtual))
                     {
                         MethodDefinition method = MyTable[MyNameTable[shortName]];
-                        Console.WriteLine(parentType + " | " + method + " " + method.IsNewSlot + " " + method.IsVirtual);
                         int nameTableIndex = MyNameTable[shortName];
                         mTableCopy.Add(methodPair.Value, MyTable[nameTableIndex]);
                     }
@@ -175,6 +166,7 @@ namespace CSharpLLVM.Lookups
 
                 TypeRef type = LLVM.StructType(types, false);
                 ValueRef global = LLVM.AddGlobal(mCompiler.Module, type, name);
+                LLVM.SetLinkage(global, Linkage.InternalLinkage);
 
                 mGeneratedTable.Add(names.Key, new Tuple<TypeRef, ValueRef>(type, global));
             }
