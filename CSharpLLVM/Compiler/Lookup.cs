@@ -12,6 +12,7 @@ namespace CSharpLLVM.Compiler
         private Dictionary<TypeReference, TypeRef> mTypeLookup = new Dictionary<TypeReference, TypeRef>();
         private Dictionary<TypeReference, List<FieldDefinition>> mFieldLookup = new Dictionary<TypeReference, List<FieldDefinition>>();
         private Dictionary<TypeReference, VTable> mVTableLookup = new Dictionary<TypeReference, VTable>();
+        private Dictionary<TypeDefinition, ValueRef> mNewobjFunctions = new Dictionary<TypeDefinition, ValueRef>();
 
         private List<MethodDefinition> mCctors = new List<MethodDefinition>();
 
@@ -135,6 +136,26 @@ namespace CSharpLLVM.Compiler
         {
             return mCctors.ToArray();
         }
+
+        /// <summary>
+        /// Adds a new "newobj" method for a type
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <param name="func">The function</param>
+        public void AddNewobjMethod(TypeDefinition type, ValueRef func)
+        {
+            mNewobjFunctions.Add(type, func);
+        }
+
+        /// <summary>
+        /// Gets a "newobj" method
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>The function</returns>
+        public ValueRef GetNewobjMethod(TypeDefinition type)
+        {
+            return mNewobjFunctions[type];
+        }
         
         /// <summary>
         /// Gets the fields of a type including the inherited fields, we use "null" to mark a barrier between types
@@ -165,7 +186,12 @@ namespace CSharpLLVM.Compiler
             return fields;
         }
 
-        public uint GetVTableIndex(TypeReference type)
+        /// <summary>
+        /// Gets the index in a type struct of a class vtable
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>The index</returns>
+        public uint GetClassVTableIndex(TypeReference type)
         {
             List<FieldDefinition> fields = GetFields(type);
 

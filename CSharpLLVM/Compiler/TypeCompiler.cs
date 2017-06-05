@@ -105,7 +105,55 @@ namespace CSharpLLVM.Compiler
 
                 // Set struct data
                 LLVM.StructSetBody(data, structData.ToArray(), packed);
+
+                // For classes, generate the "newobj" method
+                if (isClass)
+                {
+                    ValueRef newobjFunc = createNewobjMethod(type);
+                    mCompiler.Lookup.AddNewobjMethod(type, newobjFunc);
+                }
             }
+        }
+
+        /// <summary>
+        /// Creates the "newobj" method for a type
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <returns>The function</returns>
+        private ValueRef createNewobjMethod(TypeDefinition type)
+        {
+            string name = string.Format("newobj_{0}", type.FullName);
+            BuilderRef builder = LLVM.CreateBuilderInContext(mCompiler.ModuleContext);
+
+            // Create method type
+            TypeRef funcType = LLVM.FunctionType(LLVM.PointerType(TypeHelper.GetTypeRefFromType(type), 0), new TypeRef[0], false);
+            ValueRef func = LLVM.AddFunction(mCompiler.Module, name, funcType);
+            LLVM.SetLinkage(func, Linkage.InternalLinkage);
+
+            BasicBlockRef entry = LLVM.AppendBasicBlockInContext(mCompiler.ModuleContext, func, string.Empty);
+            LLVM.PositionBuilderAtEnd(builder, entry);
+
+            // Allocate space on the heap for this object
+            TypeRef typeRef = mCompiler.Lookup.GetTypeRef(type);
+            ValueRef objPtr = LLVM.BuildMalloc(builder, typeRef, "newobj");
+
+            // Initialize VTables
+            Lookup lookup = mCompiler.Lookup;
+            VTable vtable = lookup.GetVTable(type);
+            KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>>[] others = vtable.GetOtherEntries();
+            foreach (KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>> pair in others)
+            {
+                uint index = lookup.GetClassVTableIndex(pair.Key);
+                ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");
+                LLVM.BuildStore(builder, pair.Value.Item2, vTableGep);
+            }
+
+            // Return object pointer
+            LLVM.BuildRet(builder, objPtr);
+
+            LLVM.DisposeBuilder(builder);
+
+            return func;
         }
     }
 }

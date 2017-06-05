@@ -13,7 +13,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
     class EmitNewobj : ICodeEmitter
     {
         /// <summary>
-        /// Emits an newobj instruction
+        /// Emits a newobj instruction
         /// </summary>
         /// <param name="instruction">The instruction</param>
         /// <param name="context">The context</param>
@@ -24,9 +24,19 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             TypeRef type = context.Compiler.Lookup.GetTypeRef(ctor.DeclaringType);
 
             bool ptr = TypeHelper.RequiresExtraPointer(ctor.DeclaringType);
-            ValueRef objPtr = (ptr) ? LLVM.BuildMalloc(builder, type, "newobj") : LLVM.BuildAlloca(builder, type, "newobj");
-            
-            // Call .ctor
+            ValueRef objPtr;
+            if (ptr)
+            {
+                // This type is a class, therefor we have a specialised "newobj" method
+                objPtr = LLVM.BuildCall(builder, context.Compiler.Lookup.GetNewobjMethod(ctor.DeclaringType.Resolve()), new ValueRef[0], "newobj");
+            }
+            else
+            {
+                // Not a class, no specialised method
+                objPtr = LLVM.BuildAlloca(builder, type, "newobj"); ;
+            }
+
+            // Get .ctor parameters
             int paramCount = 1 + ctor.Parameters.Count;
             ValueRef[] values = new ValueRef[paramCount];
             values[0] = objPtr;
@@ -36,21 +46,8 @@ namespace CSharpLLVM.Generator.Instructions.Objects
                 values[i] = element.Value;
             }
 
+            // Call .ctor
             LLVM.BuildCall(builder, context.Compiler.Lookup.GetFunction(NameHelper.CreateMethodName(ctor)).Value, values, string.Empty);
-
-            // Initialize VTables, TODO: move newobj stuff to seperate (internal) method
-            Lookup lookup = context.Compiler.Lookup;
-            //createVTableInitCode(context, builder, objPtr, myType, myType);//TODO: move to .ctor!
-            VTable vtable = lookup.GetVTable(ctor.DeclaringType);
-            KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>>[] others = vtable.GetOtherEntries();
-            foreach(KeyValuePair<TypeReference, Tuple<TypeRef, ValueRef>> pair in others)
-            {
-                uint index = lookup.GetVTableIndex(pair.Key);
-                ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");
-                LLVM.BuildStore(builder, pair.Value.Item2, vTableGep);
-            }
-            
-            vtable.Dump();
 
             // Load and push object on stack
             ValueRef obj = (ptr) ? objPtr : LLVM.BuildLoad(builder, objPtr, "obj");

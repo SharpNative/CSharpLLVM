@@ -68,7 +68,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             TypeRef funcPtrType = LLVM.PointerType(functionType, 0);
             Lookup lookup = context.Compiler.Lookup;
             VTable vTable = lookup.GetVTable(methodRef.DeclaringType);
-            uint index = lookup.GetVTableIndex(methodRef.DeclaringType);
+            uint index = lookup.GetClassVTableIndex(methodRef.DeclaringType);
 
             // Get a function pointer
             ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
