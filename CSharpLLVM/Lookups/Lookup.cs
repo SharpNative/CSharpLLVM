@@ -179,7 +179,7 @@ namespace CSharpLLVM.Lookups
             // First add parent fields, then our own fields
             fields.AddRange(GetStructLayout(parent));
             fields.AddRange(typeDef.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
-            fields.Add(new StructBarrierEntry(type));
+            fields.Add(new StructBarrierEntry(typeDef));
 
             // Add to cache
             mLayoutLookup.Add(type, fields);
@@ -205,7 +205,8 @@ namespace CSharpLLVM.Lookups
                     StructBarrierEntry barrier = (StructBarrierEntry)child;
                     if (barrier.Type == type)
                         return i;
-                    
+
+                    i++;
                     continue;
                 }
 

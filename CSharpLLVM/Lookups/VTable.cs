@@ -14,7 +14,7 @@ namespace CSharpLLVM.Lookups
         private TypeDefinition mType;
 
         // Contains pairs of methods and their indices, must match correct parent types (if any)
-        private Dictionary<TypeDefinition, Dictionary<int, MethodReference>> mTable = new Dictionary<TypeDefinition, Dictionary<int, MethodReference>>();
+        private Dictionary<TypeDefinition, Dictionary<int, MethodDefinition>> mTable = new Dictionary<TypeDefinition, Dictionary<int, MethodDefinition>>();
         private Dictionary<TypeDefinition, Dictionary<string, int>> mNameTable = new Dictionary<TypeDefinition, Dictionary<string, int>>();
 
         // Lookup for generated code of VTable
@@ -22,7 +22,7 @@ namespace CSharpLLVM.Lookups
 
         public TypeDefinition Type { get { return mType; } }
 
-        protected Dictionary<int, MethodReference> MyTable { get { return mTable[mType]; } }
+        protected Dictionary<int, MethodDefinition> MyTable { get { return mTable[mType]; } }
         protected Dictionary<string, int> MyNameTable { get { return mNameTable[mType]; } }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace CSharpLLVM.Lookups
             VTable parentTable = mCompiler.Lookup.GetVTable(parentType);
 
             // Match method signatures against own
-            Dictionary<int, MethodReference> own = new Dictionary<int, MethodReference>();
+            Dictionary<int, MethodDefinition> own = new Dictionary<int, MethodDefinition>();
             foreach (MethodDefinition method in parentType.Methods)
             {
                 if (!shouldAddMethod(method))
@@ -63,17 +63,21 @@ namespace CSharpLLVM.Lookups
 
                 string shortName = NameHelper.CreateShortMethodName(method);
 
-                // TODO: check new vs virtual vs override
+                Console.WriteLine(parentType + " | " + method + " " + method.IsNewSlot + " " + method.IsVirtual);
+
+
 
                 // This type overrides the method in the parent type
-                if (MyNameTable.ContainsKey(shortName))
+                if (MyNameTable.ContainsKey(shortName) && MyTable[MyNameTable[shortName]].IsVirtual)
                 {
+                    Console.WriteLine(" will use own method");
                     int nameTableIndex = MyNameTable[shortName];
                     own.Add(parentTable.MyNameTable[shortName], MyTable[nameTableIndex]);
                 }
                 // Use parent method definition
                 else
                 {
+                    Console.WriteLine(" will use parent method");
                     int nameTableIndex = parentTable.MyNameTable[shortName];
                     own.Add(nameTableIndex, method);
                 }
@@ -83,7 +87,7 @@ namespace CSharpLLVM.Lookups
 
             // Generate name table
             Dictionary<string, int> nameTable = new Dictionary<string, int>();
-            foreach (KeyValuePair<int, MethodReference> pair in own)
+            foreach (KeyValuePair<int, MethodDefinition> pair in own)
             {
                 nameTable.Add(NameHelper.CreateShortMethodName(pair.Value), pair.Key);
             }
@@ -97,21 +101,23 @@ namespace CSharpLLVM.Lookups
                     continue;
 
                 // Create own copies of this table
-                Dictionary<int, MethodReference> mTableCopy = new Dictionary<int, MethodReference>();
+                Dictionary<int, MethodDefinition> mTableCopy = new Dictionary<int, MethodDefinition>();
                 mTable.Add(pair.Key, mTableCopy);
                 mNameTable.Add(pair.Key, pair.Value);
 
                 // Create own copy of table with possible modifications
-                Dictionary<int, MethodReference> parentLookupTable = parentTable.mTable[pair.Key];
+                Dictionary<int, MethodDefinition> parentLookupTable = parentTable.mTable[pair.Key];
                 foreach (KeyValuePair<string, int> methodPair in pair.Value)
                 {
                     string shortName = methodPair.Key;
 
-                    // TODO: check new vs virtual vs override
+                    
 
                     // Did we override this method?
-                    if (MyNameTable.ContainsKey(shortName))
+                    if (MyNameTable.ContainsKey(shortName)/* && (MyTable[MyNameTable[shortName]].IsVirtual || MyTable[MyNameTable[shortName]].IsNewSlot)*/)
                     {
+                        MethodDefinition method = MyTable[MyNameTable[shortName]];
+                        Console.WriteLine(parentType + " | " + method + " " + method.IsNewSlot + " " + method.IsVirtual);
                         int nameTableIndex = MyNameTable[shortName];
                         mTableCopy.Add(methodPair.Value, MyTable[nameTableIndex]);
                     }
@@ -131,7 +137,7 @@ namespace CSharpLLVM.Lookups
         {
             // Create own tables
             mNameTable.Add(mType, new Dictionary<string, int>());
-            mTable.Add(mType, new Dictionary<int, MethodReference>());
+            mTable.Add(mType, new Dictionary<int, MethodDefinition>());
 
             // Add own methods
             int index = 0;
@@ -181,11 +187,11 @@ namespace CSharpLLVM.Lookups
         {
             foreach (KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>> pair in mGeneratedTable)
             {
-                Dictionary<int, MethodReference> lookup = mTable[pair.Key];
+                Dictionary<int, MethodDefinition> lookup = mTable[pair.Key];
 
                 int i = 0;
                 ValueRef[] values = new ValueRef[lookup.Count];
-                foreach (KeyValuePair<int, MethodReference> entry in lookup)
+                foreach (KeyValuePair<int, MethodDefinition> entry in lookup)
                 {
                     ValueRef? function = mCompiler.Lookup.GetFunction(NameHelper.CreateMethodName(entry.Value));
                     if (!function.HasValue)
@@ -218,9 +224,8 @@ namespace CSharpLLVM.Lookups
         /// <returns>The VTable</returns>
         public Tuple<TypeRef, ValueRef> GetEntry(TypeDefinition type)
         {
-            // TODO: remove this?
             if (!mGeneratedTable.ContainsKey(type))
-                throw new InvalidOperationException("Cannot find the created vtable for type: " + type);
+                throw new InvalidOperationException("Cannot find the created VTable for type: " + type);
 
             return mGeneratedTable[type];
         }
@@ -229,11 +234,11 @@ namespace CSharpLLVM.Lookups
         /// Gets entries of the VTable structs other than the owning type
         /// </summary>
         /// <returns>An array of entries for VTable structs</returns>
-        public KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] GetOtherEntries()
+        public KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] GetAllEntries()
         {
-            return mGeneratedTable.Where(kv => kv.Key != mType).ToArray();
+            return mGeneratedTable.ToArray();
         }
-
+        
         /// <summary>
         /// Creates a VTable
         /// </summary>
@@ -254,10 +259,10 @@ namespace CSharpLLVM.Lookups
         public void Dump()
         {
             Console.WriteLine("----- VTable for type " + mType + " -----");
-            foreach (KeyValuePair<TypeDefinition, Dictionary<int, MethodReference>> entry in mTable)
+            foreach (KeyValuePair<TypeDefinition, Dictionary<int, MethodDefinition>> entry in mTable)
             {
                 Console.WriteLine("  Type: " + entry.Key);
-                foreach (KeyValuePair<int, MethodReference> methods in entry.Value)
+                foreach (KeyValuePair<int, MethodDefinition> methods in entry.Value)
                 {
                     Console.WriteLine("\t" + methods.Key + " -> " + methods.Value);
                 }

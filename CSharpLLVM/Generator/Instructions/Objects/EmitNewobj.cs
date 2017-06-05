@@ -31,7 +31,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             else
             {
                 // Not a class, no specialised method
-                objPtr = LLVM.BuildAlloca(builder, type, "newobj"); ;
+                objPtr = LLVM.BuildAlloca(builder, type, "newobj");
             }
 
             // Get .ctor parameters

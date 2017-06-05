@@ -42,6 +42,7 @@ namespace CSharpLLVM.Compilation
             // Enums are treated as 32-bit ints
             if (isEnum)
             {
+                // TODO: support other types of enum storage
                 mLookup.AddType(type, TypeHelper.Int32);
             }
             // Structs and classes
@@ -51,7 +52,7 @@ namespace CSharpLLVM.Compilation
                 VTable vtable = new VTable(mCompiler, type);
                 mLookup.AddVTable(vtable);
                 vtable.Create();
-                //vtable.Dump();
+                vtable.Dump();
 
                 // Create struct for this type
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
@@ -139,7 +140,7 @@ namespace CSharpLLVM.Compilation
             // Initialize VTables
             Lookup lookup = mCompiler.Lookup;
             VTable vtable = lookup.GetVTable(type);
-            KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] others = vtable.GetOtherEntries();
+            KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] others = vtable.GetAllEntries();
             foreach (KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>> pair in others)
             {
                 uint index = lookup.GetClassVTableIndex(pair.Key);
