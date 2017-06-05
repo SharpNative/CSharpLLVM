@@ -2,6 +2,7 @@
 using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CSharpLLVM.Lookups
 {
@@ -10,7 +11,7 @@ namespace CSharpLLVM.Lookups
         private Dictionary<string, ValueRef> mFunctionLookup = new Dictionary<string, ValueRef>();
         private Dictionary<FieldReference, ValueRef> mStaticFieldLookup = new Dictionary<FieldReference, ValueRef>();
         private Dictionary<TypeReference, TypeRef> mTypeLookup = new Dictionary<TypeReference, TypeRef>();
-        private Dictionary<TypeReference, List<FieldDefinition>> mFieldLookup = new Dictionary<TypeReference, List<FieldDefinition>>();
+        private Dictionary<TypeReference, List<IStructEntry>> mLayoutLookup = new Dictionary<TypeReference, List<IStructEntry>>();
         private Dictionary<TypeReference, VTable> mVTableLookup = new Dictionary<TypeReference, VTable>();
         private Dictionary<TypeDefinition, ValueRef> mNewobjFunctions = new Dictionary<TypeDefinition, ValueRef>();
 
@@ -158,17 +159,17 @@ namespace CSharpLLVM.Lookups
         }
         
         /// <summary>
-        /// Gets the fields of a type including the inherited fields, we use "null" to mark a barrier between types
+        /// Gets the struct layout of a type
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>The list of fields</returns>
-        public List<FieldDefinition> GetFields(TypeReference type)
+        public List<IStructEntry> GetStructLayout(TypeDefinition type)
         {
             // Cached?
-            if (mFieldLookup.ContainsKey(type))
-                return mFieldLookup[type];
+            if (mLayoutLookup.ContainsKey(type))
+                return mLayoutLookup[type];
 
-            List<FieldDefinition> fields = new List<FieldDefinition>();
+            List<IStructEntry> fields = new List<IStructEntry>();
             TypeDefinition typeDef = type.Resolve();
             if (typeDef.BaseType == null)
                 return fields;
@@ -176,12 +177,12 @@ namespace CSharpLLVM.Lookups
             TypeDefinition parent = typeDef.BaseType.Resolve();
 
             // First add parent fields, then our own fields
-            fields.AddRange(GetFields(parent));
-            fields.AddRange(typeDef.Fields);
-            fields.Add(null);
+            fields.AddRange(GetStructLayout(parent));
+            fields.AddRange(typeDef.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
+            fields.Add(new StructBarrierEntry(type));
 
             // Add to cache
-            mFieldLookup.Add(type, fields);
+            mLayoutLookup.Add(type, fields);
 
             return fields;
         }
@@ -191,37 +192,31 @@ namespace CSharpLLVM.Lookups
         /// </summary>
         /// <param name="type">The type</param>
         /// <returns>The index</returns>
-        public uint GetClassVTableIndex(TypeReference type)
+        public uint GetClassVTableIndex(TypeDefinition type)
         {
-            List<FieldDefinition> fields = GetFields(type);
+            List<IStructEntry> fields = GetStructLayout(type);
 
             uint i = 0;
-            TypeReference currentType = null;
-            foreach (FieldDefinition child in fields)
+            foreach (IStructEntry child in fields)
             {
-                if (child == null)
+                // Barrier? Might be the barrier of the type we're looking for
+                if (child.IsBarrier)
                 {
-                    i++;
-                    if (currentType == type)
+                    StructBarrierEntry barrier = (StructBarrierEntry)child;
+                    if (barrier.Type == type)
                         return i;
                     
                     continue;
                 }
 
-                // Internal
-                if (child.FullName[0] == '<')
+                StructFieldEntry fieldEntry = (StructFieldEntry)child;
+                if (fieldEntry.Field.IsStatic)
                     continue;
 
-                // Static fields don't count
-                if (child.IsStatic)
-                    continue;
-
-                currentType = child.DeclaringType;
+                i++;
             }
 
             throw new Exception("Could not find VTable index for: " + type);
-
-            //return 0;
         }
 
         /// <summary>
@@ -231,27 +226,23 @@ namespace CSharpLLVM.Lookups
         /// <returns>The field index</returns>
         public uint GetFieldIndex(FieldReference field)
         {
-            List<FieldDefinition> fields = GetFields(field.DeclaringType);
-            
+            List<IStructEntry> fields = GetStructLayout(field.DeclaringType.Resolve());
+
             uint i = 0;
-            foreach (FieldDefinition child in fields)
+            foreach (IStructEntry child in fields)
             {
-                if (child == null)
+                if (child.IsBarrier)
                 {
                     i++;
                     continue;
                 }
 
-                // Internal
-                if (child.FullName[0] == '<')
-                    continue;
-
-                // Static fields don't count
-                if (child.IsStatic)
+                StructFieldEntry fieldEntry = (StructFieldEntry)child;
+                if (fieldEntry.Field.IsStatic)
                     continue;
 
                 // Found
-                if (field == child)
+                if (fieldEntry.Field == field)
                     return i;
 
                 i++;

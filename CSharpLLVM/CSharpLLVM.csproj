@@ -76,6 +76,9 @@
     <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
     <Compile Include="Lookups\Lookup.cs" />
     <Compile Include="Compilation\TypeCompiler.cs" />
+    <Compile Include="Lookups\IStructEntry.cs" />
+    <Compile Include="Lookups\StructBarrierEntry.cs" />
+    <Compile Include="Lookups\StructFieldEntry.cs" />
     <Compile Include="Lookups\VTable.cs" />
     <Compile Include="Generator\Instructions\Arithmetic\EmitRem.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdlen.cs" />

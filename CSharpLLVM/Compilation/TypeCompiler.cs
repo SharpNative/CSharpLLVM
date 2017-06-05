@@ -57,23 +57,21 @@ namespace CSharpLLVM.Compilation
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
                 mLookup.AddType(type, data);
                 List<TypeRef> structData = new List<TypeRef>();
-                List<FieldDefinition> fields = mLookup.GetFields(type);
+                List<IStructEntry> fields = mLookup.GetStructLayout(type);
 
                 // Fields
                 TypeDefinition currentType = type;
-                foreach (FieldDefinition field in fields)
+                foreach (IStructEntry entry in fields)
                 {
                     // Barrier
-                    if (field == null)
+                    if (entry.IsBarrier)
                     {
-                        structData.Add(LLVM.PointerType(vtable.GetEntry(currentType).Item1, 0));
+                        StructBarrierEntry barrier = (StructBarrierEntry)entry;
+                        structData.Add(LLVM.PointerType(vtable.GetEntry(barrier.Type).Item1, 0));
                         continue;
                     }
 
-                    // Internal
-                    if (field.FullName[0] == '<')
-                        continue;
-
+                    FieldDefinition field = ((StructFieldEntry)entry).Field;
                     TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
                     currentType = field.DeclaringType;
 
