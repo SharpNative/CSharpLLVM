@@ -1,9 +1,10 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
 using Mono.Cecil;
-using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
+using CSharpLLVM.Compilation;
+using CSharpLLVM.Lookups;
 
 namespace CSharpLLVM.Generator.Instructions.FlowControl
 {

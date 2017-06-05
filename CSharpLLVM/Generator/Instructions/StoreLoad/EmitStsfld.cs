@@ -1,6 +1,6 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
-using CSharpLLVM.Compiler;
+using CSharpLLVM.Compilation;
 using System;
 using Mono.Cecil;
 using CSharpLLVM.Stack;

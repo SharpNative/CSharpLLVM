@@ -4,11 +4,12 @@ using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Diagnostics;
 using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
-using System.Diagnostics;
+using CSharpLLVM.Lookups;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Compilation
 {
     class Compiler
     {

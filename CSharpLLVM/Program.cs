@@ -1,4 +1,4 @@
-﻿using CSharpLLVM.Compiler;
+﻿using CSharpLLVM.Compilation;
 using System;
 using System.IO;
 using System.Reflection;
@@ -41,7 +41,7 @@ namespace CSharpLLVM
                 ModuleName = moduleName
             };
 
-            Compiler.Compiler compiler = new Compiler.Compiler(settings);
+            Compiler compiler = new Compiler(settings);
             compiler.Compile();
 
             Console.ReadLine();

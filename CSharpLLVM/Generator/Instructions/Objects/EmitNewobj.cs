@@ -1,9 +1,9 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
-using CSharpLLVM.Compiler;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
+using CSharpLLVM.Compilation;
 
 namespace CSharpLLVM.Generator.Instructions.Objects
 {

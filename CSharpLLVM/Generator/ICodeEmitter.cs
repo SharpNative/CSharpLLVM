@@ -1,4 +1,4 @@
-﻿using CSharpLLVM.Compiler;
+﻿using CSharpLLVM.Compilation;
 using Swigged.LLVM;
 using Mono.Cecil.Cil;
 

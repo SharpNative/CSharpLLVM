@@ -1,5 +1,5 @@
 ﻿using Swigged.LLVM;
-using CSharpLLVM.Compiler;
+using CSharpLLVM.Compilation;
 using Mono.Cecil.Cil;
 
 namespace CSharpLLVM.Generator.Instructions.Stack

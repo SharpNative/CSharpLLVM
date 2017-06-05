@@ -3,7 +3,7 @@ using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Swigged.LLVM;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Compilation
 {
     class MethodCompiler
     {

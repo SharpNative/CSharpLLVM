@@ -1,10 +1,11 @@
 ﻿using CSharpLLVM.Helpers;
+using CSharpLLVM.Lookups;
 using Mono.Cecil;
 using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Compilation
 {
     class TypeCompiler
     {

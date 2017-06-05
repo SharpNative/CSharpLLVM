@@ -1,11 +1,12 @@
-﻿using CSharpLLVM.Helpers;
+﻿using CSharpLLVM.Compilation;
+using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Lookups
 {
     class VTable
     {

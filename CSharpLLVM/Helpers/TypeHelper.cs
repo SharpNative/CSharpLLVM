@@ -1,4 +1,5 @@
-﻿using CSharpLLVM.Compiler;
+﻿using CSharpLLVM.Compilation;
+using CSharpLLVM.Lookups;
 using CSharpLLVM.Stack;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -308,7 +309,7 @@ namespace CSharpLLVM.Helpers
         /// <param name="compiler">The compiler</param>
         /// <param name="typeRef">The type reference</param>
         /// <returns>The type</returns>
-        public static Type GetTypeFromTypeReference(Compiler.Compiler compiler, TypeReference typeRef)
+        public static Type GetTypeFromTypeReference(Compiler compiler, TypeReference typeRef)
         {
             if (typeRef.FullName.StartsWith("System"))
                 return mMSCorlib.GetType(typeRef.FullName);

@@ -1,10 +1,9 @@
 ﻿using Swigged.LLVM;
 using Mono.Cecil.Cil;
-using CSharpLLVM.Compiler;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
-using Mono.Cecil;
 using System;
+using CSharpLLVM.Compilation;
 
 namespace CSharpLLVM.Generator.Instructions.Arithmetic
 {

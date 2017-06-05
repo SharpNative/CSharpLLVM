@@ -3,7 +3,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Compilation
 {
     class MethodContext
     {

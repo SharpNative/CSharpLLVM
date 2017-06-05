@@ -1,7 +1,7 @@
 ﻿using CSharpLLVM.Helpers;
 using Swigged.LLVM;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Compilation
 {
     class BuiltinRuntimeFunctions
     {

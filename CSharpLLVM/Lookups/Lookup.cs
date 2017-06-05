@@ -3,7 +3,7 @@ using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
 
-namespace CSharpLLVM.Compiler
+namespace CSharpLLVM.Lookups
 {
     class Lookup
     {

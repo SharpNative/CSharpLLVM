@@ -1,4 +1,4 @@
-﻿namespace CSharpLLVM.Compiler
+﻿namespace CSharpLLVM.Compilation
 {
     struct CompilerSettings
     {
