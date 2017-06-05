@@ -264,7 +264,8 @@ namespace CSharpLLVM.Compiler
 
             // Note: we first need all types to generate before we can generate methods
             //       because methods may refer to types that are not yet generated
-            methods.AddRange(type.Methods);
+            if (!type.IsInterface)
+                methods.AddRange(type.Methods);
         }
 
         /// <summary>
