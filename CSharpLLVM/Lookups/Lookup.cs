@@ -15,6 +15,7 @@ namespace CSharpLLVM.Lookups
         private Dictionary<TypeReference, VTable> mVTableLookup = new Dictionary<TypeReference, VTable>();
         private Dictionary<TypeDefinition, ValueRef> mNewobjFunctions = new Dictionary<TypeDefinition, ValueRef>();
         private Dictionary<TypeReference, bool> mNeedsVirtualCall = new Dictionary<TypeReference, bool>();
+        private Dictionary<MethodReference, bool> mMethodUniqueness = new Dictionary<MethodReference, bool>();
 
         private List<MethodDefinition> mCctors = new List<MethodDefinition>();
 
@@ -157,6 +158,27 @@ namespace CSharpLLVM.Lookups
         public ValueRef GetNewobjMethod(TypeDefinition type)
         {
             return mNewobjFunctions[type];
+        }
+
+        /// <summary>
+        /// Sets a method as "not unique"
+        /// </summary>
+        /// <param name="method">The method</param>
+        public void SetMethodNotUnique(MethodReference method)
+        {
+            mMethodUniqueness[method] = true;
+        }
+
+        /// <summary>
+        /// Returns true if a method is unique
+        /// </summary>
+        /// <param name="method">The method</param>
+        /// <returns>If it is unique</returns>
+        public bool IsMethodUnique(MethodReference method)
+        {
+            bool unique = false;
+            mMethodUniqueness.TryGetValue(method, out unique);
+            return !unique;
         }
 
         /// <summary>

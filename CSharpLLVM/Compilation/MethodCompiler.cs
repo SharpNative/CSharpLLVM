@@ -62,7 +62,7 @@ namespace CSharpLLVM.Compilation
                 mCompiler.Lookup.AddFunction(methodName, function.Value);
             }
 
-            // Private only visible for us
+            // Private methods have internal linkage
             if (methodDef.IsPrivate)
                 LLVM.SetLinkage(function.Value, Linkage.InternalLinkage);
 

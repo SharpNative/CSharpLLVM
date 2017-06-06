@@ -67,12 +67,12 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             }
 
             // Call
+            Lookup lookup = context.Compiler.Lookup;
             ValueRef method;
-            if (needsVirtualCall)
+            if (needsVirtualCall && !lookup.IsMethodUnique(methodRef))
             {
                 // We need a virtual call
                 TypeRef funcPtrType = LLVM.PointerType(functionType, 0);
-                Lookup lookup = context.Compiler.Lookup;
                 VTable vTable = lookup.GetVTable(methodRef.DeclaringType);
                 uint index = lookup.GetClassVTableIndex(methodRef.DeclaringType.Resolve());
 

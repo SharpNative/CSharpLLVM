@@ -50,7 +50,8 @@ namespace CSharpLLVM.Compilation
             {
                 // VTable
                 VTable vtable = null;
-                if (isClass || isInterface)
+                bool hasVTable = ((isClass || isInterface) && mCompiler.Lookup.NeedsVirtualCall(type));
+                if (hasVTable)
                 {
                     vtable = new VTable(mCompiler, type);
                     mLookup.AddVTable(vtable);
@@ -71,8 +72,11 @@ namespace CSharpLLVM.Compilation
                     // Barrier
                     if (entry.IsBarrier)
                     {
-                        StructBarrierEntry barrier = (StructBarrierEntry)entry;
-                        structData.Add(LLVM.PointerType(vtable.GetEntry(barrier.Type).Item1, 0));
+                        if (hasVTable)
+                        {
+                            StructBarrierEntry barrier = (StructBarrierEntry)entry;
+                            structData.Add(LLVM.PointerType(vtable.GetEntry(barrier.Type).Item1, 0));
+                        }
                         continue;
                     }
 
@@ -143,13 +147,16 @@ namespace CSharpLLVM.Compilation
 
             // Initialize VTables
             Lookup lookup = mCompiler.Lookup;
-            VTable vtable = lookup.GetVTable(type);
-            KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] others = vtable.GetAllEntries();
-            foreach (KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>> pair in others)
+            if (lookup.NeedsVirtualCall(type))
             {
-                uint index = lookup.GetClassVTableIndex(pair.Key);
-                ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");
-                LLVM.BuildStore(builder, pair.Value.Item2, vTableGep);
+                VTable vtable = lookup.GetVTable(type);
+                KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] others = vtable.GetAllEntries();
+                foreach (KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>> pair in others)
+                {
+                    uint index = lookup.GetClassVTableIndex(pair.Key);
+                    ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");
+                    LLVM.BuildStore(builder, pair.Value.Item2, vTableGep);
+                }
             }
 
             // Return object pointer

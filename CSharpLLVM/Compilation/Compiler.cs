@@ -201,10 +201,12 @@ namespace CSharpLLVM.Compilation
             if (TypeHelper.InheritsFrom(left, right))
             {
                 Lookup.SetNeedVirtualCall(right, true);
+                Lookup.SetNeedVirtualCall(left, true);
                 return 1;
             }
             else if (TypeHelper.InheritsFrom(right, left))
             {
+                Lookup.SetNeedVirtualCall(right, true);
                 Lookup.SetNeedVirtualCall(left, true);
                 return -1;
             }

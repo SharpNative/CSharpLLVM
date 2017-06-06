@@ -63,6 +63,8 @@ namespace CSharpLLVM.Lookups
 
                 string shortName = NameHelper.CreateShortMethodName(method);
                 
+                mCompiler.Lookup.SetMethodNotUnique(method);
+
                 // This type overrides the method in the parent type
                 if (MyNameTable.ContainsKey(shortName) && MyTable[MyNameTable[shortName]].IsVirtual)
                 {
@@ -109,6 +111,7 @@ namespace CSharpLLVM.Lookups
                     if (MyNameTable.ContainsKey(shortName) && (MyTable[MyNameTable[shortName]].IsVirtual))
                     {
                         MethodDefinition method = MyTable[MyNameTable[shortName]];
+                        mCompiler.Lookup.SetMethodNotUnique(method);
                         int nameTableIndex = MyNameTable[shortName];
                         mTableCopy.Add(methodPair.Value, MyTable[nameTableIndex]);
                     }
