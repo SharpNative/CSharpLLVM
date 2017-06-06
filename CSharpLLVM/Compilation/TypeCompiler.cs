@@ -39,11 +39,11 @@ namespace CSharpLLVM.Compilation
             Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
             Console.ForegroundColor = ConsoleColor.Gray;
 
-            // Enums are treated as 32-bit ints
+            // Enums
             if (isEnum)
             {
-                // TODO: support other types of enum storage
-                mLookup.AddType(type, TypeHelper.Int32);
+                // The fields within the enum indicate its type
+                mLookup.AddType(type, TypeHelper.GetTypeRefFromType(type.Fields[0].FieldType));
             }
             // Structs and classes
             else
