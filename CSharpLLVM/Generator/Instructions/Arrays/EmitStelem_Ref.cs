@@ -10,7 +10,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
     class EmitStelemRef : ICodeEmitter
     {
         /// <summary>
-        /// Emits a stelemref instruction
+        /// Emits a stelem_ref instruction
         /// </summary>
         /// <param name="instruction">The instruction</param>
         /// <param name="context">The context</param>
@@ -22,6 +22,8 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             StackElement array = context.CurrentStack.Pop();
             
             TypeRef destType = LLVM.PointerType(value.Type, 0);
+            if (TypeHelper.RequiresExtraPointer(value.ILType))
+                destType = LLVM.PointerType(destType, 0);
 
             // Convert to "pointer to value type" type
             if (array.Type == TypeHelper.VoidPtr || destType != array.Type)

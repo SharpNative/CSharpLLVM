@@ -4,9 +4,10 @@
 
 void* newarr(int32_t nelements, size_t size)
 {
-    int32_t* ptr = malloc(sizeof(int32_t) + (nelements * size));
+	// Note: An array length is a 32-bit int, but we need to align on native alignment
+    int32_t* ptr = malloc(sizeof(size_t) + (nelements * size));
     if(ptr == NULL)
         return NULL;
     *ptr = nelements;
-    return (void*)(ptr + 1);
+    return (void*)((int8_t*)ptr + sizeof(size_t));
 }

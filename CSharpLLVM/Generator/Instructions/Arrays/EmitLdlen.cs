@@ -19,9 +19,10 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
         {
             StackElement array = context.CurrentStack.Pop();
             
-            // Note: an array length in CIL is an 32-bit int
+            // Note: an array length in CIL is an 32-bit int, but the array is aligned, so we need to substract
+            //       the size of the native int from the address
             ValueRef ptrAddress = LLVM.BuildPtrToInt(builder, array.Value, TypeHelper.NativeIntType, "ptraddress");
-            ValueRef offset = LLVM.BuildSub(builder, ptrAddress, LLVM.ConstInt(TypeHelper.NativeIntType, 4, false), "lengthoffset");
+            ValueRef offset = LLVM.BuildSub(builder, ptrAddress, LLVM.ConstInt(TypeHelper.NativeIntType, LLVM.SizeOfTypeInBits(context.Compiler.TargetData, TypeHelper.NativeIntType) / 8, false), "lengthoffset");
             ValueRef ptrOffset = LLVM.BuildIntToPtr(builder, offset, LLVM.PointerType(TypeHelper.Int32, 0), "lengthoffsetptr");
             ValueRef gep = LLVM.BuildGEP(builder, ptrOffset, new ValueRef[] { LLVM.ConstInt(TypeHelper.NativeIntType, 0, false) }, "lengthptr");
             ValueRef result = LLVM.BuildLoad(builder, gep, "length");

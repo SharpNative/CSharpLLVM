@@ -74,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
+    <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Ref.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitTail.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitVolatile.cs" />
     <Compile Include="Generator\Instructions\Stack\EmitLdnull.cs" />

@@ -5,7 +5,6 @@ using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Compilation;
 using CSharpLLVM.Lookups;
-using System;
 
 namespace CSharpLLVM.Generator.Instructions.FlowControl
 {

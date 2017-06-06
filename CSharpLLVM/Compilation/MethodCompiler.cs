@@ -46,7 +46,7 @@ namespace CSharpLLVM.Compilation
                 {
                     TypeReference type = methodDef.Parameters[i - offset].ParameterType;
                     argTypes[i] = TypeHelper.GetTypeRefFromType(type);
-                    if (TypeHelper.RequiresExtraPointer(type.Resolve()))
+                    if (TypeHelper.RequiresExtraPointer(type))
                         argTypes[i] = LLVM.PointerType(argTypes[i], 0);
                 }
 
