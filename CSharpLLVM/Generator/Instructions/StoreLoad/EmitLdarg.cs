@@ -30,9 +30,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             }
             
             ValueRef arg = context.ArgumentValues[index];
-            ValueRef result = LLVM.BuildAlloca(builder, LLVM.TypeOf(arg), "ldarg");
-            LLVM.BuildStore(builder, arg, result);
-            ValueRef value = LLVM.BuildLoad(builder, result, "ldargval");
+            ValueRef value = LLVM.BuildLoad(builder, arg, "ldargval");
             context.CurrentStack.Push(new StackElement(value, context.ArgumentILTypes[index]));
         }
     }

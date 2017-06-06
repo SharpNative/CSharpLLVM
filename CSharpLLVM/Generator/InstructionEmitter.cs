@@ -47,7 +47,7 @@ namespace CSharpLLVM.Generator
             {
                 TypeReference type = varDef.VariableType;
                 TypeRef typeRef = TypeHelper.GetTypeRefFromType(type);
-                
+
                 mContext.LocalValues[varDef.Index] = LLVM.BuildAlloca(mBuilder, typeRef, string.Format("local{0}", varDef.Index));
                 mContext.LocalTypes[varDef.Index] = typeRef;
                 mContext.LocalILTypes[varDef.Index] = type;

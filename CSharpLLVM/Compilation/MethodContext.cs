@@ -168,6 +168,9 @@ namespace CSharpLLVM.Compilation
         /// </summary>
         private void prepareArguments()
         {
+            BuilderRef builder = LLVM.CreateBuilderInContext(Compiler.ModuleContext);
+            LLVM.PositionBuilderAtEnd(builder, mBlocks[0]);
+
             uint count = LLVM.CountParams(Function);
             ArgumentValues = new ValueRef[count];
             ArgumentILTypes = new TypeReference[count];
@@ -176,16 +179,22 @@ namespace CSharpLLVM.Compilation
             int offset = (Method.HasThis) ? 1 : 0;
             for (int i = offset; i < count; i++)
             {
-                ArgumentValues[i] = LLVM.GetParam(Function, (uint)i);
+                ValueRef param = LLVM.GetParam(Function, (uint)i);
                 ArgumentILTypes[i] = Method.Parameters[i - offset].ParameterType;
+                ArgumentValues[i] = LLVM.BuildAlloca(builder, LLVM.TypeOf(param), "arg" + i);
+                LLVM.BuildStore(builder, param, ArgumentValues[i]);
             }
 
             // Instance reference
             if (Method.HasThis)
             {
-                ArgumentValues[0] = LLVM.GetParam(Function, 0);
+                ValueRef param = LLVM.GetParam(Function, 0);
                 ArgumentILTypes[0] = new PointerType(Method.DeclaringType);
+                ArgumentValues[0] = LLVM.BuildAlloca(builder, LLVM.TypeOf(param), "arg0");
+                LLVM.BuildStore(builder, param, ArgumentValues[0]);
             }
+
+            LLVM.DisposeBuilder(builder);
         }
 
         /// <summary>
