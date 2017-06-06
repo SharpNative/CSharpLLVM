@@ -2,6 +2,7 @@
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Swigged.LLVM;
+using System;
 
 namespace CSharpLLVM.Compilation
 {
@@ -70,14 +71,27 @@ namespace CSharpLLVM.Compilation
                 LLVM.SetLinkage(function.Value, Linkage.ExternalLinkage);
                 return function;
             }
-            
-            // Compile instructions
-            MethodContext ctx = new MethodContext(mCompiler, methodDef, function.Value);
-            InstructionEmitter emitter = new InstructionEmitter(ctx);
-            emitter.EmitInstructions(mCompiler.CodeGen);
 
-            // Verify & optimize
-            mCompiler.VerifyAndOptimizeFunction(function.Value);
+            // Compile instructions
+            try
+            {
+                MethodContext ctx = new MethodContext(mCompiler, methodDef, function.Value);
+                InstructionEmitter emitter = new InstructionEmitter(ctx);
+                emitter.EmitInstructions(mCompiler.CodeGen);
+
+                // Verify & optimize
+                mCompiler.VerifyAndOptimizeFunction(function.Value);
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Exception inside method " + methodDef);
+                Console.WriteLine(e.Message);
+
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine(e.StackTrace);
+                Console.ForegroundColor = ConsoleColor.Gray;
+            }
 
             return function;
         }

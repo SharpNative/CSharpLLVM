@@ -20,7 +20,7 @@ namespace CSharpLLVM.Compilation
 
         private PassManagerRef mFunctionPassManager;
         private PassManagerRef mPassManager;
-        
+
         public AssemblyDefinition AssemblyDef { get; private set; }
         public CompilerSettings Settings { get; private set; }
         public ModuleRef Module { get { return mModule; } }
@@ -51,7 +51,14 @@ namespace CSharpLLVM.Compilation
         /// <param name="function">The function</param>
         public void VerifyAndOptimizeFunction(ValueRef function)
         {
-            LLVM.VerifyFunction(function, VerifierFailureAction.PrintMessageAction);
+            if (LLVM.VerifyFunction(function, VerifierFailureAction.ReturnStatusAction))
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                LLVM.VerifyFunction(function, VerifierFailureAction.PrintMessageAction);
+                Console.ForegroundColor = ConsoleColor.Gray;
+                throw new Exception("Compiling of function failed");
+            }
+
             LLVM.RunFunctionPassManager(mFunctionPassManager, function);
         }
 
@@ -128,10 +135,19 @@ namespace CSharpLLVM.Compilation
             Console.WriteLine(LLVM.PrintModuleToString(mModule));
 
             // Verify and throw exception on error
-            if (LLVM.VerifyModule(mModule, VerifierFailureAction.PrintMessageAction, out error))
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            if (LLVM.VerifyModule(mModule, VerifierFailureAction.ReturnStatusAction, out error))
             {
-                throw new InvalidOperationException(error);
+                Console.WriteLine("Compilation of module failed");
+                LLVM.DisposeTargetData(TargetData);
+                Console.ForegroundColor = ConsoleColor.Gray;
+                return;
             }
+            else
+            {
+                Console.WriteLine("Compilation of module succeeded");
+            }
+            Console.ForegroundColor = ConsoleColor.Gray;
 
             // Output
             TargetMachineRef machine = LLVM.CreateTargetMachine(target, triplet, "generic", "", CodeGenOptLevel.CodeGenLevelDefault, RelocMode.RelocDefault, CodeModel.CodeModelDefault);
