@@ -76,6 +76,7 @@
     <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Any.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Ref.cs" />
+    <Compile Include="Generator\Instructions\Misc\EmitSizeof.cs" />
     <Compile Include="Generator\Instructions\Prefixes\EmitTail.cs" />
     <Compile Include="Generator\Instructions\Prefixes\EmitVolatile.cs" />
     <Compile Include="Generator\Instructions\Objects\EmitCastClass.cs" />
