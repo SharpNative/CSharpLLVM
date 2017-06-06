@@ -89,6 +89,8 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
 
             // Call
             ValueRef retVal = LLVM.BuildCall(builder, func.Value, argVals, string.Empty);
+            if (instruction.HasPrefix(Code.Tail))
+                LLVM.SetTailCall(retVal, true);
 
             // Push return value on stack if it has one
             if (methodRef.ReturnType.MetadataType != MetadataType.Void)
