@@ -2,7 +2,7 @@
 using CSharpLLVM.Compilation;
 using Mono.Cecil.Cil;
 
-namespace CSharpLLVM.Generator.Instructions.Misc
+namespace CSharpLLVM.Generator.Instructions.Prefixes
 {
     [InstructionHandler(Code.Tail)]
     class EmitTail : ICodeEmitter
