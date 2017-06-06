@@ -24,17 +24,9 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             ValueRef res = LLVM.BuildLoad(builder, ptr, "arrayelem");
 
             TypeRef type = LLVM.TypeOf(res);
-            TypeReference elementType = null;
-            if (array.ILType.IsPointer)
-            {
-                elementType = ((PointerType)array.ILType).ElementType;
-            }
-            else
-            {
-                elementType = ((ArrayType)array.ILType).ElementType;
-            }
+            ArrayType arrayType = (ArrayType)array.ILType;
 
-            context.CurrentStack.Push(new StackElement(res, elementType, type));
+            context.CurrentStack.Push(new StackElement(res, arrayType.ElementType, type));
         }
     }
 }

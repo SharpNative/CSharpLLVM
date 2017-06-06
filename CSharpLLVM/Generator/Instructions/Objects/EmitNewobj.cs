@@ -19,9 +19,9 @@ namespace CSharpLLVM.Generator.Instructions.Objects
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             MethodReference ctor = (MethodReference)instruction.Operand;
-            TypeRef type = context.Compiler.Lookup.GetTypeRef(ctor.DeclaringType);
+            TypeRef type = TypeHelper.GetTypeRefFromType(ctor.DeclaringType);
 
-            bool ptr = TypeHelper.RequiresExtraPointer(ctor.DeclaringType);
+            bool ptr = ctor.DeclaringType.Resolve().IsClass;
             ValueRef objPtr;
             if (ptr)
             {

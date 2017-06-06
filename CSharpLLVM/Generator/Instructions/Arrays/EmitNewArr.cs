@@ -22,11 +22,6 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             TypeReference type = (TypeReference)instruction.Operand;
             TypeRef typeRef = TypeHelper.GetTypeRefFromType(type);
             TypeRef arrayType = LLVM.PointerType(typeRef, 0);
-            if (TypeHelper.RequiresExtraPointer(type))
-            {
-                arrayType = LLVM.PointerType(arrayType, 0);
-                typeRef = LLVM.PointerType(typeRef, 0);
-            }
 
             // Might need to cast the count (amount of elements)
             ValueRef count = countElement.Value;

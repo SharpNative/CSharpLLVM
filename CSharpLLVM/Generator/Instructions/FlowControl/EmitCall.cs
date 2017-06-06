@@ -69,13 +69,11 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 }
 
                 paramTypes[i] = TypeHelper.GetTypeRefFromType(type);
-                if (TypeHelper.RequiresExtraPointer(type))
-                    paramTypes[i] = LLVM.PointerType(paramTypes[i], 0);
 
                 // Cast needed?
-                if (element.Type != paramTypes[i] && element.ILType.Resolve().IsClass)
+                if (element.Type != paramTypes[i])
                 {
-                    CastHelper.HelpPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
+                    CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
                 }
             }
 

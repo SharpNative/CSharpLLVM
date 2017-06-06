@@ -46,14 +46,12 @@ namespace CSharpLLVM.Compilation
                 {
                     TypeReference type = methodDef.Parameters[i - offset].ParameterType;
                     argTypes[i] = TypeHelper.GetTypeRefFromType(type);
-                    if (TypeHelper.RequiresExtraPointer(type))
-                        argTypes[i] = LLVM.PointerType(argTypes[i], 0);
                 }
 
                 // If needed, fill in the instance reference
                 if (methodDef.HasThis)
                 {
-                    argTypes[0] = LLVM.PointerType(TypeHelper.GetTypeRefFromType(methodDef.DeclaringType), 0);
+                    argTypes[0] = TypeHelper.GetTypeRefFromType(methodDef.DeclaringType);
                 }
 
                 // Create LLVM function type and add function to lookup table

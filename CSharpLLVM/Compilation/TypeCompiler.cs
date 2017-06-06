@@ -134,7 +134,7 @@ namespace CSharpLLVM.Compilation
             BuilderRef builder = LLVM.CreateBuilderInContext(mCompiler.ModuleContext);
 
             // Create method type
-            TypeRef funcType = LLVM.FunctionType(LLVM.PointerType(TypeHelper.GetTypeRefFromType(type), 0), new TypeRef[0], false);
+            TypeRef funcType = LLVM.FunctionType(TypeHelper.GetTypeRefFromType(type), new TypeRef[0], false);
             ValueRef func = LLVM.AddFunction(mCompiler.Module, name, funcType);
             LLVM.SetLinkage(func, Linkage.InternalLinkage);
 

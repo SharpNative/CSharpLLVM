@@ -45,18 +45,12 @@ namespace CSharpLLVM.Generator
 
             foreach (VariableDefinition varDef in body.Variables)
             {
-                TypeRef type = TypeHelper.GetTypeRefFromType(varDef.VariableType);
-
-                // Pointer for classes
-                bool ptr = TypeHelper.RequiresExtraPointer(varDef.VariableType);
-                if (ptr)
-                {
-                    type = LLVM.PointerType(type, 0);
-                }
-
-                mContext.LocalValues[varDef.Index] = LLVM.BuildAlloca(mBuilder, type, string.Format("local{0}", varDef.Index));
-                mContext.LocalTypes[varDef.Index] = type;
-                mContext.LocalILTypes[varDef.Index] = (ptr) ? new PointerType(varDef.VariableType) : varDef.VariableType;
+                TypeReference type = varDef.VariableType;
+                TypeRef typeRef = TypeHelper.GetTypeRefFromType(type);
+                
+                mContext.LocalValues[varDef.Index] = LLVM.BuildAlloca(mBuilder, typeRef, string.Format("local{0}", varDef.Index));
+                mContext.LocalTypes[varDef.Index] = typeRef;
+                mContext.LocalILTypes[varDef.Index] = type;
             }
         }
 

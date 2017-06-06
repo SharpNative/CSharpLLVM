@@ -112,12 +112,14 @@ namespace CSharpLLVM.Helpers
                     return GetTypeRefFromType(pinned.ElementType);
 
                 case MetadataType.Class:
+                    return LLVM.PointerType(mLookup.GetTypeRef(type), 0);
+                
                 case MetadataType.ValueType:
                     return mLookup.GetTypeRef(type);
 
                 case MetadataType.Object:
                     // Note: an object is a "void pointer", but the "pointer" is implied because it is an object
-                    return Void;
+                    return VoidPtr;
 
                 case MetadataType.RequiredModifier:
                     RequiredModifierType requiredModifier = (RequiredModifierType)type;
@@ -334,28 +336,7 @@ namespace CSharpLLVM.Helpers
         {
             return (LLVM.GetTypeKind(element.Type) == TypeKind.PointerTypeKind);
         }
-
-        /// <summary>
-        /// Checks if a type needs a pointer
-        /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>If the type is a class</returns>
-        public static bool RequiresExtraPointer(TypeReference type)
-        {
-            return RequiresExtraPointer(type.Resolve());
-        }
-
-        /// <summary>
-        /// Checks if a type needs a pointer
-        /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>If the type is a class</returns>
-        public static bool RequiresExtraPointer(TypeDefinition type)
-        {
-            // Note: We treat strings like the C-way, not really as a class
-            return ((type.IsInterface) || (type.IsClass && !type.IsValueType && type.FullName != "System.String"));
-        }
-
+        
         /// <summary>
         /// Checks if a type inherits the other type
         /// </summary>

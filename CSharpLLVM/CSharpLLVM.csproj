@@ -74,10 +74,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
+    <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Any.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Ref.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitTail.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitVolatile.cs" />
+    <Compile Include="Generator\Instructions\Objects\EmitCastClass.cs" />
     <Compile Include="Generator\Instructions\Stack\EmitLdnull.cs" />
+    <Compile Include="Generator\Instructions\StoreLoad\EmitLdarga.cs" />
     <Compile Include="Helpers\InstructionHelper.cs" />
     <Compile Include="Lookups\Lookup.cs" />
     <Compile Include="Compilation\TypeCompiler.cs" />

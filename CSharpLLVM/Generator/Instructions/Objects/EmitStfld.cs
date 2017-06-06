@@ -23,15 +23,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             FieldReference field = (FieldReference)instruction.Operand;
 
             uint index = context.Compiler.Lookup.GetFieldIndex(field);
-
-            // Create pointer if not yet a pointer
-            if (!obj.ILType.IsPointer)
-            {
-                ValueRef objPtr = LLVM.BuildAlloca(builder, obj.Type, "objptr");
-                LLVM.BuildStore(builder, obj.Value, objPtr);
-                obj.Value = objPtr;
-            }
-
+            
             ValueRef ptr = LLVM.BuildInBoundsGEP(builder, obj.Value, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "field");
 
             // Possible cast needed
