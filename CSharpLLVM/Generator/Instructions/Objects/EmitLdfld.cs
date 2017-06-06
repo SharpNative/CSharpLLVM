@@ -24,8 +24,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             uint index = context.Compiler.Lookup.GetFieldIndex(field);
 
             // Create pointer if not yet a pointer
-            TypeDefinition resolvedILType = obj.ILType.Resolve();
-            if (resolvedILType.IsValueType && !resolvedILType.IsPointer)
+            if (obj.ILType.IsValueType && !obj.ILType.IsPointer)
             {
                 ValueRef objPtr = LLVM.BuildAlloca(builder, obj.Type, "objptr");
                 LLVM.BuildStore(builder, obj.Value, objPtr);
