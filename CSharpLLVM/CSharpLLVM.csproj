@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitVolatile.cs" />
+    <Compile Include="Generator\Instructions\Stack\EmitLdnull.cs" />
     <Compile Include="Helpers\InstructionHelper.cs" />
     <Compile Include="Lookups\Lookup.cs" />
     <Compile Include="Compilation\TypeCompiler.cs" />
