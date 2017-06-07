@@ -8,7 +8,8 @@ Arrays are allocated through an *newarr* method. The array layout can be found i
 
 | Offset | Name | Description |
 | ------ | ---- | ----------- |
-| 0 | Length | The amount of elements in this array |
-| 4 | Elements | The elements of this array |
+| 0 | Length | The amount of elements in this array (32-bit integer) |
+| 4 (32-bit), 8 (64-bit) | Elements | The elements of this array |
 
+The elements need to be aligned on a natural boundary for the platform.
 The *newarr* method returns a void-pointer to the elements of the array. It allocates memory for the array structure as seen above, zeroes the elements, and sets the length. This is one of the runtime methods.
