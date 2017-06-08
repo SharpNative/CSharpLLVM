@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using CSharpLLVM.Compilation;
 using CSharpLLVM.Stack;
 using Mono.Cecil;
+using CSharpLLVM.Helpers;
 
 namespace CSharpLLVM.Generator.Instructions.StoreLoad
 {
@@ -23,6 +24,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             int index = def.Index;
             
             ValueRef arg = context.ArgumentValues[index];
+            CastHelper.HelpIntAndPtrCast(builder, ref value.Value, value.Type, TypeHelper.GetTypeRefFromType(context.ArgumentILTypes[index]));
             LLVM.BuildStore(builder, value.Value, arg);
         }
     }

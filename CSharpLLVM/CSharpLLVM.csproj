@@ -73,6 +73,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compilation\Branch.cs" />
     <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Any.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Ref.cs" />

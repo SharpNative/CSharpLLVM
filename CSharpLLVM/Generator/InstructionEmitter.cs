@@ -2,8 +2,10 @@
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Mono.Collections.Generic;
 using Swigged.LLVM;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CSharpLLVM.Generator
 {
@@ -41,7 +43,7 @@ namespace CSharpLLVM.Generator
             mContext.LocalILTypes = new TypeReference[body.Variables.Count];
 
             // Set to start
-            LLVM.PositionBuilderAtEnd(mBuilder, mContext.GetBlockOf(body.Instructions[0]));
+            LLVM.PositionBuilderAtEnd(mBuilder, mContext.GetBranch(body.Instructions[0]).Block);
 
             foreach (VariableDefinition varDef in body.Variables)
             {
@@ -64,50 +66,90 @@ namespace CSharpLLVM.Generator
             mContext.Init();
             createLocals();
 
-            // Process instructions
-            Collection<Instruction> instructions = mContext.Method.Body.Instructions;
-            foreach (Instruction instruction in instructions)
+            // Add branches in a list so we can sort them
+            /*List<Branch> branches = new List<Branch>();
+            for (int i = 0; i < mContext.Branches.Length; i++)
             {
-                // Switch branch
-                if (mContext.IsNewBlock(instruction))
+                Branch branch = mContext.Branches[i];
+                if (branch != null)
+                    branches.Add(branch);
+            }
+            branches.Sort(sortBranches);//TODO: remove this method
+
+            foreach (Branch branch in branches)
+            {
+                Console.WriteLine("generate branch: " + string.Format("{0:x4}", branch.Offset));
+
+                mContext.CurrentStack = branch.Stack;
+                branch.UpdateStack(mBuilder);
+                
+                LLVM.PositionBuilderAtEnd(mBuilder, branch.Block);
+                emitInstructionsInBranch(codeGen, branch);
+            }*/
+
+            for (int i = 0; i < mContext.Branches.Length; i++)
+            {
+                Branch branch = mContext.Branches[i];
+                if (branch != null)
+                    emitInstructionsInBranch(codeGen, branch);
+            }
+        }
+
+        /// <summary>
+        /// Emits the instructions within a branch
+        /// </summary>
+        /// <param name="codeGen">The code generator</param>
+        /// <param name="branch">The branch</param>
+        private void emitInstructionsInBranch(CodeGenerator codeGen, Branch branch)
+        {
+            // Check dependencies
+            foreach(Branch source in branch.Sources)
+            {
+                if (!source.IsGenerated && !source.Sources.Contains(branch))
                 {
-                    LLVM.PositionBuilderAtEnd(mBuilder, mContext.GetBlockOf(instruction));
-
-                    if (mContext.IsNewStack(instruction))
-                    {
-                        mContext.SetStack(instruction);
-                    }
+                    emitInstructionsInBranch(codeGen, source);
+                    
                 }
+            }
 
-                // Update stack
-                if (instruction.OpCode.FlowControl == FlowControl.Branch || instruction.OpCode.FlowControl == FlowControl.Cond_Branch)
-                {
-                    Instruction dest = (Instruction)instruction.Operand;
-                    if (mContext.IsNewBlock(dest))
-                    {
-                        mContext.UpdateStack(mBuilder, instruction, dest);
-                    }
-                }
+            branch.IsGenerated = true;
+            mContext.CurrentStack = branch.Stack;
+            branch.UpdateStack(mBuilder);
+            LLVM.PositionBuilderAtEnd(mBuilder, branch.Block);
 
+            foreach (Instruction instruction in branch.Instructions)
+            {
+                FlowControl flow = instruction.OpCode.FlowControl;
+                
                 codeGen.Emit(instruction, mContext, mBuilder);
 
                 // If the next instruction is a new block, and we didn't have an explicit branch instruction to the next block
                 // then we need to create the branch instruction explicitely
-                if (mContext.IsNewBlock(instruction.Next))
+                if (mContext.IsNewBranch(instruction.Next))
                 {
-                    // If this instruction did not already branch...
-                    if (instruction.OpCode.FlowControl != FlowControl.Branch && instruction.OpCode.FlowControl != FlowControl.Cond_Branch)
+                    // If this instruction did not branch already...
+                    if (flow != FlowControl.Branch && flow != FlowControl.Cond_Branch)
                     {
-                        if (mContext.IsNewBlock(instruction.Next))
-                        {
-                            mContext.UpdateStack(mBuilder, instruction, instruction.Next);
-                        }
-
-                        mContext.SetStack(instruction.Next);
                         LLVM.BuildBr(mBuilder, mContext.GetBlockOf(instruction.Next));
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Method to sort branches based on dependencies
+        /// </summary>
+        /// <param name="left">Left</param>
+        /// <param name="right">Right</param>
+        /// <returns>Order number</returns>
+        private int sortBranches(Branch left, Branch right)
+        {
+            if (left.Sources.Contains(right))
+                return 1;
+            else if (right.Sources.Contains(left))
+                return -1;
+
+            return 0;
         }
     }
 }

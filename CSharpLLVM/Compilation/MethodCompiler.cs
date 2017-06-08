@@ -87,7 +87,6 @@ namespace CSharpLLVM.Compilation
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Exception inside method " + methodDef);
                 Console.WriteLine(e.Message);
-
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine(e.StackTrace);
                 Console.ForegroundColor = ConsoleColor.Gray;

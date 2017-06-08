@@ -27,6 +27,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             }
             else
             {
+                CastHelper.HelpIntCast(builder, ref value1, ref value2);
                 ret = LLVM.BuildICmp(builder, PredicateHelper.GetIntPredicateFromCode(instruction.OpCode.Code), value1.Value, value2.Value, "ibrcmp");
             }
 

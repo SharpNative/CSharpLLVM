@@ -51,13 +51,13 @@ namespace CSharpLLVM.Compilation
         /// <param name="function">The function</param>
         public void VerifyAndOptimizeFunction(ValueRef function)
         {
-            if (LLVM.VerifyFunction(function, VerifierFailureAction.ReturnStatusAction))
+            /*if (LLVM.VerifyFunction(function, VerifierFailureAction.ReturnStatusAction))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 LLVM.VerifyFunction(function, VerifierFailureAction.PrintMessageAction);
                 Console.ForegroundColor = ConsoleColor.Gray;
                 throw new Exception("Compiling of function failed");
-            }
+            }*/
 
             LLVM.RunFunctionPassManager(mFunctionPassManager, function);
         }
@@ -139,6 +139,7 @@ namespace CSharpLLVM.Compilation
             if (LLVM.VerifyModule(mModule, VerifierFailureAction.ReturnStatusAction, out error))
             {
                 Console.WriteLine("Compilation of module failed");
+                Console.WriteLine(error);
                 LLVM.DisposeTargetData(TargetData);
                 Console.ForegroundColor = ConsoleColor.Gray;
                 return;

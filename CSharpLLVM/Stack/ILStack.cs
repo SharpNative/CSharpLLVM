@@ -1,5 +1,5 @@
-﻿using CSharpLLVM.Helpers;
-using Swigged.LLVM;
+﻿using Swigged.LLVM;
+using System;
 using System.Collections.Generic;
 
 namespace CSharpLLVM.Stack
@@ -8,7 +8,6 @@ namespace CSharpLLVM.Stack
     {
         private List<StackElement> mStack;
         private List<int> mPhi;
-        private BasicBlockRef mOldBlock;
 
         public StackElement this[int index] { get { return mStack[index]; } }
 
@@ -83,81 +82,28 @@ namespace CSharpLLVM.Stack
         /// <param name="refers">The amount of references to the new block</param>
         public void Update(BuilderRef builder, ILStack srcStack, BasicBlockRef oldBlock, BasicBlockRef newBlock, int refers)
         {
-            // If only one reference, just push the values
-            if (refers <= 1)
+            // This shouldn't happen...
+            if (refers == 0)
+                throw new InvalidOperationException("refers == 0");
+
+            // If there's only one reference to this branch, there's only one way to get here.
+            // That means the stack elements only depend on one other branch, therefor we don't need to build phi nodes.
+            if (refers == 1)
             {
                 for (int i = 0; i < srcStack.Count; i++)
                 {
                     Push(new StackElement(srcStack[i]));
                 }
             }
-            // Multiple references, need to build phi nodes
+            // Multiple references, need to build phi nodes.
             else
             {
-                // Calculate independent values (not changed by this operation)
-                int difference = 0;
-                if (Count > 0 && srcStack.Count > Count)
-                {
-                    difference = srcStack.Count - Count;
-                }
+                // TODO: we got three cases here:
+                //       1. #deststack = #srcstack => build phi nodes for every element.
+                //       2. #deststack > #srcstack => build phi nodes for the top elements of the srcstack.
+                //       3. #deststack < #srcstack => build phi nodes for the top elements and put the rest on the stack as independent values.
 
-                // Insert values that are independent
-                for (int i = 0; i < difference; i++)
-                {
-                    InsertAtStart(new StackElement(srcStack[i]));
-                }
-
-                // Insert dependent values
-                for (int i = difference; i < srcStack.Count; i++)
-                {
-                    // First time we're here, so that means no dependencies on this value yet
-                    if (mPhi.Count <= i || mPhi[i] == 0)
-                    {
-                        Push(new StackElement(srcStack[i]));
-                        mOldBlock = oldBlock;
-                    }
-                    // Use phi
-                    else if (mPhi[i] >= 1)
-                    {
-                        ValueRef phi;
-
-                        // Second time for this value, so it depends on two blocks
-                        if (mPhi[i] == 1)
-                        {
-                            StackElement first = Pop();
-
-                            LLVM.PositionBuilderAtEnd(builder, newBlock);
-                            phi = LLVM.BuildPhi(builder, first.Type, "phi");
-                            LLVM.PositionBuilderAtEnd(builder, oldBlock);
-                            Push(new StackElement(phi, first.ILType, first.Type));
-                            LLVM.AddIncoming(phi, new ValueRef[] { first.Value }, new BasicBlockRef[] { mOldBlock });
-                        }
-                        // > 2 times we've been here for this value, so it depends on multiple blocks
-                        else
-                        {
-                            phi = this[i].Value;
-                        }
-
-                        /**
-                         * We might need to cast the incoming value to the phi type
-                         * This is because it is possible that an integer type of a smaller type is pushed on the stack
-                         * by IL, for example in "branch on condition"
-                        */
-                        TypeRef phiType = LLVM.TypeOf(phi);
-                        ValueRef newValue = srcStack[i].Value;
-                        
-                        // Cast if not the same type
-                        if (srcStack[i].Type != phiType)
-                        {
-                            CastHelper.HelpIntAndPtrCast(builder, ref newValue, srcStack[i].Type, phiType);
-                        }
-
-                        // Add incoming block for the phi
-                        LLVM.AddIncoming(phi, new ValueRef[] { newValue }, new BasicBlockRef[] { oldBlock });
-                    }
-
-                    mPhi[i]++;
-                }
+                throw new NotImplementedException("WIP");
             }
         }
     }

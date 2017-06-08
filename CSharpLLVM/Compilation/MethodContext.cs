@@ -8,21 +8,16 @@ namespace CSharpLLVM.Compilation
     class MethodContext
     {
         public Compiler Compiler { get; private set; }
-        public ILStack CurrentStack { get; private set; }
+        public ILStack CurrentStack { get; set; }
         public MethodDefinition Method { get; private set; }
         public ValueRef Function { get; private set; }
 
+        public Branch[] Branches { get; private set; }
         public ValueRef[] LocalValues { get; set; }
         public TypeRef[] LocalTypes { get; set; }
         public TypeReference[] LocalILTypes { get; set; }
         public ValueRef[] ArgumentValues { get; set; }
         public TypeReference[] ArgumentILTypes { get; set; }
-
-        // Blocks & branching
-        private BasicBlockRef[] mBlocks;
-        private bool[] mBranch;
-        private int[] mRefers;
-        private ILStack[] mStacks;
 
         /// <summary>
         /// Creates a new MethodContext
@@ -38,82 +33,47 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Gets the block that starts with a given instruction
+        /// Returns true if an instruction belongs to a new branch
         /// </summary>
-        /// <param name="instr">The instruction that starts a new block</param>
+        /// <param name="instr">The instruction</param>
+        /// <returns>If it belongs to a new branch</returns>
+        public bool IsNewBranch(Instruction instr)
+        {
+            return (instr != null && GetBranch(instr) != null);
+        }
+
+        /// <summary>
+        /// Gets the branch where the instruction belongs to
+        /// </summary>
+        /// <param name="instr">The instruction</param>
+        /// <returns>The branch</returns>
+        public Branch GetBranch(Instruction instr)
+        {
+            return Branches[instr.Offset];
+        }
+
+        /// <summary>
+        /// Gets the block where the instruction belongs to
+        /// </summary>
+        /// <param name="instr">The instruction</param>
         /// <returns>The block</returns>
         public BasicBlockRef GetBlockOf(Instruction instr)
         {
-            return mBlocks[instr.Offset];
+            return GetBranch(instr).Block;
         }
-
+        
         /// <summary>
-        /// Checks if an instruction starts a new block
+        /// Creates the branches
         /// </summary>
-        /// <param name="instr">The instruction</param>
-        /// <returns>If the given instruction starts a new block</returns>
-        public bool IsNewBlock(Instruction instr)
-        {
-            return (instr != null && mBranch[instr.Offset]);
-        }
-
-        /// <summary>
-        /// Checks if this instruction causes a stack switch
-        /// </summary>
-        /// <param name="instr">The instruction</param>
-        /// <returns>If it causes a stack switch</returns>
-        public bool IsNewStack(Instruction instr)
-        {
-            return (mStacks[instr.Offset] != null);
-        }
-
-        /// <summary>
-        /// Updates the stack with phi nodes
-        /// </summary>
-        /// <param name="builder">The builder</param>
-        /// <param name="srcInstr">The instruction in the source block</param>
-        /// <param name="dstInstr">The instruction in the destination block</param>
-        public void UpdateStack(BuilderRef builder, Instruction srcInstr, Instruction dstInstr)
-        {
-            ILStack srcStack = GetStack(srcInstr);
-            ILStack dstStack = GetStack(dstInstr);
-            BasicBlockRef oldBlock = GetBlockOf(srcInstr);
-            BasicBlockRef newBlock = GetBlockOf(dstInstr);
-
-            dstStack.Update(builder, srcStack, oldBlock, newBlock, mRefers[dstInstr.Offset]);
-        }
-
-        /// <summary>
-        /// Gets a stack for the block where the instruction is
-        /// </summary>
-        /// <param name="instr">The instruction</param>
-        /// <returns>The stack</returns>
-        public ILStack GetStack(Instruction instr)
-        {
-            return mStacks[instr.Offset];
-        }
-
-        /// <summary>
-        /// Sets the current stack for the block where the instruction is
-        /// </summary>
-        /// <param name="instr">The instruction</param>
-        public void SetStack(Instruction instr)
-        {
-            CurrentStack = mStacks[instr.Offset];
-        }
-
-        /// <summary>
-        /// Finds all blocks
-        /// </summary>
-        private void findBlocks()
+        private void createBranches()
         {
             // Look for branching, create blocks for the branches
             // Note: we first search all the branches so we can later add them in the correct order
             //       this is because we may not always have the branches in a chronological order
-            mBlocks = new BasicBlockRef[Method.Body.CodeSize];
-            mBranch = new bool[Method.Body.CodeSize];
-            mStacks = new ILStack[Method.Body.CodeSize];
-            mRefers = new int[Method.Body.CodeSize];
+            bool[] isNewBranch = new bool[Method.Body.CodeSize];
+            int[] refers = new int[Method.Body.CodeSize];
+            isNewBranch[0] = true;
+            Branches = new Branch[Method.Body.CodeSize];
 
             foreach (Instruction instruction in Method.Body.Instructions)
             {
@@ -123,43 +83,55 @@ namespace CSharpLLVM.Compilation
                 if (flow == FlowControl.Branch || flow == FlowControl.Cond_Branch)
                 {
                     Instruction dest = (Instruction)instruction.Operand;
-                    mBranch[dest.Offset] = true;
-                    mRefers[dest.Offset]++;
+                    isNewBranch[dest.Offset] = true;
+                    refers[dest.Offset]++;
                 }
 
-                // If this instruction does branching by a conditional, we also need to have a block after this instruction
-                // for if the conditional branch is not being executed
-                if (instruction.Next != null && instruction.OpCode.FlowControl == FlowControl.Cond_Branch)
+                if (instruction.Next != null)
                 {
-                    mBranch[instruction.Next.Offset] = true;
-                    mRefers[instruction.Next.Offset]++;
-                }
-
-                if (instruction.Next != null && instruction.OpCode.FlowControl == FlowControl.Next)
-                {
-                    mRefers[instruction.Next.Offset]++;
+                    // If this instruction does branching by a conditional, we also need to have a block after this instruction
+                    // for if the conditional branch is not being executed
+                    if (flow == FlowControl.Cond_Branch)
+                        isNewBranch[instruction.Next.Offset] = true;
+                    else if (flow == FlowControl.Next)
+                        refers[instruction.Next.Offset]++;
                 }
             }
-        }
-
-        /// <summary>
-        /// Creates blocks
-        /// </summary>
-        private void createBlocks()
-        {
-            // Add blocks
-            BasicBlockRef currentBlock = LLVM.AppendBasicBlockInContext(Compiler.ModuleContext, Function, "entry");
-            ILStack currentStack = CurrentStack;
-            for (int i = 0; i < mBranch.Length; i++)
+            
+            // Create branches
+            for (int i = 0; i < Branches.Length; i++)
             {
-                if (mBranch[i])
+                if (isNewBranch[i])
+                    Branches[i] = new Branch(this, i);
+            }
+
+            // Now that we know the reference count and where to put branches, let's create them
+            // For more explanation: refer to the loop above
+            Branch current = Branches[0];
+            foreach (Instruction instruction in Method.Body.Instructions)
+            {
+                FlowControl flow = instruction.OpCode.FlowControl;
+
+                if (isNewBranch[instruction.Offset])
                 {
-                    currentBlock = LLVM.AppendBasicBlockInContext(Compiler.ModuleContext, Function, string.Format("L{0:x}", i));
-                    currentStack = new ILStack();
+                    current = Branches[instruction.Offset];
                 }
 
-                mBlocks[i] = currentBlock;
-                mStacks[i] = currentStack;
+                current.AddInstruction(instruction);
+
+                if (flow == FlowControl.Branch || flow == FlowControl.Cond_Branch)
+                {
+                    Instruction dest = (Instruction)instruction.Operand;
+                    Branch destBranch = Branches[dest.Offset];
+                    destBranch.AddSource(current);
+                }
+
+                if (instruction.Next != null)
+                {
+                    Branch destBranch = Branches[instruction.Next.Offset];
+                    if (flow == FlowControl.Cond_Branch || refers[instruction.Next.Offset] > 1)
+                        destBranch.AddSource(current);
+                }
             }
         }
 
@@ -169,7 +141,7 @@ namespace CSharpLLVM.Compilation
         private void prepareArguments()
         {
             BuilderRef builder = LLVM.CreateBuilderInContext(Compiler.ModuleContext);
-            LLVM.PositionBuilderAtEnd(builder, mBlocks[0]);
+            LLVM.PositionBuilderAtEnd(builder, Branches[0].Block);
 
             uint count = LLVM.CountParams(Function);
             ArgumentValues = new ValueRef[count];
@@ -203,8 +175,7 @@ namespace CSharpLLVM.Compilation
         public void Init()
         {
             CurrentStack = new ILStack();
-            findBlocks();
-            createBlocks();
+            createBranches();
             prepareArguments();
         }
     }
