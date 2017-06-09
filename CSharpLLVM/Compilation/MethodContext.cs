@@ -174,7 +174,6 @@ namespace CSharpLLVM.Compilation
         /// </summary>
         public void Init()
         {
-            CurrentStack = new ILStack();
             createBranches();
             prepareArguments();
         }

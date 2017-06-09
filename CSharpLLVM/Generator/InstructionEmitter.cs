@@ -4,8 +4,6 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CSharpLLVM.Generator
 {
@@ -65,28 +63,7 @@ namespace CSharpLLVM.Generator
             // Init
             mContext.Init();
             createLocals();
-
-            // Add branches in a list so we can sort them
-            /*List<Branch> branches = new List<Branch>();
-            for (int i = 0; i < mContext.Branches.Length; i++)
-            {
-                Branch branch = mContext.Branches[i];
-                if (branch != null)
-                    branches.Add(branch);
-            }
-            branches.Sort(sortBranches);//TODO: remove this method
-
-            foreach (Branch branch in branches)
-            {
-                Console.WriteLine("generate branch: " + string.Format("{0:x4}", branch.Offset));
-
-                mContext.CurrentStack = branch.Stack;
-                branch.UpdateStack(mBuilder);
-                
-                LLVM.PositionBuilderAtEnd(mBuilder, branch.Block);
-                emitInstructionsInBranch(codeGen, branch);
-            }*/
-
+            
             for (int i = 0; i < mContext.Branches.Length; i++)
             {
                 Branch branch = mContext.Branches[i];
@@ -105,14 +82,19 @@ namespace CSharpLLVM.Generator
             // Check dependencies
             foreach(Branch source in branch.Sources)
             {
-                if (!source.IsGenerated && !source.Sources.Contains(branch))
+                if (source.Generation == 0)
                 {
+                    source.Generation++;
+                    Console.WriteLine("start: " + string.Format("{0:x4}", source.Offset));
                     emitInstructionsInBranch(codeGen, source);
-                    
+                    Console.WriteLine("end");
                 }
             }
 
-            branch.IsGenerated = true;
+            branch.Generation++;
+            if (branch.Generation > 2)
+                return;
+
             mContext.CurrentStack = branch.Stack;
             branch.UpdateStack(mBuilder);
             LLVM.PositionBuilderAtEnd(mBuilder, branch.Block);
@@ -134,22 +116,6 @@ namespace CSharpLLVM.Generator
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Method to sort branches based on dependencies
-        /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Order number</returns>
-        private int sortBranches(Branch left, Branch right)
-        {
-            if (left.Sources.Contains(right))
-                return 1;
-            else if (right.Sources.Contains(left))
-                return -1;
-
-            return 0;
         }
     }
 }

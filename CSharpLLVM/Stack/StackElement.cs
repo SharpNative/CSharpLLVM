@@ -3,7 +3,7 @@ using Swigged.LLVM;
 
 namespace CSharpLLVM.Stack
 {
-    struct StackElement
+    class StackElement
     {
         public TypeRef Type;
         public TypeReference ILType;

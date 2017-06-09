@@ -19,7 +19,7 @@ namespace CSharpLLVM.Compilation
         public Branch[] Sources { get { return mSources.ToArray(); } }
         public int References { get { return mSources.Count; } }
         public int Offset { get; private set; }
-        public bool IsGenerated { get; set; }
+        public int Generation { get; set; }
 
         /// <summary>
         /// Creates a new Branch
@@ -30,8 +30,8 @@ namespace CSharpLLVM.Compilation
         {
             Offset = offset;
             mContext = context;
-            Stack = new ILStack();
             createBlock();
+            Stack = new ILStack();
         }
 
         /// <summary>

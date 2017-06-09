@@ -5,7 +5,6 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
 using System;
-using System.Reflection;
 
 namespace CSharpLLVM.Helpers
 {
@@ -24,8 +23,7 @@ namespace CSharpLLVM.Helpers
         public static TypeRef NativeIntType { get; private set; }
 
         public static uint IntPtrSize { get; private set; }
-
-        private static Assembly mMSCorlib;
+        
         private static Lookup mLookup;
 
         /// <summary>
@@ -47,8 +45,7 @@ namespace CSharpLLVM.Helpers
             VoidPtr = LLVM.PointerType(LLVM.VoidType(), 0);
             IntPtrSize = (uint)LLVM.ABISizeOfType(targetData, VoidPtr);
             NativeIntType = LLVM.IntType(IntPtrSize * 8);
-
-            mMSCorlib = Assembly.Load("mscorlib");
+            
             mLookup = lookup;
         }
 
@@ -118,7 +115,6 @@ namespace CSharpLLVM.Helpers
                     return mLookup.GetTypeRef(type);
 
                 case MetadataType.Object:
-                    // Note: an object is a "void pointer", but the "pointer" is implied because it is an object
                     return VoidPtr;
 
                 case MetadataType.RequiredModifier:
