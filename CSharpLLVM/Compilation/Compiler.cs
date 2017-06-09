@@ -51,13 +51,13 @@ namespace CSharpLLVM.Compilation
         /// <param name="function">The function</param>
         public void VerifyAndOptimizeFunction(ValueRef function)
         {
-            /*if (LLVM.VerifyFunction(function, VerifierFailureAction.ReturnStatusAction))
+            if (LLVM.VerifyFunction(function, VerifierFailureAction.ReturnStatusAction))
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 LLVM.VerifyFunction(function, VerifierFailureAction.PrintMessageAction);
                 Console.ForegroundColor = ConsoleColor.Gray;
                 throw new Exception("Compiling of function failed");
-            }*/
+            }
 
             LLVM.RunFunctionPassManager(mFunctionPassManager, function);
         }
@@ -97,23 +97,45 @@ namespace CSharpLLVM.Compilation
             // TODO
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
-            //LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
-            /*LLVM.AddConstantPropagationPass(mFunctionPassManager);
+
+            // O0
+            LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
+            LLVM.AddConstantPropagationPass(mFunctionPassManager);
             LLVM.AddReassociatePass(mFunctionPassManager);
             LLVM.AddInstructionCombiningPass(mFunctionPassManager);
             LLVM.AddMemCpyOptPass(mFunctionPassManager);
+
+            // O1
+            LLVM.AddLowerExpectIntrinsicPass(mFunctionPassManager);
+            LLVM.AddEarlyCSEPass(mFunctionPassManager);
+            LLVM.AddLoopRotatePass(mFunctionPassManager);
             LLVM.AddLoopUnswitchPass(mFunctionPassManager);
             LLVM.AddLoopUnrollPass(mFunctionPassManager);
+            LLVM.AddLoopDeletionPass(mFunctionPassManager);
             LLVM.AddTailCallEliminationPass(mFunctionPassManager);
             LLVM.AddGVNPass(mFunctionPassManager);
+            LLVM.AddDeadStoreEliminationPass(mFunctionPassManager);
             LLVM.AddJumpThreadingPass(mFunctionPassManager);
-            LLVM.AddCFGSimplificationPass(mFunctionPassManager);*/
+            LLVM.AddCFGSimplificationPass(mFunctionPassManager);
+
+            // O2
+            LLVM.AddLoopVectorizePass(mFunctionPassManager);
+            LLVM.AddSLPVectorizePass(mFunctionPassManager);
 
             mPassManager = LLVM.CreatePassManager();
-            /*LLVM.AddAlwaysInlinerPass(mPassManager);
+            
+            // O1
+            LLVM.AddAlwaysInlinerPass(mPassManager);
+            LLVM.AddDeadArgEliminationPass(mPassManager);
+            LLVM.AddAggressiveDCEPass(mFunctionPassManager);
+
+            // O2
             LLVM.AddFunctionInliningPass(mPassManager);
+            LLVM.AddConstantMergePass(mPassManager);
+
+            // O0
             LLVM.AddStripDeadPrototypesPass(mPassManager);
-            LLVM.AddStripSymbolsPass(mPassManager);*/
+            LLVM.AddStripSymbolsPass(mPassManager);
 
             // Initialize types and runtime
             string dataLayout = LLVM.GetDataLayout(Module);

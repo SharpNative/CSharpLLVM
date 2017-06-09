@@ -1,6 +1,5 @@
 ﻿using CSharpLLVM.Helpers;
 using Swigged.LLVM;
-using System;
 using System.Collections.Generic;
 
 namespace CSharpLLVM.Stack
@@ -93,10 +92,6 @@ namespace CSharpLLVM.Stack
         /// <param name="refers">The amount of references to the new block</param>
         public void Update(BuilderRef builder, ILStack srcStack, BasicBlockRef oldBlock, BasicBlockRef newBlock, int refers)
         {
-            // This shouldn't happen...
-            if (refers == 0)
-                throw new InvalidOperationException("refers == 0");
-
             // If there's only one reference to this branch, there's only one way to get here.
             // That means the stack elements only depend on one other branch, therefor we don't need to build phi nodes.
             if (refers == 1)

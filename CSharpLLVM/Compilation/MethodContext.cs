@@ -2,6 +2,7 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
+using System.Collections.Generic;
 
 namespace CSharpLLVM.Compilation
 {
@@ -72,7 +73,9 @@ namespace CSharpLLVM.Compilation
             //       this is because we may not always have the branches in a chronological order
             bool[] isNewBranch = new bool[Method.Body.CodeSize];
             int[] refers = new int[Method.Body.CodeSize];
+
             isNewBranch[0] = true;
+
             Branches = new Branch[Method.Body.CodeSize];
 
             foreach (Instruction instruction in Method.Body.Instructions)

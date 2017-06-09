@@ -1,7 +1,6 @@
 ﻿using CSharpLLVM.Stack;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
-using System;
 using System.Collections.Generic;
 
 namespace CSharpLLVM.Compilation
@@ -60,7 +59,6 @@ namespace CSharpLLVM.Compilation
         {
             foreach (Branch source in Sources)
             {
-                Console.WriteLine("   --> update stack that can come from: " + string.Format("{0:x4}", source.Offset));
                 Stack.Update(builder, source.Stack, source.Block, Block, References);
             }
         }

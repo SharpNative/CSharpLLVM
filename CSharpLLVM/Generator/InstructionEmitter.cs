@@ -3,7 +3,6 @@ using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
-using System;
 
 namespace CSharpLLVM.Generator
 {
@@ -63,7 +62,7 @@ namespace CSharpLLVM.Generator
             // Init
             mContext.Init();
             createLocals();
-            
+
             for (int i = 0; i < mContext.Branches.Length; i++)
             {
                 Branch branch = mContext.Branches[i];
@@ -80,14 +79,12 @@ namespace CSharpLLVM.Generator
         private void emitInstructionsInBranch(CodeGenerator codeGen, Branch branch)
         {
             // Check dependencies
-            foreach(Branch source in branch.Sources)
+            foreach (Branch source in branch.Sources)
             {
                 if (source.Generation == 0)
                 {
                     source.Generation++;
-                    Console.WriteLine("start: " + string.Format("{0:x4}", source.Offset));
                     emitInstructionsInBranch(codeGen, source);
-                    Console.WriteLine("end");
                 }
             }
 
@@ -102,7 +99,7 @@ namespace CSharpLLVM.Generator
             foreach (Instruction instruction in branch.Instructions)
             {
                 FlowControl flow = instruction.OpCode.FlowControl;
-                
+
                 codeGen.Emit(instruction, mContext, mBuilder);
 
                 // If the next instruction is a new block, and we didn't have an explicit branch instruction to the next block
