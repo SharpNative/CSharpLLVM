@@ -53,6 +53,8 @@ namespace CSharpLLVM.Compilation
                 if (methodDef.HasThis)
                 {
                     argTypes[0] = TypeHelper.GetTypeRefFromType(methodDef.DeclaringType);
+                    if (methodDef.DeclaringType.IsValueType)
+                        argTypes[0] = LLVM.PointerType(argTypes[0], 0);
                 }
 
                 // Create LLVM function type and add function to the lookup table.

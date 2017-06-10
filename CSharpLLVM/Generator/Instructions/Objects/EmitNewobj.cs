@@ -19,10 +19,11 @@ namespace CSharpLLVM.Generator.Instructions.Objects
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             MethodReference ctor = (MethodReference)instruction.Operand;
+            TypeDefinition objType = ctor.DeclaringType.Resolve();
             TypeRef type = TypeHelper.GetTypeRefFromType(ctor.DeclaringType);
 
-            bool ptr = ctor.DeclaringType.Resolve().IsClass;
             ValueRef objPtr;
+            bool ptr = objType.IsClass && !objType.IsValueType;
             if (ptr)
             {
                 // This type is a class, therefor we have a specialised "newobj" method.
