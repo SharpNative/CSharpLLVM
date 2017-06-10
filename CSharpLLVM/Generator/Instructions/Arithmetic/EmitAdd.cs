@@ -20,7 +20,7 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
         {
             StackElement value2 = context.CurrentStack.Pop();
             StackElement value1 = context.CurrentStack.Pop();
-
+            
             if (TypeHelper.IsFloatingPoint(value1) || TypeHelper.IsFloatingPoint(value2))
             {
                 ValueRef result = LLVM.BuildFAdd(builder, value1.Value, value2.Value, "addfp");

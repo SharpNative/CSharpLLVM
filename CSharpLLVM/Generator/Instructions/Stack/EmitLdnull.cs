@@ -17,7 +17,7 @@ namespace CSharpLLVM.Generator.Instructions.Stack
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            context.CurrentStack.Push(new StackElement(LLVM.ConstNull(TypeHelper.VoidPtr), typeof(object).GetTypeReference(context.Compiler), TypeHelper.VoidPtr));
+            context.CurrentStack.Push(new StackElement(LLVM.ConstNull(TypeHelper.VoidPtr), typeof(object).GetTypeReference(), TypeHelper.VoidPtr));
         }
     }
 }

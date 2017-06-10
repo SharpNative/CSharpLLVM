@@ -39,7 +39,7 @@ namespace CSharpLLVM.Generator.Instructions.Casting
                     result = LLVM.BuildIntCast(builder, element.Value, destType, "int2int");
             }
 
-            context.CurrentStack.Push(new StackElement(result, TypeHelper.GetBasicTypeFromTypeRef(context.Compiler, destType), destType));
+            context.CurrentStack.Push(new StackElement(result, TypeHelper.GetBasicTypeFromTypeRef(destType), destType));
         }
     }
 }

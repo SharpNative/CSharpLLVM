@@ -23,14 +23,16 @@ namespace CSharpLLVM.Helpers
         public static TypeRef NativeIntType { get; private set; }
 
         public static uint IntPtrSize { get; private set; }
-        
+
+        private static Compiler mCompiler;
         private static Lookup mLookup;
 
         /// <summary>
-        /// Initializes common types
+        /// Initializes common types.
         /// </summary>
-        /// <param name="targetData">Target data</param>
-        public static void Init(TargetDataRef targetData, Lookup lookup)
+        /// <param name="targetData">Target data.</param>
+        /// <param name="compiler">The compiler.</param>
+        public static void Init(TargetDataRef targetData, Compiler compiler)
         {
             Int64 = LLVM.Int64Type();
             Int32 = LLVM.Int32Type();
@@ -45,15 +47,16 @@ namespace CSharpLLVM.Helpers
             VoidPtr = LLVM.PointerType(LLVM.VoidType(), 0);
             IntPtrSize = (uint)LLVM.ABISizeOfType(targetData, VoidPtr);
             NativeIntType = LLVM.IntType(IntPtrSize * 8);
-            
-            mLookup = lookup;
+
+            mCompiler = compiler;
+            mLookup = compiler.Lookup;
         }
 
         /// <summary>
-        /// Gets a TypeRef from a TypeReference
+        /// Gets a TypeRef from a TypeReference.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The type</returns>
+        /// <param name="type">The TypeReference.</param>
+        /// <returns>The TypeRef.</returns>
         public static TypeRef GetTypeRefFromType(TypeReference type)
         {
             switch (type.MetadataType)
@@ -131,10 +134,10 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Gets a TypeRef from a Type
+        /// Gets a TypeRef from a Type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The type</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>The TypeRef.</returns>
         public static TypeRef GetTypeRefFromType(Type type)
         {
             if (type.IsPointer || type.IsArray)
@@ -163,10 +166,10 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Gets a TypeRef from a Code
+        /// Gets a TypeRef from a Code.Conv*.
         /// </summary>
-        /// <param name="code">The code</param>
-        /// <returns>The type</returns>
+        /// <param name="code">The code.</param>
+        /// <returns>The TypeRef.</returns>
         public static TypeRef GetTypeRefFromConv(Code code)
         {
             switch (code)
@@ -213,10 +216,10 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Gets a TypeRef from a Code
+        /// Gets a TypeRef from a Code.Stelem*.
         /// </summary>
-        /// <param name="code">The code</param>
-        /// <returns>The type</returns>
+        /// <param name="code">The code.</param>
+        /// <returns>The TypeRef.</returns>
         public static TypeRef GetTypeRefFromStelem(Code code)
         {
             switch (code)
@@ -246,35 +249,45 @@ namespace CSharpLLVM.Helpers
                     throw new InvalidOperationException("Invalid code to get type from: " + code);
             }
         }
-
+        
         /// <summary>
-        /// Gets a TypeRef from a Code
+        /// Gets a TypeRef from a Code.Stind* or Code.Ldind*.
         /// </summary>
-        /// <param name="code">The code</param>
-        /// <returns>The type</returns>
-        public static TypeRef GetTypeRefFromStind(Code code)
+        /// <param name="code">The code.</param>
+        /// <returns>The TypeRef.</returns>
+        public static TypeRef GetTypeRefFromStOrLdind(Code code)
         {
             switch (code)
             {
                 case Code.Stind_I:
+                case Code.Ldind_I:
                     return NativeIntType;
 
                 case Code.Stind_I1:
+                case Code.Ldind_I1:
+                case Code.Ldind_U1:
                     return Int8;
 
                 case Code.Stind_I2:
+                case Code.Ldind_I2:
+                case Code.Ldind_U2:
                     return Int16;
 
                 case Code.Stind_I4:
+                case Code.Ldind_I4:
+                case Code.Ldind_U4:
                     return Int32;
 
                 case Code.Stind_I8:
+                case Code.Ldind_I8:
                     return Int64;
 
                 case Code.Stind_R4:
+                case Code.Ldind_R4:
                     return Float;
 
                 case Code.Stind_R8:
+                case Code.Ldind_R8:
                     return Double;
 
                 default:
@@ -283,12 +296,12 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Get basic type from typeref
+        /// Get basic type from TypeRef.
         /// </summary>
         /// <param name="compiler">The compiler instance</param>
-        /// <param name="typeRef">The typeref</param>
-        /// <returns>The basic type reference</returns>
-        public static TypeReference GetBasicTypeFromTypeRef(Compiler compiler, TypeRef typeRef)
+        /// <param name="typeRef">The TypeRef.</param>
+        /// <returns>The basic TypeReference.</returns>
+        public static TypeReference GetBasicTypeFromTypeRef(TypeRef typeRef)
         {
             Type type = null;
             if (typeRef == Int8)
@@ -310,35 +323,35 @@ namespace CSharpLLVM.Helpers
             else
                 throw new InvalidOperationException("Could not get basic type from typeref: " + typeRef);
 
-            return type.GetTypeReference(compiler);
+            return type.GetTypeReference();
         }
 
         /// <summary>
-        /// Checks if a stack element is a floating point number (float or double)
+        /// Returns true if a stack element is a floating point number (float or double).
         /// </summary>
-        /// <param name="element">The element</param>
-        /// <returns>If the stack element is floating point</returns>
+        /// <param name="element">The element.</param>
+        /// <returns>If the stack element is floating point.</returns>
         public static bool IsFloatingPoint(StackElement element)
         {
             return (element.Type == Float || element.Type == Double);
         }
 
         /// <summary>
-        /// Checks if a stack element is a pointer
+        /// Returns true if a stack element is a pointer.
         /// </summary>
-        /// <param name="element">The element</param>
-        /// <returns>If the stack element is a pointer</returns>
+        /// <param name="element">The element.</param>
+        /// <returns>If the stack element is a pointer.</returns>
         public static bool IsPointer(StackElement element)
         {
             return (LLVM.GetTypeKind(element.Type) == TypeKind.PointerTypeKind);
         }
         
         /// <summary>
-        /// Checks if a type inherits the other type
+        /// Returns true if a type inherits the other type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <param name="baseType">The base type</param>
-        /// <returns>If the type inherits from the base type</returns>
+        /// <param name="type">The type.</param>
+        /// <param name="baseType">The base type.</param>
+        /// <returns>If the type inherits from the base type.</returns>
         public static bool InheritsFrom(TypeDefinition type, TypeDefinition baseType)
         {
             if (baseType.IsInterface)
@@ -359,14 +372,13 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Gets a type reference from a type
+        /// Gets a type reference from a type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <param name="compiler">The compiler instance</param>
-        /// <returns>The type reference</returns>
-        public static TypeReference GetTypeReference(this Type type, Compiler compiler)
+        /// <param name="type">The type.</param>
+        /// <returns>The TypeReference.</returns>
+        public static TypeReference GetTypeReference(this Type type)
         {
-            return compiler.AssemblyDef.MainModule.Import(type);
+            return mCompiler.AssemblyDef.MainModule.Import(type);
         }
     }
 }

@@ -38,7 +38,7 @@ namespace CSharpLLVM.Generator.Instructions.Comparison
                 }
             }
             
-            context.CurrentStack.Push(new StackElement(ret, typeof(bool).GetTypeReference(context.Compiler), TypeHelper.Boolean));
+            context.CurrentStack.Push(new StackElement(ret, typeof(bool).GetTypeReference(), TypeHelper.Boolean));
         }
     }
 }

@@ -17,18 +17,25 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
         /// <param name="builder">The builder</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
+            Code code = instruction.OpCode.Code;
             StackElement pointer = context.CurrentStack.Pop();
-            
-            ValueRef res = LLVM.BuildLoad(builder, pointer.Value, "elem");
+
+            ValueRef ptr = pointer.Value;
+            TypeRef ptrType = LLVM.PointerType(TypeHelper.GetTypeRefFromStOrLdind(code), 0);
+            if (pointer.Type != ptrType)
+            {
+                CastHelper.HelpIntAndPtrCast(builder, ref ptr, pointer.Type, ptrType);
+            }
+
+            ValueRef res = LLVM.BuildLoad(builder, ptr, "elem");
 
             // Some need to be pushed as an int32 on the stack
-            Code code = instruction.OpCode.Code;
             if (code == Code.Ldind_I1 || code == Code.Ldind_I2 || code == Code.Ldind_I4 ||
                 code == Code.Ldind_U1 || code == Code.Ldind_U2 || code == Code.Ldind_U4)
                 res = LLVM.BuildIntCast(builder, res, TypeHelper.Int32, "tmp");
 
             TypeRef type = LLVM.TypeOf(res);
-            context.CurrentStack.Push(new StackElement(res, TypeHelper.GetBasicTypeFromTypeRef(context.Compiler, type), type));
+            context.CurrentStack.Push(new StackElement(res, TypeHelper.GetBasicTypeFromTypeRef(type), type));
         }
     }
 }

@@ -13,7 +13,6 @@ namespace CSharpLLVM.Stack
         public StackElement this[int index] { get { return mStack[index]; } }
 
         public int Count { get { return mStack.Count; } }
-        public int IndependentValues { get; private set; }
 
         /// <summary>
         /// Clears the stack
@@ -69,9 +68,9 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Gets the count of dependent items
+        /// Gets the amount of dependent items
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The amount of dependent items</returns>
         public int GetDependentCount()
         {
             int sum = 0;

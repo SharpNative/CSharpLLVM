@@ -27,7 +27,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             ValueRef gep = LLVM.BuildGEP(builder, ptrOffset, new ValueRef[] { LLVM.ConstInt(TypeHelper.NativeIntType, 0, false) }, "lengthptr");
             ValueRef result = LLVM.BuildLoad(builder, gep, "length");
             
-            context.CurrentStack.Push(new StackElement(result, typeof(int).GetTypeReference(context.Compiler), TypeHelper.Int32));
+            context.CurrentStack.Push(new StackElement(result, typeof(int).GetTypeReference(), TypeHelper.Int32));
         }
     }
 }

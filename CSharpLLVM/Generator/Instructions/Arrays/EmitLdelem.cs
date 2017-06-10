@@ -57,7 +57,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             }
 
             TypeRef type = LLVM.TypeOf(res);
-            context.CurrentStack.Push(new StackElement(res, ilType.GetTypeReference(context.Compiler), type));
+            context.CurrentStack.Push(new StackElement(res, ilType.GetTypeReference(), type));
         }
     }
 }

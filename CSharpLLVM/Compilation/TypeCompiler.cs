@@ -66,6 +66,7 @@ namespace CSharpLLVM.Compilation
                 List<IStructEntry> fields = mLookup.GetStructLayout(type);
 
                 // Fields
+                ulong fieldTotalSize = 0;
                 TypeDefinition currentType = type;
                 foreach (IStructEntry entry in fields)
                 {
@@ -101,6 +102,7 @@ namespace CSharpLLVM.Compilation
                     else
                     {
                         structData.Add(fieldType);
+                        fieldTotalSize += LLVM.SizeOfTypeInBits(mCompiler.TargetData, fieldType) / 8;
                     }
                 }
 
@@ -109,6 +111,17 @@ namespace CSharpLLVM.Compilation
                 if (type.PackingSize != 1 && type.PackingSize != -1 && type.PackingSize != 0)
                 {
                     throw new NotImplementedException("The packing size " + type.PackingSize + " is not implemented");
+                }
+
+                // Fixed size?
+                if (type.ClassSize > 0 && (int)fieldTotalSize < type.ClassSize)
+                {
+                    if (!isStruct)
+                        throw new InvalidOperationException("Fixed size not on a struct?!");
+
+                    int needed = type.ClassSize - (int)fieldTotalSize;
+                    for (int i = 0; i < needed; i++)
+                        structData.Add(TypeHelper.Int8);
                 }
 
                 // Set struct data

@@ -123,7 +123,11 @@ namespace CSharpLLVM.Compilation
             LLVM.AddSLPVectorizePass(mFunctionPassManager);
 
             mPassManager = LLVM.CreatePassManager();
-            
+
+            // O0
+            LLVM.AddStripDeadPrototypesPass(mPassManager);
+            LLVM.AddStripSymbolsPass(mPassManager);
+
             // O1
             LLVM.AddAlwaysInlinerPass(mPassManager);
             LLVM.AddDeadArgEliminationPass(mPassManager);
@@ -132,16 +136,12 @@ namespace CSharpLLVM.Compilation
             // O2
             LLVM.AddFunctionInliningPass(mPassManager);
             LLVM.AddConstantMergePass(mPassManager);
-
-            // O0
-            LLVM.AddStripDeadPrototypesPass(mPassManager);
-            LLVM.AddStripSymbolsPass(mPassManager);
-
+            
             // Initialize types and runtime
             string dataLayout = LLVM.GetDataLayout(Module);
             TargetData = LLVM.CreateTargetData(dataLayout);
 
-            TypeHelper.Init(TargetData, Lookup);
+            TypeHelper.Init(TargetData, this);
             RuntimeHelper.ImportFunctions(Module);
             mBuiltinCompiler.Compile();
             compileModules();

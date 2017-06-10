@@ -45,7 +45,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
                 }
             }
 
-            context.CurrentStack.Push(new StackElement(result, typeof(int).GetTypeReference(context.Compiler), TypeHelper.Int32));
+            context.CurrentStack.Push(new StackElement(result, typeof(int).GetTypeReference(), TypeHelper.Int32));
         }
     }
 }

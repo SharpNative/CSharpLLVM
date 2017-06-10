@@ -21,8 +21,10 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             StackElement pointer = context.CurrentStack.Pop();
 
             ValueRef val = value.Value;
-            TypeRef destType = TypeHelper.GetTypeRefFromStind(instruction.OpCode.Code);
-            if (LLVM.PointerType(destType, 0) != pointer.Type)
+            ValueRef ptr = pointer.Value;
+            TypeRef destType = TypeHelper.GetTypeRefFromStOrLdind(instruction.OpCode.Code);
+            TypeRef destPtrType = LLVM.PointerType(destType, 0);
+            if (destPtrType != pointer.Type)
             {
                 // There is no instruction for a Stind to store a boolean, so we need to check manually
                 if (pointer.Type == LLVM.PointerType(TypeHelper.Boolean, 0))
@@ -36,9 +38,13 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
                 }
 
                 val = LLVM.BuildIntCast(builder, val, destType, "stindcast");
+
+                // If native int, convert to pointer
+                if (pointer.Type == TypeHelper.NativeIntType)
+                    ptr = LLVM.BuildIntToPtr(builder, ptr, destPtrType, "int2ptr");
             }
 
-            LLVM.BuildStore(builder, val, pointer.Value);
+            LLVM.BuildStore(builder, val, ptr);
         }
     }
 }
