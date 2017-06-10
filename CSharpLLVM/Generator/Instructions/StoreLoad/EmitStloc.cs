@@ -36,7 +36,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
 
             // Possible cast needed.
             if (element.Type != destType)
-                CastHelper.HelpIntAndPtrCast(builder, ref data, element.Type, destType);
+                CastHelper.HelpIntAndPtrCast(builder, ref data, ref element.Type, destType, "stloccast");
 
             LLVM.BuildStore(builder, data, context.LocalValues[index]);
         }

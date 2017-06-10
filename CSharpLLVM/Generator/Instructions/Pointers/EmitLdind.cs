@@ -24,7 +24,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             TypeRef ptrType = LLVM.PointerType(TypeHelper.GetTypeRefFromStOrLdind(code), 0);
             if (pointer.Type != ptrType)
             {
-                CastHelper.HelpIntAndPtrCast(builder, ref ptr, pointer.Type, ptrType);
+                CastHelper.HelpIntAndPtrCast(builder, ref ptr, ref pointer.Type, ptrType, "ldindcast");
             }
 
             ValueRef res = LLVM.BuildLoad(builder, ptr, "elem");

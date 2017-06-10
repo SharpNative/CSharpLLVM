@@ -33,7 +33,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             TypeRef elementType = TypeHelper.GetTypeRefFromType(array.ILType.GetElementType());
 
             ValueRef ptr = LLVM.BuildGEP(builder, array.Value, new ValueRef[] { index.Value }, "arrayptr");
-            CastHelper.HelpIntAndPtrCast(builder, ref value.Value, value.Type, elementType);
+            CastHelper.HelpIntAndPtrCast(builder, ref value.Value, ref value.Type, elementType, "stelemcast");
             LLVM.BuildStore(builder, value.Value, ptr);
         }
     }

@@ -33,7 +33,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             // Possible cast needed.
             TypeRef destType = TypeHelper.GetTypeRefFromType(field.FieldType);
             if (data.Type != destType)
-                CastHelper.HelpIntAndPtrCast(builder, ref data.Value, data.Type, destType);
+                CastHelper.HelpIntAndPtrCast(builder, ref data.Value, ref data.Type, destType, "stsfldcast");
             
             string[] useInitializer =
             {

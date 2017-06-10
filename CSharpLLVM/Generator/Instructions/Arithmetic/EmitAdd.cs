@@ -29,7 +29,7 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
             else
             {
                 bool isPtrVal1, isPtrVal2;
-                CastHelper.HelpPossiblePtrCast(builder, ref value1, ref value2, out isPtrVal1, out isPtrVal2);
+                CastHelper.HelpPossiblePtrCast(builder, ref value1, ref value2, out isPtrVal1, out isPtrVal2, "addcast");
 
                 // If one of the two values is a pointer, then the result will be a pointer as well.
                 if (isPtrVal1 || isPtrVal2)

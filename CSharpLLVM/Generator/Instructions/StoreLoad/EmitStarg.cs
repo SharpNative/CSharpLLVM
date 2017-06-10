@@ -24,7 +24,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             int index = def.Index;
             
             ValueRef arg = context.ArgumentValues[index];
-            CastHelper.HelpIntAndPtrCast(builder, ref value.Value, value.Type, TypeHelper.GetTypeRefFromType(context.ArgumentILTypes[index]));
+            CastHelper.HelpIntAndPtrCast(builder, ref value.Value, ref value.Type, TypeHelper.GetTypeRefFromType(context.ArgumentILTypes[index]), "stargcast");
             LLVM.BuildStore(builder, value.Value, arg);
         }
     }

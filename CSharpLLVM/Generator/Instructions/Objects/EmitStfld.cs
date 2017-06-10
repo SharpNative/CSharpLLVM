@@ -29,7 +29,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             // Possible cast needed.
             TypeRef destType = TypeHelper.GetTypeRefFromType(field.FieldType);
             if (value.Type != destType)
-                CastHelper.HelpIntAndPtrCast(builder, ref value.Value, value.Type, destType);
+                CastHelper.HelpIntAndPtrCast(builder, ref value.Value, ref value.Type, destType, "stfldcast");
 
             ValueRef store = LLVM.BuildStore(builder, value.Value, ptr);
             if (instruction.HasPrefix(Code.Volatile))

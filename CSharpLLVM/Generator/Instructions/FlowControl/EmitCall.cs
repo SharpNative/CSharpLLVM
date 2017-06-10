@@ -73,7 +73,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 // Cast needed?
                 if (element.Type != paramTypes[i])
                 {
-                    CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], element.Type, paramTypes[i]);
+                    CastHelper.HelpIntAndPtrCast(builder, ref argVals[i], ref element.Type, paramTypes[i], "callcast");
                 }
             }
 

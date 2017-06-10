@@ -30,7 +30,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
 
                 if (element.Type != returnTypeRef)
                 {
-                    CastHelper.HelpIntAndPtrCast(builder, ref element.Value, element.Type, returnTypeRef);
+                    CastHelper.HelpIntAndPtrCast(builder, ref element.Value, ref element.Type, returnTypeRef, "retcast");
                 }
 
                 LLVM.BuildRet(builder, element.Value);

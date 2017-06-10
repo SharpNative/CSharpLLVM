@@ -151,7 +151,7 @@ namespace CSharpLLVM.Stack
                     // Cast if not the same type.
                     if (srcStack[i].Type != phiType)
                     {
-                        CastHelper.HelpIntAndPtrCast(builder, ref incomingValue, srcStack[i].Type, phiType);
+                        CastHelper.HelpIntAndPtrCast(builder, ref incomingValue, ref srcStack[i].Type, phiType, "phicast");
                     }
 
                     // Add new incoming from source stack.
