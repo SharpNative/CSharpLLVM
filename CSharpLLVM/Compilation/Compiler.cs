@@ -42,7 +42,7 @@ namespace CSharpLLVM.Compilation
 
             mMethodCompiler = new MethodCompiler(this);
             mBuiltinCompiler = new BuiltinRuntimeFunctions(this);
-            mTypeCompiler = new TypeCompiler(this, Lookup);
+            mTypeCompiler = new TypeCompiler(this);
         }
 
         /// <summary>
