@@ -10,9 +10,9 @@ namespace CSharpLLVM.Lookups
         public FieldDefinition Field { get; private set; }
 
         /// <summary>
-        /// Creates a new StructFieldEntry
+        /// Creates a new StructFieldEntry.
         /// </summary>
-        /// <param name="field">The field</param>
+        /// <param name="field">The field.</param>
         public StructFieldEntry(FieldDefinition field)
         {
             Field = field;

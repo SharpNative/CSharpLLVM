@@ -30,9 +30,9 @@ namespace CSharpLLVM.Compilation
         public Lookup Lookup { get; private set; }
 
         /// <summary>
-        /// Creates a new Compiler
+        /// Creates a new Compiler.
         /// </summary>
-        /// <param name="settings">The compiler settings</param>
+        /// <param name="settings">The compiler settings.</param>
         public Compiler(CompilerSettings settings)
         {
             Settings = settings;
@@ -46,9 +46,9 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Verifies and optimizes a function
+        /// Verifies and optimizes a function.
         /// </summary>
-        /// <param name="function">The function</param>
+        /// <param name="function">The function.</param>
         public void VerifyAndOptimizeFunction(ValueRef function)
         {
             if (LLVM.VerifyFunction(function, VerifierFailureAction.ReturnStatusAction))
@@ -56,26 +56,26 @@ namespace CSharpLLVM.Compilation
                 Console.ForegroundColor = ConsoleColor.Red;
                 LLVM.VerifyFunction(function, VerifierFailureAction.PrintMessageAction);
                 Console.ForegroundColor = ConsoleColor.Gray;
-                throw new Exception("Compiling of function failed");
+                throw new Exception("Compiling of function failed.");
             }
 
             LLVM.RunFunctionPassManager(mFunctionPassManager, function);
         }
 
         /// <summary>
-        /// Compiles an IL assembly to LLVM bytecode
+        /// Compiles an IL assembly to LLVM bytecode.
         /// </summary>
         public void Compile()
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
 
-            // Create LLVM module and its context
+            // Create LLVM module and its context.
             LLVM.EnablePrettyStackTrace();
             mModule = LLVM.ModuleCreateWithName(Settings.ModuleName);
             mContext = LLVM.GetModuleContext(mModule);
 
-            // Targets
+            // Targets.
             LLVM.InitializeAllTargetInfos();
             LLVM.InitializeAllTargets();
             LLVM.InitializeAllTargetMCs();
@@ -93,7 +93,7 @@ namespace CSharpLLVM.Compilation
                 throw new InvalidOperationException(error);
             }
 
-            // Optimizer
+            // Optimizer.
             // TODO
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
@@ -137,7 +137,7 @@ namespace CSharpLLVM.Compilation
             LLVM.AddFunctionInliningPass(mPassManager);
             LLVM.AddConstantMergePass(mPassManager);
             
-            // Initialize types and runtime
+            // Initialize types and runtime.
             string dataLayout = LLVM.GetDataLayout(Module);
             TargetData = LLVM.CreateTargetData(dataLayout);
 
@@ -147,16 +147,16 @@ namespace CSharpLLVM.Compilation
             compileModules();
             LLVM.RunPassManager(mPassManager, Module);
 
-            // Log time
+            // Log time.
             stopWatch.Stop();
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.WriteLine("Compilation time: " + stopWatch.Elapsed);
             Console.ForegroundColor = ConsoleColor.Gray;
 
-            // Debug: print LLVM assembly code
+            // Debug: print LLVM assembly code.
             Console.WriteLine(LLVM.PrintModuleToString(mModule));
 
-            // Verify and throw exception on error
+            // Verify and throw exception on error.
             Console.ForegroundColor = ConsoleColor.DarkGray;
             if (LLVM.VerifyModule(mModule, VerifierFailureAction.ReturnStatusAction, out error))
             {
@@ -172,7 +172,7 @@ namespace CSharpLLVM.Compilation
             }
             Console.ForegroundColor = ConsoleColor.Gray;
 
-            // Output
+            // Output.
             TargetMachineRef machine = LLVM.CreateTargetMachine(target, triplet, "generic", "", CodeGenOptLevel.CodeGenLevelDefault, RelocMode.RelocDefault, CodeModel.CodeModelDefault);
             LLVM.SetModuleDataLayout(mModule, LLVM.CreateTargetDataLayout(machine));
             if (LLVM.TargetMachineEmitToFile(machine, mModule, "./out.o", CodeGenFileType.ObjectFile, out error))
@@ -185,32 +185,32 @@ namespace CSharpLLVM.Compilation
                 throw new InvalidOperationException(error);
             }
 
-            // Cleanup
+            // Cleanup.
             LLVM.DisposeTargetData(TargetData);
         }
 
         /// <summary>
-        /// Compiles the modules
+        /// Compiles the modules.
         /// </summary>
         private void compileModules()
         {
             AssemblyDef = AssemblyDefinition.ReadAssembly(Settings.InputFile);
 
-            // Loop through the modules within the IL assembly
+            // Loop through the modules within the IL assembly.
             // Note: A single assembly can contain multiple IL modules.
-            //       We use a single LLVM module to contain all of this
+            //       We use a single LLVM module to contain all of this.
             Collection<ModuleDefinition> modules = AssemblyDef.Modules;
             foreach (ModuleDefinition moduleDef in modules)
             {
                 compileModule(moduleDef);
             }
 
-            // Create init method containing the calls to the .cctors
+            // Create init method containing the calls to the .cctors.
             compileInitMethod();
         }
 
         /// <summary>
-        /// Compiles the init method
+        /// Compiles the init method.
         /// </summary>
         private void compileInitMethod()
         {
@@ -230,11 +230,11 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Method to sort types based on dependencies
+        /// Method to sort types based on dependencies.
         /// </summary>
-        /// <param name="left">Left</param>
-        /// <param name="right">Right</param>
-        /// <returns>Order number</returns>
+        /// <param name="left">Left.</param>
+        /// <param name="right">Right.</param>
+        /// <returns>Order number.</returns>
         private int sortTypes(TypeDefinition left, TypeDefinition right)
         {
             if (TypeHelper.InheritsFrom(left, right))
@@ -254,16 +254,16 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Compiles a module
+        /// Compiles a module.
         /// </summary>
-        /// <param name="moduleDef">The IL module definition</param>
+        /// <param name="moduleDef">The IL module definition.</param>
         private void compileModule(ModuleDefinition moduleDef)
         {
             List<MethodDefinition> methods = new List<MethodDefinition>();
             Collection<TypeDefinition> types = moduleDef.Types;
             List<TypeDefinition> sortedTypes = new List<TypeDefinition>();
 
-            // Sort types to help dependencies
+            // Sort types to help dependencies.
             foreach (TypeDefinition type in types)
             {
                 if (type.FullName == "<Module>")
@@ -273,13 +273,13 @@ namespace CSharpLLVM.Compilation
             }
             sortedTypes.Sort(sortTypes);
 
-            // Compiles types and adds methods
+            // Compiles types and adds methods.
             foreach (TypeDefinition type in sortedTypes)
             {
                 compileType(type, methods);
             }
 
-            // Compile methods
+            // Compile methods.
             foreach (MethodDefinition method in methods)
             {
                 ValueRef? function = compileMethod(method);
@@ -287,7 +287,7 @@ namespace CSharpLLVM.Compilation
                     Lookup.AddCctor(method);
             }
 
-            // Compile VTables
+            // Compile VTables.
             foreach (VTable vtable in Lookup.VTables)
             {
                 vtable.Compile();
@@ -295,12 +295,12 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Compiles a type
+        /// Compiles a type.
         /// </summary>
-        /// <param name="type">The type definition</param>
+        /// <param name="type">The type definition.</param>
         private void compileType(TypeDefinition type, List<MethodDefinition> methods)
         {
-            // Nested types
+            // Nested types.
             foreach (TypeDefinition inner in type.NestedTypes)
             {
                 compileType(inner, methods);
@@ -308,17 +308,17 @@ namespace CSharpLLVM.Compilation
 
             mTypeCompiler.Compile(type);
 
-            // Note: we first need all types to generate before we can generate methods
-            //       because methods may refer to types that are not yet generated
+            // Note: First, we need all types to generate before we can generate methods,
+            //       because methods may refer to types that are not yet generated.
             if (!type.IsInterface)
                 methods.AddRange(type.Methods);
         }
 
         /// <summary>
-        /// Compiles a method
+        /// Compiles a method.
         /// </summary>
-        /// <param name="methodDef">The method definition</param>
-        /// <returns>The function</returns>
+        /// <param name="methodDef">The method definition.</param>
+        /// <returns>The function.</returns>
         private ValueRef? compileMethod(MethodDefinition methodDef)
         {
             return mMethodCompiler.Compile(methodDef);

@@ -10,18 +10,18 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
     class EmitStelem : ICodeEmitter
     {
         /// <summary>
-        /// Emits a stelem instruction
+        /// Emits a stelem instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value = context.CurrentStack.Pop();
             StackElement index = context.CurrentStack.Pop();
             StackElement array = context.CurrentStack.Pop();
             
-            // Convert to "pointer to value type" type
+            // Convert to "pointer to value type" type.
             if (array.Type == TypeHelper.VoidPtr)
             {
                 TypeRef destType = TypeHelper.GetTypeRefFromStelem(instruction.OpCode.Code);

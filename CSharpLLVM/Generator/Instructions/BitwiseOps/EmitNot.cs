@@ -9,11 +9,11 @@ namespace CSharpLLVM.Generator.Instructions.BitwiseOps
     class EmitNot : ICodeEmitter
     {
         /// <summary>
-        /// Emits a not instruction
+        /// Emits a not instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value = context.CurrentStack.Pop();

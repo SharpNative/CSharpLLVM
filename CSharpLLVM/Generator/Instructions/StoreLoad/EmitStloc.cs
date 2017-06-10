@@ -12,9 +12,9 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
         /// <summary>
         /// Emits a stloc instruction
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             Code code = instruction.OpCode.Code;
@@ -34,7 +34,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             ValueRef data = element.Value;
             TypeRef destType = context.LocalTypes[index];
 
-            // Possible cast needed
+            // Possible cast needed.
             if (element.Type != destType)
                 CastHelper.HelpIntAndPtrCast(builder, ref data, element.Type, destType);
 

@@ -10,11 +10,11 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
     class EmitLdind : ICodeEmitter
     {
         /// <summary>
-        /// Emits a Ldind instruction
+        /// Emits a Ldind instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             Code code = instruction.OpCode.Code;
@@ -29,7 +29,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
 
             ValueRef res = LLVM.BuildLoad(builder, ptr, "elem");
 
-            // Some need to be pushed as an int32 on the stack
+            // Some need to be pushed as an int32 on the stack.
             if (code == Code.Ldind_I1 || code == Code.Ldind_I2 || code == Code.Ldind_I4 ||
                 code == Code.Ldind_U1 || code == Code.Ldind_U2 || code == Code.Ldind_U4)
                 res = LLVM.BuildIntCast(builder, res, TypeHelper.Int32, "tmp");

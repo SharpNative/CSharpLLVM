@@ -10,11 +10,11 @@ namespace CSharpLLVM.Generator.Instructions.BitwiseOps
     class EmitShl : ICodeEmitter
     {
         /// <summary>
-        /// Emits an shl instruction
+        /// Emits an shl instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value2 = context.CurrentStack.Pop();

@@ -15,7 +15,7 @@ namespace CSharpLLVM.Stack
         public int Count { get { return mStack.Count; } }
 
         /// <summary>
-        /// Clears the stack
+        /// Clears the stack.
         /// </summary>
         public void Clear()
         {
@@ -24,9 +24,9 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Insert an element at start
+        /// Insert an element at start.
         /// </summary>
-        /// <param name="element">The element</param>
+        /// <param name="element">The element.</param>
         public void InsertAtStart(StackElement element)
         {
             mStack.Insert(0, element);
@@ -34,9 +34,9 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Pops an element from the stack
+        /// Pops an element from the stack.
         /// </summary>
-        /// <returns>The popped element</returns>
+        /// <returns>The popped element.</returns>
         public StackElement Pop()
         {
             int index = mStack.Count - 1;
@@ -49,18 +49,18 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Returns the top element without popping it
+        /// Returns the top element without popping it.
         /// </summary>
-        /// <returns>The top element</returns>
+        /// <returns>The top element.</returns>
         public StackElement Peek()
         {
             return mStack[mStack.Count - 1];
         }
 
         /// <summary>
-        /// Pushes an element on the stack
+        /// Pushes an element on the stack.
         /// </summary>
-        /// <param name="element">The element</param>
+        /// <param name="element">The element.</param>
         public void Push(StackElement element)
         {
             mPhi.Add(0);
@@ -68,9 +68,9 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Gets the amount of dependent items
+        /// Gets the amount of dependent items.
         /// </summary>
-        /// <returns>The amount of dependent items</returns>
+        /// <returns>The amount of dependent items.</returns>
         public int GetDependentCount()
         {
             int sum = 0;
@@ -82,13 +82,13 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Update stack with phi nodes
+        /// Update stack with phi nodes.
         /// </summary>
-        /// <param name="builder">The builder</param>
-        /// <param name="srcStack">The source stack</param>
-        /// <param name="oldBlock">The old block</param>
-        /// <param name="newBlock">The new block</param>
-        /// <param name="refers">The amount of references to the new block</param>
+        /// <param name="builder">The builder.</param>
+        /// <param name="srcStack">The source stack.</param>
+        /// <param name="oldBlock">The old block.</param>
+        /// <param name="newBlock">The new block.</param>
+        /// <param name="refers">The amount of references to the new block.</param>
         public void Update(BuilderRef builder, ILStack srcStack, BasicBlockRef oldBlock, BasicBlockRef newBlock, int refers)
         {
             // If there's only one reference to this branch, there's only one way to get here.
@@ -148,13 +148,13 @@ namespace CSharpLLVM.Stack
                     TypeRef phiType = LLVM.TypeOf(phi);
                     ValueRef incomingValue = srcStack[i].Value;
 
-                    // Cast if not the same type
+                    // Cast if not the same type.
                     if (srcStack[i].Type != phiType)
                     {
                         CastHelper.HelpIntAndPtrCast(builder, ref incomingValue, srcStack[i].Type, phiType);
                     }
 
-                    // Add new incoming from source stack
+                    // Add new incoming from source stack.
                     LLVM.AddIncoming(phi, new ValueRef[] { incomingValue }, new BasicBlockRef[] { oldBlock });
 
                     mPhi[dstOffset]++;

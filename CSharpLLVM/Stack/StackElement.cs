@@ -10,10 +10,10 @@ namespace CSharpLLVM.Stack
         public ValueRef Value;
 
         /// <summary>
-        /// Creates a new StackElement
+        /// Creates a new StackElement.
         /// </summary>
-        /// <param name="value">The value</param>
-        /// <param name="ilType">The IL type</param>
+        /// <param name="value">The value.</param>
+        /// <param name="ilType">The IL type.</param>
         public StackElement(ValueRef value, TypeReference ilType)
         {
             Type = LLVM.TypeOf(value);
@@ -22,11 +22,11 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Creates a new StackElement
+        /// Creates a new StackElement.
         /// </summary>
-        /// <param name="value">The value</param>
-        /// <param name="ilType">The IL type</param>
-        /// <param name="type">The type</param>
+        /// <param name="value">The value.</param>
+        /// <param name="ilType">The IL type.</param>
+        /// <param name="type">The type.</param>
         public StackElement(ValueRef value, TypeReference ilType, TypeRef type)
         {
             Type = type;
@@ -35,9 +35,9 @@ namespace CSharpLLVM.Stack
         }
 
         /// <summary>
-        /// Creates a new StackElement from an existing one
+        /// Creates a new StackElement from an existing one.
         /// </summary>
-        /// <param name="other">The existing one</param>
+        /// <param name="other">The existing one.</param>
         public StackElement(StackElement other)
         {
             Type = other.Type;

@@ -10,11 +10,11 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
     class EmitLdelem_Ref : ICodeEmitter
     {
         /// <summary>
-        /// Emits a ldelem_ref instruction
+        /// Emits a ldelem_ref instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement index = context.CurrentStack.Pop();

@@ -10,9 +10,9 @@ namespace CSharpLLVM.Lookups
         public TypeDefinition Type { get; private set; }
 
         /// <summary>
-        /// Creates a new StructBarrierEntry
+        /// Creates a new StructBarrierEntry.
         /// </summary>
-        /// <param name="type">The type</param>
+        /// <param name="type">The type.</param>
         public StructBarrierEntry(TypeDefinition type)
         {
             Type = type;

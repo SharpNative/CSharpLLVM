@@ -11,11 +11,11 @@ namespace CSharpLLVM.Generator.Instructions.Objects
     class EmitLdflda : ICodeEmitter
     {
         /// <summary>
-        /// Emits a ldflda instruction
+        /// Emits a ldflda instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement obj = context.CurrentStack.Pop();
@@ -23,7 +23,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
 
             uint index = context.Compiler.Lookup.GetFieldIndex(field);
 
-            // Create pointer if not yet a pointer
+            // Create pointer if not yet a pointer.
             if (obj.ILType.IsValueType && !obj.ILType.IsPointer)
             {
                 ValueRef objPtr = LLVM.BuildAlloca(builder, obj.Type, "objptr");

@@ -9,9 +9,9 @@ namespace CSharpLLVM.Generator.Instructions
         public Code[] Codes { get; private set; }
 
         /// <summary>
-        /// Creates a new InstructionHandlerAttribute
+        /// Creates a new InstructionHandlerAttribute.
         /// </summary>
-        /// <param name="codes">Which codes this handler handles</param>
+        /// <param name="codes">Which codes this handler handles.</param>
         public InstructionHandlerAttribute(params Code[] codes)
         {
             Codes = codes;

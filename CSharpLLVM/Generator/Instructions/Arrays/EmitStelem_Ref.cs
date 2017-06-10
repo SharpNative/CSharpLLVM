@@ -9,11 +9,11 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
     class EmitStelemRef : ICodeEmitter
     {
         /// <summary>
-        /// Emits a stelem_ref instruction
+        /// Emits a stelem_ref instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value = context.CurrentStack.Pop();
@@ -22,7 +22,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             
             TypeRef destType = LLVM.PointerType(value.Type, 0);
 
-            // Convert to "pointer to value type" type
+            // Convert to "pointer to value type" type.
             if (destType != array.Type)
             {
                 array.Value = LLVM.BuildPointerCast(builder, array.Value, destType, "tmpstelem");

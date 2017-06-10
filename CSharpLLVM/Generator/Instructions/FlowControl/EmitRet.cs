@@ -10,11 +10,11 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
     class EmitRet : ICodeEmitter
     {
         /// <summary>
-        /// Emits a ret instruction
+        /// Emits a ret instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             if (context.Method.ReturnType.MetadataType == MetadataType.Void)

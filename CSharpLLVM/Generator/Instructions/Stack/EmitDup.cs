@@ -9,11 +9,11 @@ namespace CSharpLLVM.Generator.Instructions.Stack
     class EmitDup : ICodeEmitter
     {
         /// <summary>
-        /// Emits a dup instruction
+        /// Emits a dup instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement top = context.CurrentStack.Peek();

@@ -11,11 +11,11 @@ namespace CSharpLLVM.Generator.Instructions.Objects
     class EmitNewobj : ICodeEmitter
     {
         /// <summary>
-        /// Emits a newobj instruction
+        /// Emits a newobj instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             MethodReference ctor = (MethodReference)instruction.Operand;
@@ -25,16 +25,16 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             ValueRef objPtr;
             if (ptr)
             {
-                // This type is a class, therefor we have a specialised "newobj" method
+                // This type is a class, therefor we have a specialised "newobj" method.
                 objPtr = LLVM.BuildCall(builder, context.Compiler.Lookup.GetNewobjMethod(ctor.DeclaringType.Resolve()), new ValueRef[0], "newobj");
             }
             else
             {
-                // Not a class, no specialised method
+                // Not a class, no specialised method.
                 objPtr = LLVM.BuildAlloca(builder, type, "newobj");
             }
 
-            // Get .ctor parameters
+            // Get .ctor parameters.
             int paramCount = 1 + ctor.Parameters.Count;
             ValueRef[] values = new ValueRef[paramCount];
             values[0] = objPtr;
@@ -44,10 +44,10 @@ namespace CSharpLLVM.Generator.Instructions.Objects
                 values[i] = element.Value;
             }
 
-            // Call .ctor
+            // Call .ctor.
             LLVM.BuildCall(builder, context.Compiler.Lookup.GetFunction(NameHelper.CreateMethodName(ctor)).Value, values, string.Empty);
 
-            // Load and push object on stack
+            // Load and push object on stack.
             ValueRef obj = (ptr) ? objPtr : LLVM.BuildLoad(builder, objPtr, "obj");
             context.CurrentStack.Push(new StackElement(obj, ctor.DeclaringType, type));
         }

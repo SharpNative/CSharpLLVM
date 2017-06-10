@@ -10,11 +10,11 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
     class EmitLdarga : ICodeEmitter
     {
         /// <summary>
-        /// Emits a ldarga instruction
+        /// Emits a ldarga instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             ParameterDefinition def = (ParameterDefinition)instruction.Operand;

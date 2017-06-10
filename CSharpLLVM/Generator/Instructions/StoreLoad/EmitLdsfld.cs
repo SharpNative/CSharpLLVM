@@ -12,11 +12,11 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
     class EmitLdsfld : ICodeEmitter
     {
         /// <summary>
-        /// Emits a ldsfld instruction
+        /// Emits a ldsfld instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             FieldReference field = (FieldReference)instruction.Operand;

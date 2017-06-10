@@ -8,11 +8,11 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
     class EmitBr : ICodeEmitter
     {
         /// <summary>
-        /// Emits a br instruction
+        /// Emits a br instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             Instruction dest = (Instruction)instruction.Operand;

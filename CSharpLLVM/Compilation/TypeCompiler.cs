@@ -13,20 +13,20 @@ namespace CSharpLLVM.Compilation
         private Lookup mLookup;
 
         /// <summary>
-        /// Creates a new TypeCompiler
+        /// Creates a new TypeCompiler.
         /// </summary>
-        /// <param name="compiler">The compiler</param>
-        /// <param name="lookup">The lookup</param>
-        public TypeCompiler(Compiler compiler, Lookup lookup)
+        /// <param name="compiler">The compiler.</param>
+        /// <param name="lookup">The lookup.</param>
+        public TypeCompiler(Compiler compiler)
         {
             mCompiler = compiler;
-            mLookup = lookup;
+            mLookup = compiler.Lookup;
         }
 
         /// <summary>
-        /// Compiles a type
+        /// Compiles a type.
         /// </summary>
-        /// <param name="type">The type</param>
+        /// <param name="type">The type.</param>
         public void Compile(TypeDefinition type)
         {
             bool isStruct = (!type.IsEnum && type.IsValueType);
@@ -34,7 +34,7 @@ namespace CSharpLLVM.Compilation
             bool isInterface = type.IsInterface;
             bool isClass = (!isStruct && !isInterface);
 
-            // Log
+            // Log.
             Console.ForegroundColor = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : isInterface ? ConsoleColor.DarkMagenta : ConsoleColor.Cyan;
             Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
             Console.ForegroundColor = ConsoleColor.Gray;
@@ -42,10 +42,10 @@ namespace CSharpLLVM.Compilation
             // Enums
             if (isEnum)
             {
-                // The fields within the enum indicate its type
+                // The fields within the enum indicate its type.
                 mLookup.AddType(type, TypeHelper.GetTypeRefFromType(type.Fields[0].FieldType));
             }
-            // Structs and classes
+            // Structs and classes.
             else
             {
                 // VTable
@@ -59,13 +59,13 @@ namespace CSharpLLVM.Compilation
                     //vtable.Dump();
                 }
 
-                // Create struct for this type
+                // Create struct for this type.
                 TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
                 mLookup.AddType(type, data);
                 List<TypeRef> structData = new List<TypeRef>();
                 List<IStructEntry> fields = mLookup.GetStructLayout(type);
 
-                // Fields
+                // Fields.
                 ulong fieldTotalSize = 0;
                 TypeDefinition currentType = type;
                 foreach (IStructEntry entry in fields)
@@ -85,20 +85,20 @@ namespace CSharpLLVM.Compilation
                     TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
                     currentType = field.DeclaringType;
 
-                    // Static field
+                    // Static field.
                     if (field.IsStatic)
                     {
-                        // Only add it if we don't have it already (is possible when inheriting classes)
+                        // Only add it if we don't have it already (is possible when inheriting classes).
                         if (!mLookup.HasStaticField(field))
                         {
                             ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
 
-                            // Note: the initializer may be changed later if the compiler sees that it can be constant
+                            // Note: the initializer may be changed later if the compiler sees that it can be constant.
                             LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
                             mLookup.AddStaticField(field, val);
                         }
                     }
-                    // Field for type instance
+                    // Field for type instance.
                     else
                     {
                         structData.Add(fieldType);
@@ -124,10 +124,10 @@ namespace CSharpLLVM.Compilation
                         structData.Add(TypeHelper.Int8);
                 }
 
-                // Set struct data
+                // Set struct data.
                 LLVM.StructSetBody(data, structData.ToArray(), packed);
 
-                // For classes, generate the "newobj" method
+                // For classes, generate the "newobj" method.
                 if (isClass)
                 {
                     ValueRef newobjFunc = createNewobjMethod(type);
@@ -137,16 +137,16 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Creates the "newobj" method for a type
+        /// Creates the "newobj" method for a type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The function</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>The function.</returns>
         private ValueRef createNewobjMethod(TypeDefinition type)
         {
             string name = string.Format("newobj_{0}", type.FullName);
             BuilderRef builder = LLVM.CreateBuilderInContext(mCompiler.ModuleContext);
 
-            // Create method type
+            // Create method type.
             TypeRef funcType = LLVM.FunctionType(TypeHelper.GetTypeRefFromType(type), new TypeRef[0], false);
             ValueRef func = LLVM.AddFunction(mCompiler.Module, name, funcType);
             LLVM.SetLinkage(func, Linkage.InternalLinkage);
@@ -154,11 +154,11 @@ namespace CSharpLLVM.Compilation
             BasicBlockRef entry = LLVM.AppendBasicBlockInContext(mCompiler.ModuleContext, func, string.Empty);
             LLVM.PositionBuilderAtEnd(builder, entry);
 
-            // Allocate space on the heap for this object
+            // Allocate space on the heap for this object.
             TypeRef typeRef = mCompiler.Lookup.GetTypeRef(type);
             ValueRef objPtr = LLVM.BuildMalloc(builder, typeRef, "newobj");
 
-            // Initialize VTables
+            // Initialize VTables.
             Lookup lookup = mCompiler.Lookup;
             if (lookup.NeedsVirtualCall(type))
             {
@@ -172,7 +172,7 @@ namespace CSharpLLVM.Compilation
                 }
             }
 
-            // Return object pointer
+            // Return object pointer.
             LLVM.BuildRet(builder, objPtr);
 
             LLVM.DisposeBuilder(builder);

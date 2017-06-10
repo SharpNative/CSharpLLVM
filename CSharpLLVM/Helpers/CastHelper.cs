@@ -6,11 +6,11 @@ namespace CSharpLLVM.Helpers
     static class CastHelper
     {
         /// <summary>
-        /// Helps with the int casting so that both values are of the same type
+        /// Helps with the int casting so that both values are of the same type.
         /// </summary>
-        /// <param name="builder">The builder</param>
-        /// <param name="value1">The first value</param>
-        /// <param name="value2">The second value</param>
+        /// <param name="builder">The builder.</param>
+        /// <param name="value1">The first value.</param>
+        /// <param name="value2">The second value.</param>
         public static void HelpIntCast(BuilderRef builder, ref StackElement value1, ref StackElement value2)
         {
             if (value1.Type != value2.Type)
@@ -22,13 +22,13 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Helps with the pointer casting so that both values are of the same type
+        /// Helps with the pointer casting so that both values are of the same type.
         /// </summary>
-        /// <param name="builder">The builder</param>
-        /// <param name="value1">The first value</param>
-        /// <param name="value2">The second value</param>
-        /// <param name="isPtrVal1">If the first value was a pointer</param>
-        /// <param name="isPtrVal2">If the second value was a pointer</param>
+        /// <param name="builder">The builder.</param>
+        /// <param name="value1">The first value.</param>
+        /// <param name="value2">The second value.</param>
+        /// <param name="isPtrVal1">If the first value was a pointer.</param>
+        /// <param name="isPtrVal2">If the second value was a pointer.</param>
         public static void HelpPossiblePtrCast(BuilderRef builder, ref StackElement value1, ref StackElement value2, out bool isPtrVal1, out bool isPtrVal2)
         {
             isPtrVal1 = TypeHelper.IsPointer(value1);
@@ -49,27 +49,27 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Helps int and ptr casting to a destination type
+        /// Helps int and ptr casting to a destination type.
         /// </summary>
-        /// <param name="builder">The builder</param>
-        /// <param name="data">The data (int or pointer)</param>
-        /// <param name="dataType">The data type</param>
-        /// <param name="destType">The destination type</param>
+        /// <param name="builder">The builder.</param>
+        /// <param name="data">The data (int or pointer).</param>
+        /// <param name="dataType">The data type.</param>
+        /// <param name="destType">The destination type.</param>
         public static void HelpIntAndPtrCast(BuilderRef builder, ref ValueRef data, TypeRef dataType, TypeRef destType)
         {
-            // Two cases: int to different size, or int to pointer
+            // Two cases: int to different size, or int to pointer.
             TypeKind kind = LLVM.GetTypeKind(destType);
 
-            // Convert to pointer
+            // Convert to pointer.
             if (kind == TypeKind.PointerTypeKind)
             {
-                // Two cases: pointer to pointer, or int to ptr
+                // Two cases: pointer to pointer, or int to ptr.
                 if (LLVM.GetTypeKind(dataType) == TypeKind.PointerTypeKind)
                     data = LLVM.BuildPointerCast(builder, data, destType, "tmpptr");
                 else
                     data = LLVM.BuildIntToPtr(builder, data, destType, "tmpptr");
             }
-            // Convert to int of different size
+            // Convert to int of different size.
             else
             {
                 data = LLVM.BuildIntCast(builder, data, destType, "tmpint");
@@ -77,17 +77,17 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Helps ptr casting to a destination type
+        /// Helps ptr casting to a destination type.
         /// </summary>
-        /// <param name="builder">The builder</param>
-        /// <param name="data">The data (int or pointer)</param>
-        /// <param name="dataType">The data type</param>
-        /// <param name="destType">The destination type</param>
+        /// <param name="builder">The builder.</param>
+        /// <param name="data">The data (int or pointer).</param>
+        /// <param name="dataType">The data type.</param>
+        /// <param name="destType">The destination type.</param>
         public static void HelpPtrCast(BuilderRef builder, ref ValueRef data, TypeRef dataType, TypeRef destType)
         {
             TypeKind kind = LLVM.GetTypeKind(destType);
 
-            // Convert to pointer
+            // Convert to pointer.
             if (kind == TypeKind.PointerTypeKind)
             {
                 if (LLVM.GetTypeKind(dataType) == TypeKind.PointerTypeKind)

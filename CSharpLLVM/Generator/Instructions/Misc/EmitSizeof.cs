@@ -11,11 +11,11 @@ namespace CSharpLLVM.Generator.Instructions.Misc
     class EmitSizeof : ICodeEmitter
     {
         /// <summary>
-        /// Emits a sizeof instruction
+        /// Emits a sizeof instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             TypeDefinition type = (TypeDefinition)instruction.Operand;

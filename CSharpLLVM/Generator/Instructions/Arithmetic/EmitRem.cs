@@ -10,11 +10,11 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
     class EmitRem : ICodeEmitter
     {
         /// <summary>
-        /// Emits a rem instruction
+        /// Emits a rem instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value2 = context.CurrentStack.Pop();
@@ -32,7 +32,7 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
 
                 if (instruction.OpCode.Code == Code.Rem)
                     result = LLVM.BuildSRem(builder, value1.Value, value2.Value, "remsi");
-                else /* Div_Un */
+                else /* Rem_Un */
                     result = LLVM.BuildURem(builder, value1.Value, value2.Value, "remui");
 
                 context.CurrentStack.Push(new StackElement(result, value1.ILType, value1.Type));

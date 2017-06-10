@@ -10,10 +10,10 @@ namespace CSharpLLVM.Generator.Instructions.Constants
     class EmitLdc_R8 : ICodeEmitter
     {
         /// <summary>
-        /// Emits a Ldc_R8 instruction
+        /// Emits a Ldc_R8 instruction.
         /// </summary>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             ValueRef result = LLVM.ConstReal(TypeHelper.Double, (double)instruction.Operand);

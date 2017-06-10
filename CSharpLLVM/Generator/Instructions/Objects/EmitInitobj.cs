@@ -11,18 +11,18 @@ namespace CSharpLLVM.Generator.Instructions.Objects
     class EmitInitobj : ICodeEmitter
     {
         /// <summary>
-        /// Emits an initobj instruction
+        /// Emits an initobj instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement valueTypeAddress = context.CurrentStack.Pop();
             TypeReference type = (TypeReference)instruction.Operand;
             TypeRef typeRef = context.Compiler.Lookup.GetTypeRef(type);
 
-            // We clear this using memset
+            // We clear this using memset.
             CastHelper.HelpIntAndPtrCast(builder, ref valueTypeAddress.Value, valueTypeAddress.Type, TypeHelper.VoidPtr);
             LLVM.BuildCall(builder, RuntimeHelper.Memset, new ValueRef[] { valueTypeAddress.Value, LLVM.ConstNull(TypeHelper.Int32), LLVM.SizeOf(typeRef) }, string.Empty);
         }

@@ -13,11 +13,11 @@ namespace CSharpLLVM.Lookups
         private Compiler mCompiler;
         private TypeDefinition mType;
 
-        // Contains pairs of methods and their indices, must match correct parent types (if any)
+        // Contains pairs of methods and their indices, must match correct parent types (if any).
         private Dictionary<TypeDefinition, Dictionary<int, MethodDefinition>> mTable = new Dictionary<TypeDefinition, Dictionary<int, MethodDefinition>>();
         private Dictionary<TypeDefinition, Dictionary<string, int>> mNameTable = new Dictionary<TypeDefinition, Dictionary<string, int>>();
 
-        // Lookup for generated code of VTable
+        // Lookup for generated code of VTable.
         private Dictionary<TypeDefinition, Tuple<TypeRef, ValueRef>> mGeneratedTable = new Dictionary<TypeDefinition, Tuple<TypeRef, ValueRef>>();
 
         public TypeDefinition Type { get { return mType; } }
@@ -26,10 +26,10 @@ namespace CSharpLLVM.Lookups
         protected Dictionary<string, int> MyNameTable { get { return mNameTable[mType]; } }
 
         /// <summary>
-        /// Creates a new VTable
+        /// Creates a new VTable.
         /// </summary>
-        /// <param name="compiler">The compiler</param>
-        /// <param name="type">The type for which this VTable is</param>
+        /// <param name="compiler">The compiler.</param>
+        /// <param name="type">The type for which this VTable is.</param>
         public VTable(Compiler compiler, TypeDefinition type)
         {
             mCompiler = compiler;
@@ -37,24 +37,24 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// If we should add the method to the VTable
+        /// If we should add the method to the VTable.
         /// </summary>
-        /// <param name="method">The method</param>
-        /// <returns>If we should add it to the VTable</returns>
+        /// <param name="method">The method.</param>
+        /// <returns>If we should add it to the VTable.</returns>
         private bool shouldAddMethod(MethodDefinition method)
         {
             return (method.Name != ".ctor" && !method.IsStatic);
         }
 
         /// <summary>
-        /// Creates the parent VTable
+        /// Creates the parent VTable.
         /// </summary>
-        /// <param name="parentType">The parent type</param>
+        /// <param name="parentType">The parent type.</param>
         private void createParentTable(TypeDefinition parentType)
         {
             VTable parentTable = mCompiler.Lookup.GetVTable(parentType);
 
-            // Match method signatures against own
+            // Match method signatures against own.
             Dictionary<int, MethodDefinition> own = new Dictionary<int, MethodDefinition>();
             foreach (MethodDefinition method in parentType.Methods)
             {
@@ -65,13 +65,13 @@ namespace CSharpLLVM.Lookups
                 
                 mCompiler.Lookup.SetMethodNotUnique(method);
 
-                // This type overrides the method in the parent type
+                // This type overrides the method in the parent type.
                 if (MyNameTable.ContainsKey(shortName) && MyTable[MyNameTable[shortName]].IsVirtual)
                 {
                     int nameTableIndex = MyNameTable[shortName];
                     own.Add(parentTable.MyNameTable[shortName], MyTable[nameTableIndex]);
                 }
-                // Use parent method definition
+                // Use parent method definition.
                 else
                 {
                     int nameTableIndex = parentTable.MyNameTable[shortName];
@@ -81,7 +81,7 @@ namespace CSharpLLVM.Lookups
 
             mTable.Add(parentType, own);
 
-            // Generate name table
+            // Generate name table.
             Dictionary<string, int> nameTable = new Dictionary<string, int>();
             foreach (KeyValuePair<int, MethodDefinition> pair in own)
             {
@@ -89,19 +89,19 @@ namespace CSharpLLVM.Lookups
             }
             mNameTable.Add(parentType, nameTable);
 
-            // Add other tables that are inside the parent table
+            // Add other tables that are inside the parent table.
             foreach (KeyValuePair<TypeDefinition, Dictionary<string, int>> pair in parentTable.mNameTable)
             {
-                // Skip parent type itself
+                // Skip parent type itself.
                 if (pair.Key == parentType)
                     continue;
 
-                // Create own copies of this table
+                // Create own copies of this table.
                 Dictionary<int, MethodDefinition> mTableCopy = new Dictionary<int, MethodDefinition>();
                 mTable.Add(pair.Key, mTableCopy);
                 mNameTable.Add(pair.Key, pair.Value);
 
-                // Create own copy of table with possible modifications
+                // Create own copy of table with possible modifications.
                 Dictionary<int, MethodDefinition> parentLookupTable = parentTable.mTable[pair.Key];
                 foreach (KeyValuePair<string, int> methodPair in pair.Value)
                 {
@@ -115,7 +115,7 @@ namespace CSharpLLVM.Lookups
                         int nameTableIndex = MyNameTable[shortName];
                         mTableCopy.Add(methodPair.Value, MyTable[nameTableIndex]);
                     }
-                    // Use existing method definition
+                    // Use existing method definition.
                     else
                     {
                         mTableCopy.Add(methodPair.Value, parentLookupTable[methodPair.Value]);
@@ -125,15 +125,15 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Creates own tables
+        /// Creates own tables.
         /// </summary>
         private void createOwnTable()
         {
-            // Create own tables
+            // Create own tables.
             mNameTable.Add(mType, new Dictionary<string, int>());
             mTable.Add(mType, new Dictionary<int, MethodDefinition>());
 
-            // Add own methods
+            // Add own methods.
             int index = 0;
             foreach (MethodDefinition method in mType.Methods)
             {
@@ -147,20 +147,20 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Creates the LLVM types
+        /// Creates the LLVM types.
         /// </summary>
         private void createTypes()
         {
             string typeName = NameHelper.CreateTypeName(mType);
             foreach (KeyValuePair<TypeDefinition, Dictionary<string, int>> names in mNameTable)
             {
-                // Don't generate types for an interface please
+                // Don't generate types for an interface please.
                 if (names.Key.IsInterface)
                     continue;
 
                 string name = string.Format("vtable_{0}_part_{1}", typeName, NameHelper.CreateTypeName(names.Key));
 
-                // Initialize to pointers
+                // Initialize to pointers.
                 TypeRef[] types = new TypeRef[names.Value.Count];
                 for (int i = 0; i < names.Value.Count; i++)
                 {
@@ -176,7 +176,7 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Compiles the code for the VTable
+        /// Compiles the code for the VTable.
         /// </summary>
         public void Compile()
         {
@@ -201,11 +201,11 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Gets the index of a method in the corresponding VTable
+        /// Gets the index of a method in the corresponding VTable.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <param name="method">The method</param>
-        /// <returns>The index inside the table of the type</returns>
+        /// <param name="type">The type.</param>
+        /// <param name="method">The method.</param>
+        /// <returns>The index inside the table of the type.</returns>
         public int GetMethodIndex(TypeDefinition type, MethodReference method)
         {
             string name = NameHelper.CreateShortMethodName(method);
@@ -213,10 +213,10 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Gets an entry for a VTable type
+        /// Gets an entry for a VTable type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The VTable</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>The VTable.</returns>
         public Tuple<TypeRef, ValueRef> GetEntry(TypeDefinition type)
         {
             if (!mGeneratedTable.ContainsKey(type))
@@ -226,22 +226,22 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Gets entries of the VTable structs other than the owning type
+        /// Gets entries of the VTable structs other than the owning type.
         /// </summary>
-        /// <returns>An array of entries for VTable structs</returns>
+        /// <returns>An array of entries for VTable structs.</returns>
         public KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] GetAllEntries()
         {
             return mGeneratedTable.ToArray();
         }
         
         /// <summary>
-        /// Creates a VTable
+        /// Creates a VTable.
         /// </summary>
         public void Create()
         {
             createOwnTable();
 
-            // Parent table
+            // Parent table.
             if (mType.BaseType != null && mType.BaseType.FullName != "System.Object")
                 createParentTable(mType.BaseType.Resolve());
 
@@ -249,7 +249,7 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Dumps the VTable for debugging purposes
+        /// Dumps the VTable for debugging purposes.
         /// </summary>
         public void Dump()
         {

@@ -11,11 +11,11 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
     class EmitAdd : ICodeEmitter
     {
         /// <summary>
-        /// Emits an add instruction
+        /// Emits an add instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value2 = context.CurrentStack.Pop();
@@ -31,7 +31,7 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
                 bool isPtrVal1, isPtrVal2;
                 CastHelper.HelpPossiblePtrCast(builder, ref value1, ref value2, out isPtrVal1, out isPtrVal2);
 
-                // If one of the two values is a pointer, then the result will be a pointer as well
+                // If one of the two values is a pointer, then the result will be a pointer as well.
                 if (isPtrVal1 || isPtrVal2)
                 {
                     ValueRef result = LLVM.BuildAdd(builder, value1.Value, value2.Value, "addptr");
@@ -40,7 +40,7 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
                     ValueRef ptr = LLVM.BuildIntToPtr(builder, result, resultingType, "ptr");
                     context.CurrentStack.Push(new StackElement(ptr, resultingILType, resultingType));
                 }
-                // Cast to different int size
+                // Cast to different int size.
                 else
                 {
                     CastHelper.HelpIntCast(builder, ref value1, ref value2);

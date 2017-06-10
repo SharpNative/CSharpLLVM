@@ -8,14 +8,14 @@ namespace CSharpLLVM.Generator.Instructions.Prefixes
     class EmitVolatile : ICodeEmitter
     {
         /// <summary>
-        /// Emits a volatile instruction
+        /// Emits a volatile instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            // This is actually handled in the opcodes for store and load
+            // This is actually handled in the opcodes for store and load.
         }
     }
 }

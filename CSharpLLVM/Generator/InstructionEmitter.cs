@@ -12,9 +12,9 @@ namespace CSharpLLVM.Generator
         private BuilderRef mBuilder;
 
         /// <summary>
-        /// Creates a new InstructionEmitter
+        /// Creates a new InstructionEmitter.
         /// </summary>
-        /// <param name="context">The method context</param>
+        /// <param name="context">The method context.</param>
         public InstructionEmitter(MethodContext context)
         {
             mContext = context;
@@ -22,7 +22,7 @@ namespace CSharpLLVM.Generator
         }
 
         /// <summary>
-        /// Cleanup
+        /// Cleanup.
         /// </summary>
         ~InstructionEmitter()
         {
@@ -30,7 +30,7 @@ namespace CSharpLLVM.Generator
         }
 
         /// <summary>
-        /// Creates locals
+        /// Creates locals.
         /// </summary>
         private void createLocals()
         {
@@ -54,12 +54,12 @@ namespace CSharpLLVM.Generator
         }
 
         /// <summary>
-        /// Emits the instructions of this method
+        /// Emits the instructions of this method.
         /// </summary>
-        /// <param name="codeGen">The code generator</param>
+        /// <param name="codeGen">The code generator.</param>
         public void EmitInstructions(CodeGenerator codeGen)
         {
-            // Init
+            // Init.
             mContext.Init();
             createLocals();
 
@@ -72,13 +72,13 @@ namespace CSharpLLVM.Generator
         }
 
         /// <summary>
-        /// Emits the instructions within a branch
+        /// Emits the instructions within a branch.
         /// </summary>
-        /// <param name="codeGen">The code generator</param>
-        /// <param name="branch">The branch</param>
+        /// <param name="codeGen">The code generator.</param>
+        /// <param name="branch">The branch.</param>
         private void emitInstructionsInBranch(CodeGenerator codeGen, Branch branch)
         {
-            // Check dependencies
+            // Check dependencies.
             foreach (Branch source in branch.Sources)
             {
                 if (source.Generation == 0)
@@ -102,8 +102,8 @@ namespace CSharpLLVM.Generator
 
                 codeGen.Emit(instruction, mContext, mBuilder);
 
-                // If the next instruction is a new block, and we didn't have an explicit branch instruction to the next block
-                // then we need to create the branch instruction explicitely
+                // If the next instruction is a new block, and we didn't have an explicit branch instruction to the next block,
+                // then we need to create the branch instruction explicitely.
                 if (mContext.IsNewBranch(instruction.Next))
                 {
                     // If this instruction did not branch already...

@@ -8,11 +8,11 @@ namespace CSharpLLVM.Generator.Instructions.Stack
     class EmitPop : ICodeEmitter
     {
         /// <summary>
-        /// Emits a pop instruction
+        /// Emits a pop instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             context.CurrentStack.Pop();

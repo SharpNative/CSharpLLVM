@@ -10,11 +10,11 @@ namespace CSharpLLVM.Generator.Instructions.Arithmetic
     class EmitMul : ICodeEmitter
     {
         /// <summary>
-        /// Emits a mul instruction
+        /// Emits a mul instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement value2 = context.CurrentStack.Pop();

@@ -11,11 +11,11 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
     class EmitLdelem : ICodeEmitter
     {
         /// <summary>
-        /// Emits a ldelem instruction
+        /// Emits a ldelem instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement index = context.CurrentStack.Pop();
@@ -24,7 +24,7 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             ValueRef ptr = LLVM.BuildGEP(builder, array.Value, new ValueRef[] { index.Value }, "arrayptr");
             ValueRef res = LLVM.BuildLoad(builder, ptr, "arrayelem");
             
-            // Some need to be pushed as an int32 on the stack
+            // Some need to be pushed as an int32 on the stack.
             Code code = instruction.OpCode.Code;
 
             Type ilType = null;

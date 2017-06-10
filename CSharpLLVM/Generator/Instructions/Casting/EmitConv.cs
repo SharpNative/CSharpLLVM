@@ -10,10 +10,10 @@ namespace CSharpLLVM.Generator.Instructions.Casting
     class EmitConv : ICodeEmitter
     {
         /// <summary>
-        /// Emits a Conv instruction
+        /// Emits a Conv instruction.
         /// </summary>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement element = context.CurrentStack.Pop();

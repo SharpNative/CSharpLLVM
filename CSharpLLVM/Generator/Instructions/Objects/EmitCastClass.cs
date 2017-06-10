@@ -11,14 +11,14 @@ namespace CSharpLLVM.Generator.Instructions.Objects
     class EmitCastclass : ICodeEmitter
     {
         /// <summary>
-        /// Emits a castclass instruction
+        /// Emits a castclass instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
-            // Change type of top element
+            // Change type of top element.
             TypeDefinition dstType = (TypeDefinition)instruction.Operand;
             StackElement top = context.CurrentStack.Pop();
 

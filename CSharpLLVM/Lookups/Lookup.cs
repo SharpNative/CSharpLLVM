@@ -22,10 +22,10 @@ namespace CSharpLLVM.Lookups
         public Dictionary<TypeReference, VTable>.ValueCollection VTables { get { return mVTableLookup.Values; } }
 
         /// <summary>
-        /// Gets a function
+        /// Gets a function.
         /// </summary>
-        /// <param name="name">The name</param>
-        /// <returns>The function</returns>
+        /// <param name="name">The name.</param>
+        /// <returns>The function.</returns>
         public ValueRef? GetFunction(string name)
         {
             if (mFunctionLookup.ContainsKey(name))
@@ -35,20 +35,20 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Adds a function
+        /// Adds a function.
         /// </summary>
-        /// <param name="name">The name</param>
-        /// <param name="function">The function</param>
+        /// <param name="name">The name.</param>
+        /// <param name="function">The function.</param>
         public void AddFunction(string name, ValueRef function)
         {
             mFunctionLookup.Add(name, function);
         }
 
         /// <summary>
-        /// Gets a static field
+        /// Gets a static field.
         /// </summary>
-        /// <param name="field">The static field</param>
-        /// <returns>The field</returns>
+        /// <param name="field">The static field.</param>
+        /// <returns>The field.</returns>
         public ValueRef? GetStaticField(FieldReference field)
         {
             if (mStaticFieldLookup.ContainsKey(field))
@@ -58,49 +58,49 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Adds a static field
+        /// Adds a static field.
         /// </summary>
-        /// <param name="field">The field</param>
-        /// <param name="val">The value</param>
+        /// <param name="field">The field.</param>
+        /// <param name="val">The value.</param>
         public void AddStaticField(FieldReference field, ValueRef val)
         {
             mStaticFieldLookup.Add(field, val);
         }
 
         /// <summary>
-        /// Checks if we already have this static field
+        /// Checks if we already have this static field.
         /// </summary>
-        /// <param name="field">The field</param>
-        /// <returns>If we already have this static field</returns>
+        /// <param name="field">The field.</param>
+        /// <returns>If we already have this static field.</returns>
         public bool HasStaticField(FieldReference field)
         {
             return mStaticFieldLookup.ContainsKey(field);
         }
 
         /// <summary>
-        /// Adds a .cctor
+        /// Adds a .cctor.
         /// </summary>
-        /// <param name="method">The method</param>
+        /// <param name="method">The method.</param>
         public void AddCctor(MethodDefinition method)
         {
             mCctors.Add(method);
         }
 
         /// <summary>
-        /// Adds a type
+        /// Adds a type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <param name="typeRef">The type</param>
+        /// <param name="type">The type.</param>
+        /// <param name="typeRef">The type.</param>
         public void AddType(TypeReference type, TypeRef typeRef)
         {
             mTypeLookup.Add(type, typeRef);
         }
 
         /// <summary>
-        /// Gets a type
+        /// Gets a type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The type</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>The type.</returns>
         public TypeRef GetTypeRef(TypeReference type)
         {
             if (!mTypeLookup.ContainsKey(type))
@@ -110,19 +110,19 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Adds a new VTable
+        /// Adds a new VTable.
         /// </summary>
-        /// <param name="table">The table</param>
+        /// <param name="table">The table.</param>
         public void AddVTable(VTable table)
         {
             mVTableLookup.Add(table.Type, table);
         }
 
         /// <summary>
-        /// Gets a VTable
+        /// Gets a VTable.
         /// </summary>
-        /// <param name="type">The type for which the VTable is</param>
-        /// <returns>The VTable</returns>
+        /// <param name="type">The type for which the VTable is.</param>
+        /// <returns>The VTable.</returns>
         public VTable GetVTable(TypeReference type)
         {
             if (!mVTableLookup.ContainsKey(type))
@@ -132,48 +132,48 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Returns the static constructors (.cctor)
+        /// Returns the static constructors (.cctor).
         /// </summary>
-        /// <returns>An array containing the static constructors</returns>
+        /// <returns>An array containing the static constructors.</returns>
         public MethodDefinition[] GetStaticConstructors()
         {
             return mCctors.ToArray();
         }
 
         /// <summary>
-        /// Adds a new "newobj" method for a type
+        /// Adds a new "newobj" method for a type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <param name="func">The function</param>
+        /// <param name="type">The type.</param>
+        /// <param name="func">The function.</param>
         public void AddNewobjMethod(TypeDefinition type, ValueRef func)
         {
             mNewobjFunctions.Add(type, func);
         }
 
         /// <summary>
-        /// Gets a "newobj" method
+        /// Gets a "newobj" method.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The function</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>The function.</returns>
         public ValueRef GetNewobjMethod(TypeDefinition type)
         {
             return mNewobjFunctions[type];
         }
 
         /// <summary>
-        /// Sets a method as "not unique"
+        /// Sets a method as "not unique".
         /// </summary>
-        /// <param name="method">The method</param>
+        /// <param name="method">The method.</param>
         public void SetMethodNotUnique(MethodReference method)
         {
             mMethodUniqueness[method] = true;
         }
 
         /// <summary>
-        /// Returns true if a method is unique
+        /// Returns true if a method is unique.
         /// </summary>
-        /// <param name="method">The method</param>
-        /// <returns>If it is unique</returns>
+        /// <param name="method">The method.</param>
+        /// <returns>If it is unique.</returns>
         public bool IsMethodUnique(MethodReference method)
         {
             bool unique = false;
@@ -182,20 +182,20 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// If a type needs virtual calls
+        /// If a type needs virtual calls.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <param name="need">If it needs virtual calls</param>
+        /// <param name="type">The type.</param>
+        /// <param name="need">If it needs virtual calls.</param>
         public void SetNeedVirtualCall(TypeReference type, bool need)
         {
             mNeedsVirtualCall[type] = need;
         }
 
         /// <summary>
-        /// Return true if a type needs virtual calls
+        /// Return true if a type needs virtual calls.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>If it needs virtual calls</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>If it needs virtual calls.</returns>
         public bool NeedsVirtualCall(TypeReference type)
         {
             bool needs = false;
@@ -204,10 +204,10 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Gets the struct layout of a type
+        /// Gets the struct layout of a type.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The list of fields</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>The list of fields.</returns>
         public List<IStructEntry> GetStructLayout(TypeDefinition type)
         {
             // Cached?
@@ -216,12 +216,12 @@ namespace CSharpLLVM.Lookups
 
             List<IStructEntry> fields = new List<IStructEntry>();
 
-            // Value types only have fields and can't be inherited
+            // Value types only have fields and can't be inherited.
             if (type.IsValueType)
             {
                 fields.AddRange(type.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
             }
-            // Can have "more" than fields
+            // Can have "more" than fields.
             else
             {
                 if (type.BaseType == null)
@@ -229,23 +229,23 @@ namespace CSharpLLVM.Lookups
 
                 TypeDefinition parent = type.BaseType.Resolve();
 
-                // First add parent fields, then our own fields
+                // First add parent fields, then our own fields.
                 fields.AddRange(GetStructLayout(parent));
                 fields.AddRange(type.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
                 fields.Add(new StructBarrierEntry(type));
             }
 
-            // Add to cache
+            // Add to cache.
             mLayoutLookup.Add(type, fields);
 
             return fields;
         }
 
         /// <summary>
-        /// Gets the index in a type struct of a class vtable
+        /// Gets the index in a type struct of a class vtable.
         /// </summary>
-        /// <param name="type">The type</param>
-        /// <returns>The index</returns>
+        /// <param name="type">The type.</param>
+        /// <returns>The index.</returns>
         public uint GetClassVTableIndex(TypeDefinition type)
         {
             List<IStructEntry> fields = GetStructLayout(type);
@@ -253,7 +253,7 @@ namespace CSharpLLVM.Lookups
             uint i = 0;
             foreach (IStructEntry child in fields)
             {
-                // Barrier? Might be the barrier of the type we're looking for
+                // Barrier? Might be the barrier of the type we're looking for.
                 if (child.IsBarrier)
                 {
                     StructBarrierEntry barrier = (StructBarrierEntry)child;
@@ -275,10 +275,10 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Gets the field index of a field
+        /// Gets the field index of a field.
         /// </summary>
-        /// <param name="field">The field</param>
-        /// <returns>The field index</returns>
+        /// <param name="field">The field.</param>
+        /// <returns>The field index.</returns>
         public uint GetFieldIndex(FieldReference field)
         {
             List<IStructEntry> fields = GetStructLayout(field.DeclaringType.Resolve());
@@ -296,7 +296,7 @@ namespace CSharpLLVM.Lookups
                 if (fieldEntry.Field.IsStatic)
                     continue;
 
-                // Found
+                // Found.
                 if (fieldEntry.Field == field)
                     return i;
 

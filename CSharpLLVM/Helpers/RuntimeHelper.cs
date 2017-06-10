@@ -9,22 +9,22 @@ namespace CSharpLLVM.Helpers
         public static ValueRef Memset { get; private set; }
 
         /// <summary>
-        /// Initializes runtime functions
+        /// Initializes runtime functions.
         /// </summary>
-        /// <param name="module">The module</param>
+        /// <param name="module">The module.</param>
         public static void ImportFunctions(ModuleRef module)
         {
-            // Newarr
+            // Newarr.
             TypeRef newarrType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.Int32, TypeHelper.NativeIntType }, false);
             Newarr = LLVM.AddFunction(module, "newarr", newarrType);
             LLVM.SetLinkage(Newarr, Linkage.ExternalLinkage);
 
-            // Memcpy
+            // Memcpy.
             TypeRef memcpyType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.VoidPtr, TypeHelper.VoidPtr, TypeHelper.NativeIntType }, false);
             Memcpy = LLVM.AddFunction(module, "memcpy", memcpyType);
             LLVM.SetLinkage(Memcpy, Linkage.ExternalLinkage);
 
-            // Memcpy
+            // Memcpy.
             TypeRef memsetType = LLVM.FunctionType(TypeHelper.VoidPtr, new TypeRef[] { TypeHelper.VoidPtr, TypeHelper.Int32, TypeHelper.NativeIntType }, false);
             Memset = LLVM.AddFunction(module, "memset", memsetType);
             LLVM.SetLinkage(Memset, Linkage.ExternalLinkage);

@@ -7,11 +7,11 @@ namespace CSharpLLVM.Generator
     interface ICodeEmitter
     {
         /// <summary>
-        /// Emits an instruction
+        /// Emits an instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         void Emit(Instruction instruction, MethodContext context, BuilderRef builder);
     }
 }

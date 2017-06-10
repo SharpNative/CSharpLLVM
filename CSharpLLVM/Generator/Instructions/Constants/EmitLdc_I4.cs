@@ -10,10 +10,10 @@ namespace CSharpLLVM.Generator.Instructions.Constants
     class EmitLdc_I4 : ICodeEmitter
     {
         /// <summary>
-        /// Emits a Ldc_I4 instruction
+        /// Emits a Ldc_I4 instruction.
         /// </summary>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             ValueRef result;

@@ -12,17 +12,17 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
     class EmitCall : ICodeEmitter
     {
         /// <summary>
-        /// Emits a call instruction
+        /// Emits a call instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             MethodReference methodRef = (MethodReference)instruction.Operand;
             TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
 
-            // Check for special cases
+            // Check for special cases.
             if (instruction.Previous != null && instruction.Previous.OpCode.Code == Code.Ldtoken)
             {
                 emitFromLdtoken(instruction, context, builder);
@@ -31,21 +31,21 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             // Call System.Object::.ctor() ?
             else if (methodRef.FullName == "System.Void System.Object::.ctor()")
             {
-                // Delete object reference from stack and ignore this
+                // Delete object reference from stack and ignore this.
                 context.CurrentStack.Pop();
                 return;
             }
 
-            // Build parameter value and types arrays
+            // Build parameter value and types arrays.
             int paramCount = methodRef.Parameters.Count;
             if (methodRef.HasThis)
                 paramCount++;
 
-            // Get the method, if it is null, create a new empty one, otherwise reference it
+            // Get the method, if it is null, create a new empty one, otherwise reference it.
             string methodName = NameHelper.CreateMethodName(methodRef);
             ValueRef? func = context.Compiler.Lookup.GetFunction(methodName);
 
-            // Process arguments
+            // Process arguments.
             // Note: backwards for loop because stack is backwards!
             ValueRef[] argVals = new ValueRef[paramCount];
             TypeRef[] paramTypes = new TypeRef[paramCount];
@@ -55,7 +55,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 StackElement element = context.CurrentStack.Pop();
                 argVals[i] = element.Value;
 
-                // Note: the instance pointer is not included in the parameters explicitely
+                // Note: the instance pointer is not included in the parameters explicitely.
                 if (methodRef.HasThis)
                 {
                     if (i == 0)
@@ -77,7 +77,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 }
             }
 
-            // Function does not exist, create a declaration for the function
+            // Function does not exist, create a declaration for the function.
             if (!func.HasValue)
             {
                 TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
@@ -85,12 +85,12 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 context.Compiler.Lookup.AddFunction(methodName, func.Value);
             }
 
-            // Call
+            // Call.
             ValueRef retVal = LLVM.BuildCall(builder, func.Value, argVals, string.Empty);
             if (instruction.HasPrefix(Code.Tail))
                 LLVM.SetTailCall(retVal, true);
 
-            // Push return value on stack if it has one
+            // Push return value on stack if it has one.
             if (methodRef.ReturnType.MetadataType != MetadataType.Void)
                 context.CurrentStack.Push(new StackElement(retVal, methodRef.ReturnType));
         }

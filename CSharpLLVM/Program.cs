@@ -8,7 +8,7 @@ namespace CSharpLLVM
     class Program
     {
         /// <summary>
-        /// Prints usage
+        /// Prints usage.
         /// </summary>
         private static void printUsage()
         {
@@ -16,9 +16,9 @@ namespace CSharpLLVM
         }
 
         /// <summary>
-        /// Entrypoint
+        /// Entrypoint.
         /// </summary>
-        /// <param name="args">Arguments</param>
+        /// <param name="args">Arguments.</param>
         static void Main(string[] args)
         {
             Version version = Assembly.GetEntryAssembly().GetName().Version;

@@ -7,10 +7,10 @@ namespace CSharpLLVM.Helpers
     static class PredicateHelper
     {
         /// <summary>
-        /// Gets an int predicate from a code
+        /// Gets an int predicate from a code.
         /// </summary>
-        /// <param name="code">The code</param>
-        /// <returns>The predicate</returns>
+        /// <param name="code">The code.</param>
+        /// <returns>The predicate.</returns>
         public static IntPredicate GetIntPredicateFromCode(Code code)
         {
             switch (code)
@@ -84,10 +84,10 @@ namespace CSharpLLVM.Helpers
         }
 
         /// <summary>
-        /// Gets a real predicate from a code
+        /// Gets a real predicate from a code.
         /// </summary>
-        /// <param name="code">The code</param>
-        /// <returns>The predicate</returns>
+        /// <param name="code">The code.</param>
+        /// <returns>The predicate.</returns>
         public static RealPredicate GetRealPredicateFromCode(Code code)
         {
             switch (code)

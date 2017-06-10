@@ -10,8 +10,8 @@
 
     struct CompilerSettings
     {
-        public string InputFile { get; set; }
-        public string ModuleName { get; set; }
+        public string InputFile;
+        public string ModuleName;
         public OptimizationLevel Optimization;
     }
 }

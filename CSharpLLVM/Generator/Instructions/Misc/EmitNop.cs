@@ -8,11 +8,11 @@ namespace CSharpLLVM.Generator.Instructions.Misc
     class EmitNop : ICodeEmitter
     {
         /// <summary>
-        /// Emits a nop instruction
+        /// Emits a nop instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             // Ignore

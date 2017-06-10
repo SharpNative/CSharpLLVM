@@ -21,10 +21,10 @@ namespace CSharpLLVM.Compilation
         public int Generation { get; set; }
 
         /// <summary>
-        /// Creates a new Branch
+        /// Creates a new Branch.
         /// </summary>
-        /// <param name="context">The method context of the method where this branch belongs</param>
-        /// <param name="offset">The offset of this branch (instruction offset)</param>
+        /// <param name="context">The method context of the method where this branch belongs.</param>
+        /// <param name="offset">The offset of this branch (instruction offset).</param>
         public Branch(MethodContext context, int offset)
         {
             Offset = offset;
@@ -34,27 +34,27 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Adds an instruction to this branch
+        /// Adds an instruction to this branch.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
+        /// <param name="instruction">The instruction.</param>
         public void AddInstruction(Instruction instruction)
         {
             mInstructions.Add(instruction);
         }
         
         /// <summary>
-        /// Adds a source branch to this branch
+        /// Adds a source branch to this branch.
         /// </summary>
-        /// <param name="branch">The source branch</param>
+        /// <param name="branch">The source branch.</param>
         public void AddSource(Branch branch)
         {
             mSources.Add(branch);
         }
 
         /// <summary>
-        /// Updates the stack of this branch using the incoming source branches
+        /// Updates the stack of this branch using the incoming source branches.
         /// </summary>
-        /// <param name="builder">The builder</param>
+        /// <param name="builder">The builder.</param>
         public void UpdateStack(BuilderRef builder)
         {
             foreach (Branch source in Sources)
@@ -64,7 +64,7 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Creates the block
+        /// Creates the block.
         /// </summary>
         private void createBlock()
         {

@@ -13,11 +13,11 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
     class EmitStsfld : ICodeEmitter
     {
         /// <summary>
-        /// Emits a stsfld instruction
+        /// Emits a stsfld instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             bool isCctor = (context.Method.Name == ".cctor");
@@ -30,13 +30,15 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             if (fieldValue == null)
                 throw new InvalidOperationException("Unknown static field: " + field);
 
-            // Possible cast needed
+            // Possible cast needed.
             TypeRef destType = TypeHelper.GetTypeRefFromType(field.FieldType);
             if (data.Type != destType)
                 CastHelper.HelpIntAndPtrCast(builder, ref data.Value, data.Type, destType);
-
+            
             string[] useInitializer =
             {
+                "System.Byte",
+                "System.SByte",
                 "System.Int16",
                 "System.Int32",
                 "System.Int64",
@@ -49,7 +51,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
                 "System.String"
             };
 
-            // If we're in a cctor and it is a number or string, we can just set the initializer
+            // If we're in a cctor and it is a number or string, we can just set the initializer.
             if (isCctor && useInitializer.Contains(fieldType.FullName))
             {
                 LLVM.SetInitializer(fieldValue.Value, data.Value);

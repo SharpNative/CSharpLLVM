@@ -12,25 +12,25 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
     class EmitCallvirt : ICodeEmitter
     {
         /// <summary>
-        /// Emits a callvirt instruction
+        /// Emits a callvirt instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             MethodReference methodRef = (MethodReference)instruction.Operand;
             TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
             bool needsVirtualCall = context.Compiler.Lookup.NeedsVirtualCall(methodRef.DeclaringType);
 
-            // Build parameter value and types arrays
+            // Build parameter value and types arrays.
             int paramCount = 1 + methodRef.Parameters.Count;
 
-            // Get the method, if it is null, create a new empty one, otherwise reference it
+            // Get the method, if it is null, create a new empty one, otherwise reference it.
             string methodName = NameHelper.CreateMethodName(methodRef);
             ValueRef? func = context.Compiler.Lookup.GetFunction(methodName);
 
-            // Process arguments
+            // Process arguments.
             // Note: backwards for loop because stack is backwards!
             ValueRef[] argVals = new ValueRef[paramCount];
             TypeRef[] paramTypes = new TypeRef[paramCount];
@@ -40,7 +40,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 StackElement element = context.CurrentStack.Pop();
                 argVals[i] = element.Value;
 
-                // Get type of parameter
+                // Get type of parameter.
                 if (i == 0)
                     type = methodRef.DeclaringType;
                 else
@@ -55,7 +55,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 }
             }
 
-            // Function does not exist, create a declaration for the function
+            // Function does not exist, create a declaration for the function.
             TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
             if (!func.HasValue)
             {
@@ -63,17 +63,17 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
                 context.Compiler.Lookup.AddFunction(methodName, func.Value);
             }
 
-            // Call
+            // Call.
             Lookup lookup = context.Compiler.Lookup;
             ValueRef method;
             if (needsVirtualCall && !lookup.IsMethodUnique(methodRef))
             {
-                // We need a virtual call
+                // We need a virtual call.
                 TypeRef funcPtrType = LLVM.PointerType(functionType, 0);
                 VTable vTable = lookup.GetVTable(methodRef.DeclaringType);
                 uint index = lookup.GetClassVTableIndex(methodRef.DeclaringType.Resolve());
 
-                // Get a function pointer
+                // Get a function pointer.
                 ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
                 ValueRef vTableInstance = LLVM.BuildLoad(builder, vTableGep, "vtable");
                 ValueRef methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodRef.DeclaringType.Resolve(), methodRef), false) }, "methodptr");
@@ -82,7 +82,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             }
             else
             {
-                // We can call it directly without VTable lookup
+                // We can call it directly without VTable lookup.
                 method = func.Value;
             }
 
@@ -90,7 +90,7 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             if (instruction.HasPrefix(Code.Tail))
                 LLVM.SetTailCall(retVal, true);
 
-            // Push return value on stack if it has one
+            // Push return value on stack if it has one.
             if (methodRef.ReturnType.MetadataType != MetadataType.Void)
                 context.CurrentStack.Push(new StackElement(retVal, methodRef.ReturnType));
         }

@@ -9,11 +9,11 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
     class EmitLdloc : ICodeEmitter
     {
         /// <summary>
-        /// Emits a ldloc instruction
+        /// Emits a ldloc instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             Code code = instruction.OpCode.Code;

@@ -11,11 +11,11 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
     class EmitNewArr : ICodeEmitter
     {
         /// <summary>
-        /// Emits a newarr instruction
+        /// Emits a newarr instruction.
         /// </summary>
-        /// <param name="instruction">The instruction</param>
-        /// <param name="context">The context</param>
-        /// <param name="builder">The builder</param>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="context">The context.</param>
+        /// <param name="builder">The builder.</param>
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             StackElement countElement = context.CurrentStack.Pop();
@@ -23,14 +23,14 @@ namespace CSharpLLVM.Generator.Instructions.Arrays
             TypeRef typeRef = TypeHelper.GetTypeRefFromType(type);
             TypeRef arrayType = LLVM.PointerType(typeRef, 0);
 
-            // Might need to cast the count (amount of elements)
+            // Might need to cast the count (amount of elements).
             ValueRef count = countElement.Value;
             if (countElement.Type != TypeHelper.Int32)
             {
                 count = LLVM.BuildIntCast(builder, count, TypeHelper.Int32, "count");
             }
 
-            // Size of one element
+            // Size of one element.
             ulong size = LLVM.SizeOfTypeInBits(context.Compiler.TargetData, typeRef) / 8;
             ValueRef sizeValue = LLVM.ConstInt(TypeHelper.NativeIntType, size, false);
             ValueRef array = LLVM.BuildCall(builder, RuntimeHelper.Newarr, new ValueRef[] { count, sizeValue }, "array");
