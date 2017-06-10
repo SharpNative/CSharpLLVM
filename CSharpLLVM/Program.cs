@@ -1,50 +1,34 @@
-﻿using CSharpLLVM.Compilation;
-using System;
+﻿using CommandLine;
+using CSharpLLVM.Compilation;
 using System.IO;
-using System.Reflection;
 
 namespace CSharpLLVM
 {
     class Program
     {
         /// <summary>
-        /// Prints usage.
-        /// </summary>
-        private static void printUsage()
-        {
-            // TODO
-        }
-
-        /// <summary>
         /// Entrypoint.
         /// </summary>
         /// <param name="args">Arguments.</param>
         static void Main(string[] args)
         {
-            Version version = Assembly.GetEntryAssembly().GetName().Version;
-            Console.WriteLine("CSharpLLVM version " + version);
-
-            // No input?
-            if (args.Length == 0)
+            Options options = new Options();
+            Parser parser = new Parser(setSettings);
+            if (Parser.Default.ParseArguments(args, options))
             {
-                Console.WriteLine("No input");
-                printUsage();
-                return;
+                string moduleName = Path.GetFileNameWithoutExtension(options.InputFile);
+                Compiler compiler = new Compiler(options);
+                compiler.Compile(moduleName);
             }
+        }
 
-            string path = args[0];
-            string moduleName = Path.GetFileNameWithoutExtension(path);
-
-            CompilerSettings settings = new CompilerSettings()
-            {
-                InputFile = path,
-                ModuleName = moduleName
-            };
-
-            Compiler compiler = new Compiler(settings);
-            compiler.Compile();
-
-            Console.ReadLine();
+        /// <summary>
+        /// Sets the settings.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        private static void setSettings(ParserSettings settings)
+        {
+            settings.MutuallyExclusive = true;
         }
     }
 }

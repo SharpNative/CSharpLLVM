@@ -35,9 +35,12 @@ namespace CSharpLLVM.Compilation
             bool isClass = (!isStruct && !isInterface);
 
             // Log.
-            Console.ForegroundColor = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : isInterface ? ConsoleColor.DarkMagenta : ConsoleColor.Cyan;
-            Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
-            Console.ForegroundColor = ConsoleColor.Gray;
+            if (mCompiler.Options.Verbose)
+            {
+                Console.ForegroundColor = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : isInterface ? ConsoleColor.DarkMagenta : ConsoleColor.Cyan;
+                Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
+                Console.ForegroundColor = ConsoleColor.Gray;
+            }
 
             // Enums
             if (isEnum)

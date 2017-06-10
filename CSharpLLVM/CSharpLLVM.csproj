@@ -51,6 +51,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CommandLine, Version=1.9.71.2, Culture=neutral, PublicKeyToken=de6f01bd326f8c32, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommandLineParser.1.9.71\lib\net45\CommandLine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Mono.Cecil, Version=0.9.6.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <HintPath>..\packages\Mono.Cecil.0.9.6.4\lib\net45\Mono.Cecil.dll</HintPath>
       <Private>True</Private>
@@ -142,7 +146,7 @@
     <Compile Include="Stack\ILStack.cs" />
     <Compile Include="Generator\CodeGenerator.cs" />
     <Compile Include="Compilation\Compiler.cs" />
-    <Compile Include="Compilation\CompilerSettings.cs" />
+    <Compile Include="Compilation\Options.cs" />
     <Compile Include="Generator\Instructions\FlowControl\EmitBranchCompare.cs" />
     <Compile Include="Generator\Instructions\StoreLoad\EmitLdarg.cs" />
     <Compile Include="Generator\Instructions\Casting\EmitConv.cs" />
