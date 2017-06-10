@@ -107,7 +107,7 @@ namespace CSharpLLVM.Generator
                 if (mContext.IsNewBranch(instruction.Next))
                 {
                     // If this instruction did not branch already...
-                    if (flow != FlowControl.Branch && flow != FlowControl.Cond_Branch)
+                    if (flow != FlowControl.Branch && flow != FlowControl.Cond_Branch && flow != FlowControl.Return)
                     {
                         LLVM.BuildBr(mBuilder, mContext.GetBlockOf(instruction.Next));
                     }
