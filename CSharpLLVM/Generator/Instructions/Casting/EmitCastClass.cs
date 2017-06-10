@@ -5,7 +5,7 @@ using CSharpLLVM.Compilation;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Helpers;
 
-namespace CSharpLLVM.Generator.Instructions.Objects
+namespace CSharpLLVM.Generator.Instructions.Casting
 {
     [InstructionHandler(Code.Castclass)]
     class EmitCastclass : ICodeEmitter
@@ -20,11 +20,11 @@ namespace CSharpLLVM.Generator.Instructions.Objects
         {
             // Change type of top element.
             TypeDefinition dstType = (TypeDefinition)instruction.Operand;
-            StackElement top = context.CurrentStack.Pop();
+            StackElement top = context.CurrentStack.Peek();
 
             TypeRef dstTypeRef = LLVM.PointerType(TypeHelper.GetTypeRefFromType(dstType), 0);
             top.ILType = new PointerType(dstType);
-            if(TypeHelper.IsPointer(top))
+            if (TypeHelper.IsPointer(top))
             {
                 top.Value = LLVM.BuildPointerCast(builder, top.Value, top.Type, "castclass");
             }
@@ -33,8 +33,6 @@ namespace CSharpLLVM.Generator.Instructions.Objects
                 top.Value = LLVM.BuildIntToPtr(builder, top.Value, top.Type, "castclass");
             }
             top.Type = dstTypeRef;
-
-            context.CurrentStack.Push(top);
         }
     }
 }

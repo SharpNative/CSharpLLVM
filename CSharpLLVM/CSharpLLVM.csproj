@@ -100,7 +100,7 @@
     <Compile Include="Generator\Instructions\Objects\EmitLdflda.cs" />
     <Compile Include="Generator\Instructions\Prefixes\EmitTail.cs" />
     <Compile Include="Generator\Instructions\Prefixes\EmitVolatile.cs" />
-    <Compile Include="Generator\Instructions\Objects\EmitCastClass.cs" />
+    <Compile Include="Generator\Instructions\Casting\EmitCastClass.cs" />
     <Compile Include="Generator\Instructions\Stack\EmitLdnull.cs" />
     <Compile Include="Generator\Instructions\StoreLoad\EmitStarg.cs" />
     <Compile Include="Generator\Instructions\StoreLoad\EmitLdarga.cs" />
