@@ -301,7 +301,7 @@ namespace CSharpLLVM.Compilation
                 compileType(type, methods, ctors);
             }
 
-            // COmpile .ctors.
+            // Compile .ctors.
             foreach (MethodDefinition ctor in ctors)
             {
                 compileMethod(ctor);

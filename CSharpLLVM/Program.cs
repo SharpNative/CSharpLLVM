@@ -14,7 +14,7 @@ namespace CSharpLLVM
         {
             Options options = new Options();
             Parser parser = new Parser(setSettings);
-            if (Parser.Default.ParseArguments(args, options))
+            if (parser.ParseArguments(args, options))
             {
                 string moduleName = Path.GetFileNameWithoutExtension(options.InputFile);
                 Compiler compiler = new Compiler(options);
