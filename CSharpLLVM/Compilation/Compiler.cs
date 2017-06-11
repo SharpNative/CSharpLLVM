@@ -103,16 +103,21 @@ namespace CSharpLLVM.Compilation
             // O0
             if (Options.Optimization >= OptimizationLevel.O0)
             {
+                // Function passes.
                 LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
                 LLVM.AddConstantPropagationPass(mFunctionPassManager);
                 LLVM.AddReassociatePass(mFunctionPassManager);
                 LLVM.AddInstructionCombiningPass(mFunctionPassManager);
-                LLVM.AddMemCpyOptPass(mFunctionPassManager);
+
+                // Module passes.
+                LLVM.AddStripDeadPrototypesPass(mPassManager);
+                LLVM.AddStripSymbolsPass(mPassManager);
             }
 
             // O1
             if (Options.Optimization >= OptimizationLevel.O1)
             {
+                // Function passes.
                 LLVM.AddLowerExpectIntrinsicPass(mFunctionPassManager);
                 LLVM.AddEarlyCSEPass(mFunctionPassManager);
                 LLVM.AddLoopRotatePass(mFunctionPassManager);
@@ -124,25 +129,9 @@ namespace CSharpLLVM.Compilation
                 LLVM.AddDeadStoreEliminationPass(mFunctionPassManager);
                 LLVM.AddJumpThreadingPass(mFunctionPassManager);
                 LLVM.AddCFGSimplificationPass(mFunctionPassManager);
-            }
+                LLVM.AddMemCpyOptPass(mFunctionPassManager);
 
-            // O2
-            if (Options.Optimization >= OptimizationLevel.O2)
-            {
-                LLVM.AddLoopVectorizePass(mFunctionPassManager);
-                LLVM.AddSLPVectorizePass(mFunctionPassManager);
-            }
-
-            // O0
-            if (Options.Optimization >= OptimizationLevel.O0)
-            {
-                LLVM.AddStripDeadPrototypesPass(mPassManager);
-                LLVM.AddStripSymbolsPass(mPassManager);
-            }
-
-            // O1
-            if (Options.Optimization >= OptimizationLevel.O1)
-            {
+                // Module passes.
                 LLVM.AddAlwaysInlinerPass(mPassManager);
                 LLVM.AddDeadArgEliminationPass(mPassManager);
                 LLVM.AddAggressiveDCEPass(mFunctionPassManager);
@@ -151,11 +140,16 @@ namespace CSharpLLVM.Compilation
             // O2
             if (Options.Optimization >= OptimizationLevel.O2)
             {
+                // Function passes.
+                LLVM.AddLoopVectorizePass(mFunctionPassManager);
+                LLVM.AddSLPVectorizePass(mFunctionPassManager);
+
+                // Module passes.
                 LLVM.AddFunctionInliningPass(mPassManager);
                 LLVM.AddConstantMergePass(mPassManager);
                 LLVM.AddArgumentPromotionPass(mPassManager);
             }
-            
+
             // Initialize types and runtime.
             string dataLayout = LLVM.GetDataLayout(Module);
             TargetData = LLVM.CreateTargetData(dataLayout);
@@ -173,7 +167,9 @@ namespace CSharpLLVM.Compilation
             Console.ForegroundColor = ConsoleColor.Gray;
 
             // Debug: print LLVM assembly code.
-            //Console.WriteLine(LLVM.PrintModuleToString(mModule));
+#if DEBUG
+            Console.WriteLine(LLVM.PrintModuleToString(mModule));
+#endif
 
             // Verify and throw exception on error.
             Console.ForegroundColor = ConsoleColor.DarkGray;
@@ -197,7 +193,7 @@ namespace CSharpLLVM.Compilation
                 TargetMachineRef machine = LLVM.CreateTargetMachine(target, triplet, "generic", "", CodeGenOptLevel.CodeGenLevelDefault, RelocMode.RelocDefault, CodeModel.CodeModelDefault);
                 LLVM.SetModuleDataLayout(mModule, LLVM.CreateTargetDataLayout(machine));
                 CodeGenFileType type = (Options.OutputAssembly) ? CodeGenFileType.AssemblyFile : CodeGenFileType.ObjectFile;
-                
+
                 if (LLVM.TargetMachineEmitToFile(machine, mModule, Options.OutputFile, type, out error))
                 {
                     throw new InvalidOperationException(error);
@@ -284,6 +280,8 @@ namespace CSharpLLVM.Compilation
         private void compileModule(ModuleDefinition moduleDef)
         {
             List<MethodDefinition> methods = new List<MethodDefinition>();
+            List<MethodDefinition> ctors = new List<MethodDefinition>();
+
             Collection<TypeDefinition> types = moduleDef.Types;
             List<TypeDefinition> sortedTypes = new List<TypeDefinition>();
 
@@ -300,7 +298,13 @@ namespace CSharpLLVM.Compilation
             // Compiles types and adds methods.
             foreach (TypeDefinition type in sortedTypes)
             {
-                compileType(type, methods);
+                compileType(type, methods, ctors);
+            }
+
+            // COmpile .ctors.
+            foreach (MethodDefinition ctor in ctors)
+            {
+                compileMethod(ctor);
             }
 
             // Compile methods.
@@ -322,12 +326,14 @@ namespace CSharpLLVM.Compilation
         /// Compiles a type.
         /// </summary>
         /// <param name="type">The type definition.</param>
-        private void compileType(TypeDefinition type, List<MethodDefinition> methods)
+        /// <param name="methods">The list of methods to add ours to.</param>
+        /// <param name="ctors">The list of ctors to add our to.</param>
+        private void compileType(TypeDefinition type, List<MethodDefinition> methods, List<MethodDefinition> ctors)
         {
             // Nested types.
             foreach (TypeDefinition inner in type.NestedTypes)
             {
-                compileType(inner, methods);
+                compileType(inner, methods, ctors);
             }
 
             mTypeCompiler.Compile(type);
@@ -335,7 +341,15 @@ namespace CSharpLLVM.Compilation
             // Note: First, we need all types to generate before we can generate methods,
             //       because methods may refer to types that are not yet generated.
             if (!type.IsInterface)
-                methods.AddRange(type.Methods);
+            {
+                foreach (MethodDefinition method in type.Methods)
+                {
+                    if (method.Name == ".ctor")
+                        ctors.Add(method);
+                    else
+                        methods.Add(method);
+                }
+            }
         }
 
         /// <summary>

@@ -35,6 +35,9 @@ namespace CSharpLLVM.Generator.Instructions.Objects
                 objPtr = LLVM.BuildAlloca(builder, type, "newobj");
             }
 
+            // Constructor.
+            ValueRef? ctorFunc = context.Compiler.Lookup.GetFunction(NameHelper.CreateMethodName(ctor));
+            
             // Get .ctor parameters.
             int paramCount = 1 + ctor.Parameters.Count;
             ValueRef[] values = new ValueRef[paramCount];
@@ -46,7 +49,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             }
 
             // Call .ctor.
-            LLVM.BuildCall(builder, context.Compiler.Lookup.GetFunction(NameHelper.CreateMethodName(ctor)).Value, values, string.Empty);
+            LLVM.BuildCall(builder, ctorFunc.Value, values, string.Empty);
 
             // Load and push object on stack.
             ValueRef obj = (ptr) ? objPtr : LLVM.BuildLoad(builder, objPtr, "obj");
