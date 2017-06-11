@@ -128,6 +128,10 @@ namespace CSharpLLVM.Helpers
                     OptionalModifierType optionalModifier = (OptionalModifierType)type;
                     return GetTypeRefFromType(optionalModifier.ElementType);
 
+                case MetadataType.IntPtr:
+                case MetadataType.UIntPtr:
+                    return NativeIntType;
+
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
             }
