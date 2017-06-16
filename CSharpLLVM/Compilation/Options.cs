@@ -34,6 +34,9 @@ namespace CSharpLLVM.Compilation
         [Option("instance-methods-internal", HelpText = "Sets the linkage of instance methods to internal linkage.")]
         public bool InstanceMethodInternalLinkage { get; set; }
 
+        [Option("internal-methods-fastcc", HelpText = "This option will make methods with internal linkage use the fastcc calling convention.")]
+        public bool InternalMethodsFastCC { get; set; }
+
         /// <summary>
         /// Returns the usage.
         /// </summary>

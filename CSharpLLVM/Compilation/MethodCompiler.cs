@@ -66,12 +66,16 @@ namespace CSharpLLVM.Compilation
         {
             string methodName = NameHelper.CreateMethodName(methodDef);
             ValueRef? function = mCompiler.Lookup.GetFunction(methodName);
-            
+
             // A method has internal linkage if one (or both) of the following is true:
             // 1) The method is a private method.
             // 2) The compiler got an option to set the linkage of instance methods to internal.
             if (methodDef.IsPrivate || (!methodDef.IsStatic && mCompiler.Options.InstanceMethodInternalLinkage))
+            {
                 LLVM.SetLinkage(function.Value, Linkage.InternalLinkage);
+                if (mCompiler.Options.InternalMethodsFastCC)
+                    LLVM.SetFunctionCallConv(function.Value, 8);
+            }
 
             // Only generate if it has a body.
             if (!methodDef.HasBody || methodDef.Body.CodeSize == 0)
