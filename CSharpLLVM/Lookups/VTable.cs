@@ -190,7 +190,7 @@ namespace CSharpLLVM.Lookups
                 {
                     ValueRef? function = mCompiler.Lookup.GetFunction(NameHelper.CreateMethodName(entry.Value));
                     if (!function.HasValue)
-                        throw new InvalidOperationException("Could not find function for: " + entry.Key);
+                        throw new InvalidOperationException("Could not find function for: " + entry.Value);
 
                     values[i++] = LLVM.ConstPointerCast(function.Value, TypeHelper.VoidPtr);
                 }

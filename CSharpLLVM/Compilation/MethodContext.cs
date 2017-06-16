@@ -2,7 +2,6 @@
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
-using System.Collections.Generic;
 
 namespace CSharpLLVM.Compilation
 {

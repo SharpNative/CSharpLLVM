@@ -7,7 +7,6 @@ using System.Diagnostics;
 using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Lookups;
-using System.IO;
 
 namespace CSharpLLVM.Compilation
 {
@@ -110,6 +109,7 @@ namespace CSharpLLVM.Compilation
                 LLVM.AddInstructionCombiningPass(mFunctionPassManager);
 
                 // Module passes.
+                LLVM.AddAlwaysInlinerPass(mPassManager);
                 LLVM.AddStripDeadPrototypesPass(mPassManager);
                 LLVM.AddStripSymbolsPass(mPassManager);
             }
@@ -132,7 +132,6 @@ namespace CSharpLLVM.Compilation
                 LLVM.AddMemCpyOptPass(mFunctionPassManager);
 
                 // Module passes.
-                LLVM.AddAlwaysInlinerPass(mPassManager);
                 LLVM.AddDeadArgEliminationPass(mPassManager);
                 LLVM.AddAggressiveDCEPass(mFunctionPassManager);
             }
@@ -175,7 +174,7 @@ namespace CSharpLLVM.Compilation
             Console.ForegroundColor = ConsoleColor.DarkGray;
             if (LLVM.VerifyModule(mModule, VerifierFailureAction.ReturnStatusAction, out error))
             {
-                Console.WriteLine("Compilation of module failed");
+                Console.WriteLine("Compilation of module failed.");
                 Console.WriteLine(error);
                 LLVM.DisposeTargetData(TargetData);
                 Console.ForegroundColor = ConsoleColor.Gray;
@@ -183,7 +182,7 @@ namespace CSharpLLVM.Compilation
             }
             else
             {
-                Console.WriteLine("Compilation of module succeeded");
+                Console.WriteLine("Compilation of module succeeded.");
             }
             Console.ForegroundColor = ConsoleColor.Gray;
 
@@ -199,10 +198,15 @@ namespace CSharpLLVM.Compilation
                     throw new InvalidOperationException(error);
                 }
             }
-            // Output LLVM code.
+            // Output LLVM code to a file.
             else
             {
-                File.WriteAllText(Options.OutputFile, LLVM.PrintModuleToString(mModule));
+                if (LLVM.PrintModuleToFile(mModule, Options.OutputFile, out error))
+                {
+                    Console.WriteLine("Writing the LLVM code to a file failed.");
+                    Console.WriteLine(error);
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
             }
 
             // Cleanup.
@@ -226,13 +230,13 @@ namespace CSharpLLVM.Compilation
             }
 
             // Create init method containing the calls to the .cctors.
-            compileInitMethod();
+            compileInitCctorsMethod();
         }
 
         /// <summary>
-        /// Compiles the init method.
+        /// Compiles the init cctors method.
         /// </summary>
-        private void compileInitMethod()
+        private void compileInitCctorsMethod()
         {
             TypeRef type = LLVM.FunctionType(TypeHelper.Void, new TypeRef[0], false);
             ValueRef func = LLVM.AddFunction(Module, "initCctors", type);
@@ -280,37 +284,28 @@ namespace CSharpLLVM.Compilation
         private void compileModule(ModuleDefinition moduleDef)
         {
             List<MethodDefinition> methods = new List<MethodDefinition>();
-            List<MethodDefinition> ctors = new List<MethodDefinition>();
+            List<TypeDefinition> types = getAllTypes(moduleDef);
+            types.Sort(sortTypes);
 
-            Collection<TypeDefinition> types = moduleDef.Types;
-            List<TypeDefinition> sortedTypes = new List<TypeDefinition>();
-
-            // Sort types to help dependencies.
+            // Create opaque types and method declarations.
             foreach (TypeDefinition type in types)
             {
-                if (type.FullName == "<Module>")
-                    continue;
-
-                sortedTypes.Add(type);
+                createTypeAndMethodsDeclarations(type, methods);
             }
-            sortedTypes.Sort(sortTypes);
 
             // Compiles types and adds methods.
-            foreach (TypeDefinition type in sortedTypes)
+            foreach (TypeDefinition type in types)
             {
-                compileType(type, methods, ctors);
-            }
-
-            // Compile .ctors.
-            foreach (MethodDefinition ctor in ctors)
-            {
-                compileMethod(ctor);
+                mTypeCompiler.Compile(type);
             }
 
             // Compile methods.
             foreach (MethodDefinition method in methods)
             {
-                ValueRef? function = compileMethod(method);
+                mMethodCompiler.Compile(method);
+
+                // Static constructors need to be called before the main function.
+                // That's why we add it to a list, so we can create a method that calls all these static constructors.
                 if (method.Name == ".cctor")
                     Lookup.AddCctor(method);
             }
@@ -323,20 +318,45 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Compiles a type.
+        /// Adds the nested types to a list of types.
+        /// </summary>
+        /// <param name="types">The list of types.</param>
+        /// <param name="type">The parent type of the nested types.</param>
+        private void addNestedTypes(List<TypeDefinition> types, TypeDefinition type)
+        {
+            foreach (TypeDefinition inner in type.NestedTypes)
+            {
+                addNestedTypes(types, inner);
+            }
+        }
+
+        /// <summary>
+        /// Gets all the types inside a module.
+        /// </summary>
+        /// <param name="moduleDef">The module.</param>
+        /// <returns>A list of all the type definitions.</returns>
+        private List<TypeDefinition> getAllTypes(ModuleDefinition moduleDef)
+        {
+            List<TypeDefinition> types = new List<TypeDefinition>();
+            foreach (TypeDefinition type in moduleDef.Types)
+            {
+                if (type.FullName != "<Module>")
+                {
+                    types.Add(type);
+                    addNestedTypes(types, type);
+                }
+            }
+            return types;
+        }
+
+        /// <summary>
+        /// Creates declarations for methods and types.
         /// </summary>
         /// <param name="type">The type definition.</param>
         /// <param name="methods">The list of methods to add ours to.</param>
-        /// <param name="ctors">The list of ctors to add our to.</param>
-        private void compileType(TypeDefinition type, List<MethodDefinition> methods, List<MethodDefinition> ctors)
+        private void createTypeAndMethodsDeclarations(TypeDefinition type, List<MethodDefinition> methods)
         {
-            // Nested types.
-            foreach (TypeDefinition inner in type.NestedTypes)
-            {
-                compileType(inner, methods, ctors);
-            }
-
-            mTypeCompiler.Compile(type);
+            mTypeCompiler.CreateDeclaration(type);
 
             // Note: First, we need all types to generate before we can generate methods,
             //       because methods may refer to types that are not yet generated.
@@ -344,22 +364,10 @@ namespace CSharpLLVM.Compilation
             {
                 foreach (MethodDefinition method in type.Methods)
                 {
-                    if (method.Name == ".ctor")
-                        ctors.Add(method);
-                    else
-                        methods.Add(method);
+                    methods.Add(method);
+                    mMethodCompiler.CreateDeclaration(method);
                 }
             }
-        }
-
-        /// <summary>
-        /// Compiles a method.
-        /// </summary>
-        /// <param name="methodDef">The method definition.</param>
-        /// <returns>The function.</returns>
-        private ValueRef? compileMethod(MethodDefinition methodDef)
-        {
-            return mMethodCompiler.Compile(methodDef);
         }
     }
 }

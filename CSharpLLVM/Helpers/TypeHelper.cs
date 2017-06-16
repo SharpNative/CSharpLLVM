@@ -95,6 +95,10 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.Double:
                     return Double;
 
+                case MetadataType.IntPtr:
+                case MetadataType.UIntPtr:
+                    return NativeIntType;
+
                 case MetadataType.Array:
                     ArrayType array = (ArrayType)type;
                     return LLVM.PointerType(GetTypeRefFromType(array.ElementType), 0);
@@ -110,13 +114,15 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.Pinned:
                     PinnedType pinned = (PinnedType)type;
                     return GetTypeRefFromType(pinned.ElementType);
-
+                    
                 case MetadataType.Class:
                     return LLVM.PointerType(mLookup.GetTypeRef(type), 0);
                 
                 case MetadataType.ValueType:
                     return mLookup.GetTypeRef(type);
 
+                case MetadataType.GenericInstance:
+                case MetadataType.Var:
                 case MetadataType.Object:
                     return VoidPtr;
 
@@ -127,11 +133,7 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.OptionalModifier:
                     OptionalModifierType optionalModifier = (OptionalModifierType)type;
                     return GetTypeRefFromType(optionalModifier.ElementType);
-
-                case MetadataType.IntPtr:
-                case MetadataType.UIntPtr:
-                    return NativeIntType;
-
+                    
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
             }

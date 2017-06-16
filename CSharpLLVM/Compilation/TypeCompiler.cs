@@ -9,6 +9,22 @@ namespace CSharpLLVM.Compilation
 {
     class TypeCompiler
     {
+        enum TypeKind
+        {
+            Struct,
+            Enum,
+            Class,
+            Interface
+        }
+
+        private static readonly ConsoleColor[] ColorLookup =
+        {
+            ConsoleColor.DarkCyan,
+            ConsoleColor.DarkGreen,
+            ConsoleColor.Cyan,
+            ConsoleColor.DarkMagenta
+        };
+
         private Compiler mCompiler;
         private Lookup mLookup;
 
@@ -16,11 +32,53 @@ namespace CSharpLLVM.Compilation
         /// Creates a new TypeCompiler.
         /// </summary>
         /// <param name="compiler">The compiler.</param>
-        /// <param name="lookup">The lookup.</param>
         public TypeCompiler(Compiler compiler)
         {
             mCompiler = compiler;
             mLookup = compiler.Lookup;
+        }
+
+        /// <summary>
+        /// Gets the type kind of a type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>The type kind.</returns>
+        private TypeKind getTypeKind(TypeDefinition type)
+        {
+            bool isStruct = (!type.IsEnum && type.IsValueType);
+            bool isEnum = type.IsEnum;
+            bool isInterface = type.IsInterface;
+            bool isClass = (!isStruct && !isInterface);
+
+            if (isStruct)
+                return TypeKind.Struct;
+            else if (isEnum)
+                return TypeKind.Enum;
+            else if (isInterface)
+                return TypeKind.Interface;
+            else /*if (isClass)*/
+                return TypeKind.Class;
+        }
+
+        /// <summary>
+        /// Creates a type declaration.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        public void CreateDeclaration(TypeDefinition type)
+        {
+            TypeKind typeKind = getTypeKind(type);
+
+            if (typeKind == TypeKind.Enum)
+            {
+                // The fields within the enum indicate its type.
+                mLookup.AddType(type, TypeHelper.GetTypeRefFromType(type.Fields[0].FieldType));
+            }
+            else
+            {
+                // The content will be generated later.
+                TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
+                mLookup.AddType(type, data);
+            }
         }
 
         /// <summary>
@@ -29,113 +87,103 @@ namespace CSharpLLVM.Compilation
         /// <param name="type">The type.</param>
         public void Compile(TypeDefinition type)
         {
-            bool isStruct = (!type.IsEnum && type.IsValueType);
-            bool isEnum = type.IsEnum;
-            bool isInterface = type.IsInterface;
-            bool isClass = (!isStruct && !isInterface);
+            TypeKind typeKind = getTypeKind(type);
 
             // Log.
             if (mCompiler.Options.Verbose)
             {
-                Console.ForegroundColor = isStruct ? ConsoleColor.DarkCyan : isEnum ? ConsoleColor.DarkGreen : isInterface ? ConsoleColor.DarkMagenta : ConsoleColor.Cyan;
+                Console.ForegroundColor = ColorLookup[(int)typeKind];
                 Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
                 Console.ForegroundColor = ConsoleColor.Gray;
             }
 
-            // Enums
-            if (isEnum)
+            // Enums can be fully generated during the declaration pass. Nothing to do.
+            if (typeKind == TypeKind.Enum)
+                return;
+
+            // VTable
+            VTable vtable = null;
+            bool hasVTable = ((typeKind == TypeKind.Class || typeKind == TypeKind.Interface) && mCompiler.Lookup.NeedsVirtualCall(type));
+            if (hasVTable)
             {
-                // The fields within the enum indicate its type.
-                mLookup.AddType(type, TypeHelper.GetTypeRefFromType(type.Fields[0].FieldType));
+                vtable = new VTable(mCompiler, type);
+                mLookup.AddVTable(vtable);
+                vtable.Create();
+                //vtable.Dump();
             }
-            // Structs and classes.
-            else
+
+            // Create struct for this type.
+            TypeRef data = mLookup.GetTypeRef(type);
+            List<TypeRef> structData = new List<TypeRef>();
+            List<IStructEntry> fields = mLookup.GetStructLayout(type);
+
+            // Fields.
+            ulong fieldTotalSize = 0;
+            TypeDefinition currentType = type;
+            foreach (IStructEntry entry in fields)
             {
-                // VTable
-                VTable vtable = null;
-                bool hasVTable = ((isClass || isInterface) && mCompiler.Lookup.NeedsVirtualCall(type));
-                if (hasVTable)
+                // Barrier
+                if (entry.IsBarrier)
                 {
-                    vtable = new VTable(mCompiler, type);
-                    mLookup.AddVTable(vtable);
-                    vtable.Create();
-                    //vtable.Dump();
+                    if (hasVTable)
+                    {
+                        StructBarrierEntry barrier = (StructBarrierEntry)entry;
+                        structData.Add(LLVM.PointerType(vtable.GetEntry(barrier.Type).Item1, 0));
+                    }
+                    continue;
                 }
 
-                // Create struct for this type.
-                TypeRef data = LLVM.StructCreateNamed(mCompiler.ModuleContext, NameHelper.CreateTypeName(type));
-                mLookup.AddType(type, data);
-                List<TypeRef> structData = new List<TypeRef>();
-                List<IStructEntry> fields = mLookup.GetStructLayout(type);
+                FieldDefinition field = ((StructFieldEntry)entry).Field;
+                TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
+                currentType = field.DeclaringType;
 
-                // Fields.
-                ulong fieldTotalSize = 0;
-                TypeDefinition currentType = type;
-                foreach (IStructEntry entry in fields)
+                // Static field.
+                if (field.IsStatic)
                 {
-                    // Barrier
-                    if (entry.IsBarrier)
+                    // Only add it if we don't have it already (is possible when inheriting classes).
+                    if (!mLookup.HasStaticField(field))
                     {
-                        if (hasVTable)
-                        {
-                            StructBarrierEntry barrier = (StructBarrierEntry)entry;
-                            structData.Add(LLVM.PointerType(vtable.GetEntry(barrier.Type).Item1, 0));
-                        }
-                        continue;
-                    }
+                        ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
 
-                    FieldDefinition field = ((StructFieldEntry)entry).Field;
-                    TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
-                    currentType = field.DeclaringType;
-
-                    // Static field.
-                    if (field.IsStatic)
-                    {
-                        // Only add it if we don't have it already (is possible when inheriting classes).
-                        if (!mLookup.HasStaticField(field))
-                        {
-                            ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
-
-                            // Note: the initializer may be changed later if the compiler sees that it can be constant.
-                            LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
-                            mLookup.AddStaticField(field, val);
-                        }
-                    }
-                    // Field for type instance.
-                    else
-                    {
-                        structData.Add(fieldType);
-                        fieldTotalSize += LLVM.SizeOfTypeInBits(mCompiler.TargetData, fieldType) / 8;
+                        // Note: the initializer may be changed later if the compiler sees that it can be constant.
+                        LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
+                        mLookup.AddStaticField(field, val);
                     }
                 }
-
-                // Packing?
-                bool packed = (type.PackingSize != -1);
-                if (type.PackingSize != 1 && type.PackingSize != -1 && type.PackingSize != 0)
+                // Field for type instance.
+                else
                 {
-                    throw new NotImplementedException("The packing size " + type.PackingSize + " is not implemented");
+                    structData.Add(fieldType);
+                    fieldTotalSize += LLVM.SizeOfTypeInBits(mCompiler.TargetData, fieldType) / 8;
                 }
+            }
 
-                // Fixed size?
-                if (type.ClassSize > 0 && (int)fieldTotalSize < type.ClassSize)
-                {
-                    if (!isStruct)
-                        throw new InvalidOperationException("Fixed size not on a struct?!");
+            // Packing?
+            bool packed = (type.PackingSize != -1);
+            if (type.PackingSize != 1 && type.PackingSize != -1 && type.PackingSize != 0)
+            {
+                throw new NotImplementedException("The packing size " + type.PackingSize + " is not implemented");
+            }
 
-                    int needed = type.ClassSize - (int)fieldTotalSize;
-                    for (int i = 0; i < needed; i++)
-                        structData.Add(TypeHelper.Int8);
-                }
+            // Fixed size?
+            if (type.ClassSize > 0 && (int)fieldTotalSize < type.ClassSize)
+            {
+                if (typeKind != TypeKind.Struct)
+                    throw new InvalidOperationException("Fixed size not on a struct?!");
 
-                // Set struct data.
-                LLVM.StructSetBody(data, structData.ToArray(), packed);
+                int needed = type.ClassSize - (int)fieldTotalSize;
+                for (int i = 0; i < needed; i++)
+                    structData.Add(TypeHelper.Int8);
+            }
 
-                // For classes, generate the "newobj" method.
-                if (isClass)
-                {
-                    ValueRef newobjFunc = createNewobjMethod(type);
-                    mCompiler.Lookup.AddNewobjMethod(type, newobjFunc);
-                }
+            // Set struct data.
+            LLVM.StructSetBody(data, structData.ToArray(), packed);
+
+            // For classes, generate the "newobj" method.
+            if (typeKind == TypeKind.Class)
+            {
+                ValueRef newobjFunc = createNewobjMethod(type);
+                mCompiler.Lookup.AddNewobjMethod(type, newobjFunc);
             }
         }
 
