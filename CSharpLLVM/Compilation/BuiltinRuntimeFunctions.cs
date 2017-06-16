@@ -33,11 +33,12 @@ namespace CSharpLLVM.Compilation
         private void createStringGetCharsFunction(BuilderRef builder)
         {
             const string funcName = "System_Char_System_String_get_Chars_System_Int32";
-
+            
             // Create function and set linkage.
             TypeRef type = LLVM.FunctionType(TypeHelper.Int8, new TypeRef[] { TypeHelper.String, TypeHelper.Int32 }, false);
             ValueRef func = LLVM.AddFunction(mCompiler.Module, funcName, type);
             LLVM.SetLinkage(func, Linkage.InternalLinkage);
+            LLVM.AddAttributeAtIndex(func, (uint)LLVM.AttributeFunctionIndex, LLVM.CreateEnumAttribute(mCompiler.ModuleContext, LLVM.GetEnumAttributeKindForName("alwaysinline", 12), 1));
 
             // Arguments.
             ValueRef str = LLVM.GetParam(func, 0);
