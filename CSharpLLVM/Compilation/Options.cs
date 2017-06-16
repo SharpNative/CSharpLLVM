@@ -31,6 +31,9 @@ namespace CSharpLLVM.Compilation
         [Option('l', "llvm", HelpText = "Output LLVM code.", MutuallyExclusiveSet = "output")]
         public bool OutputLLVM { get; set; }
 
+        [Option("instance-methods-internal", HelpText = "Sets the linkage of instance methods to internal linkage.")]
+        public bool InstanceMethodInternalLinkage { get; set; }
+
         /// <summary>
         /// Returns the usage.
         /// </summary>

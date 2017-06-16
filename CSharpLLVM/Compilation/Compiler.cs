@@ -102,7 +102,7 @@ namespace CSharpLLVM.Compilation
             // O0
             if (Options.Optimization >= OptimizationLevel.O0)
             {
-                // Function passes.
+                /*// Function passes.
                 LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
                 LLVM.AddConstantPropagationPass(mFunctionPassManager);
                 LLVM.AddReassociatePass(mFunctionPassManager);
@@ -111,7 +111,7 @@ namespace CSharpLLVM.Compilation
                 // Module passes.
                 LLVM.AddAlwaysInlinerPass(mPassManager);
                 LLVM.AddStripDeadPrototypesPass(mPassManager);
-                LLVM.AddStripSymbolsPass(mPassManager);
+                LLVM.AddStripSymbolsPass(mPassManager);*/
             }
 
             // O1

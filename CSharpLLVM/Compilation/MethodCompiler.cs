@@ -70,9 +70,11 @@ namespace CSharpLLVM.Compilation
             {
                 throw new InvalidOperationException("The method has no declaration yet: " + methodDef);
             }
-
-            // Private methods have internal linkage.
-            if (methodDef.IsPrivate)
+            
+            // A method has internal linkage if one (or both) of the following is true:
+            // 1) The method is a private method.
+            // 2) The compiler got an option to set the linkage of instance methods to internal.
+            if (methodDef.IsPrivate || (!methodDef.IsStatic && mCompiler.Options.InstanceMethodInternalLinkage))
                 LLVM.SetLinkage(function.Value, Linkage.InternalLinkage);
 
             // Only generate if it has a body.
@@ -82,14 +84,14 @@ namespace CSharpLLVM.Compilation
             // Compile instructions.
             MethodContext ctx = new MethodContext(mCompiler, methodDef, function.Value);
             InstructionEmitter emitter = new InstructionEmitter(ctx);
-            //try
+            try
             {
                 emitter.EmitInstructions(mCompiler.CodeGen);
 
                 // Verify & optimize.
                 mCompiler.VerifyAndOptimizeFunction(function.Value);
             }
-            /*catch (Exception e)
+            catch (Exception e)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Exception inside method " + methodDef);
@@ -97,7 +99,7 @@ namespace CSharpLLVM.Compilation
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine(e.StackTrace);
                 Console.ForegroundColor = ConsoleColor.Gray;
-            }*/
+            }
         }
     }
 }
