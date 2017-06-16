@@ -62,7 +62,7 @@ namespace CSharpLLVM.Lookups
                     continue;
 
                 string shortName = NameHelper.CreateShortMethodName(method);
-                
+
                 mCompiler.Lookup.SetMethodNotUnique(method);
 
                 // This type overrides the method in the parent type.
@@ -106,7 +106,7 @@ namespace CSharpLLVM.Lookups
                 foreach (KeyValuePair<string, int> methodPair in pair.Value)
                 {
                     string shortName = methodPair.Key;
-                    
+
                     // Did we override this method?
                     if (MyNameTable.ContainsKey(shortName) && (MyTable[MyNameTable[shortName]].IsVirtual))
                     {
@@ -154,10 +154,6 @@ namespace CSharpLLVM.Lookups
             string typeName = NameHelper.CreateTypeName(mType);
             foreach (KeyValuePair<TypeDefinition, Dictionary<string, int>> names in mNameTable)
             {
-                // Don't generate types for an interface please.
-                if (names.Key.IsInterface)
-                    continue;
-
                 string name = string.Format("vtable_{0}_part_{1}", typeName, NameHelper.CreateTypeName(names.Key));
 
                 // Initialize to pointers.
@@ -170,7 +166,7 @@ namespace CSharpLLVM.Lookups
                 TypeRef type = LLVM.StructType(types, false);
                 ValueRef global = LLVM.AddGlobal(mCompiler.Module, type, name);
                 LLVM.SetLinkage(global, Linkage.InternalLinkage);
-
+                
                 mGeneratedTable.Add(names.Key, new Tuple<TypeRef, ValueRef>(type, global));
             }
         }
@@ -226,14 +222,14 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
-        /// Gets entries of the VTable structs other than the owning type.
+        /// Gets the class entries of the VTable structs.
         /// </summary>
         /// <returns>An array of entries for VTable structs.</returns>
-        public KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] GetAllEntries()
+        public KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] GetAllClassEntries()
         {
-            return mGeneratedTable.ToArray();
+            return mGeneratedTable.Where(f => !f.Key.IsInterface).ToArray();
         }
-        
+
         /// <summary>
         /// Creates a VTable.
         /// </summary>
@@ -241,11 +237,23 @@ namespace CSharpLLVM.Lookups
         {
             createOwnTable();
 
-            // Parent table.
+            // Parent table for base type.
             if (mType.BaseType != null && mType.BaseType.FullName != "System.Object")
                 createParentTable(mType.BaseType.Resolve());
 
-            createTypes();
+            // Parent tables for interfaces (if any).
+            if (mType.HasInterfaces)
+            {
+                foreach (TypeDefinition type in mType.Interfaces)
+                {
+                    createParentTable(type);
+                }
+            }
+
+            // Only create the LLVM types if we're not an interface.
+            // Because we need the data of the VTable, but we don't want the LLVM types.
+            if (!Type.IsInterface)
+                createTypes();
         }
 
         /// <summary>

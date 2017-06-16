@@ -294,7 +294,7 @@ namespace CSharpLLVM.Compilation
             // Create opaque types and grab method declarations.
             foreach (TypeDefinition type in types)
             {
-                declareTypes(type, methods);
+                declareTypesAndGetMethods(type, methods);
             }
 
             // Create declarations.
@@ -365,7 +365,7 @@ namespace CSharpLLVM.Compilation
         /// </summary>
         /// <param name="type">The type definition.</param>
         /// <param name="methods">The list of methods to add ours to.</param>
-        private void declareTypes(TypeDefinition type, List<MethodDefinition> methods)
+        private void declareTypesAndGetMethods(TypeDefinition type, List<MethodDefinition> methods)
         {
             mTypeCompiler.CreateDeclaration(type);
 

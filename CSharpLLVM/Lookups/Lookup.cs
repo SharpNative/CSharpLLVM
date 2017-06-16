@@ -49,12 +49,12 @@ namespace CSharpLLVM.Lookups
         /// </summary>
         /// <param name="field">The static field.</param>
         /// <returns>The field.</returns>
-        public ValueRef? GetStaticField(FieldReference field)
+        public ValueRef GetStaticField(FieldReference field)
         {
             if (mStaticFieldLookup.ContainsKey(field))
                 return mStaticFieldLookup[field];
 
-            return null;
+            throw new InvalidOperationException("Unknown static field: " + field);
         }
 
         /// <summary>

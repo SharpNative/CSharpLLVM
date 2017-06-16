@@ -109,10 +109,6 @@ namespace CSharpLLVM.Compilation
                 vtable = new VTable(mCompiler, type);
                 mLookup.AddVTable(vtable);
                 vtable.Create();
-
-#if DEBUG
-                vtable.Dump();
-#endif
             }
 
             // Create struct for this type.
@@ -128,6 +124,7 @@ namespace CSharpLLVM.Compilation
                 // VTable for a class?
                 if (entry.EntryType == StructEntryType.ClassVTable)
                 {
+                    // Only if there are virtual calls on this type.
                     if (hasVTable)
                     {
                         VTableEntry barrier = (VTableEntry)entry;
@@ -225,7 +222,7 @@ namespace CSharpLLVM.Compilation
             if (lookup.NeedsVirtualCall(type))
             {
                 VTable vtable = lookup.GetVTable(type);
-                KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] others = vtable.GetAllEntries();
+                KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>>[] others = vtable.GetAllClassEntries();
                 foreach (KeyValuePair<TypeDefinition, Tuple<TypeRef, ValueRef>> pair in others)
                 {
                     uint index = lookup.GetClassVTableIndex(pair.Key);

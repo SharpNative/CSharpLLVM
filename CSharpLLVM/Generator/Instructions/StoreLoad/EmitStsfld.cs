@@ -26,9 +26,7 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
 
             FieldReference field = (FieldReference)instruction.Operand;
             TypeReference fieldType = field.FieldType;
-            ValueRef? fieldValue = context.Compiler.Lookup.GetStaticField(field);
-            if (fieldValue == null)
-                throw new InvalidOperationException("Unknown static field: " + field);
+            ValueRef fieldValue = context.Compiler.Lookup.GetStaticField(field);
 
             // Possible cast needed.
             TypeRef destType = TypeHelper.GetTypeRefFromType(field.FieldType);
@@ -54,11 +52,11 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
             // If we're in a cctor and it is a number or string, we can just set the initializer.
             if (isCctor && useInitializer.Contains(fieldType.FullName))
             {
-                LLVM.SetInitializer(fieldValue.Value, data.Value);
+                LLVM.SetInitializer(fieldValue, data.Value);
             }
             else
             {
-                ValueRef store = LLVM.BuildStore(builder, data.Value, fieldValue.Value);
+                ValueRef store = LLVM.BuildStore(builder, data.Value, fieldValue);
                 if (instruction.HasPrefix(Code.Volatile))
                     LLVM.SetVolatile(store, true);
             }

@@ -20,11 +20,9 @@ namespace CSharpLLVM.Generator.Instructions.StoreLoad
         public void Emit(Instruction instruction, MethodContext context, BuilderRef builder)
         {
             FieldReference field = (FieldReference)instruction.Operand;
-            ValueRef? fieldValue = context.Compiler.Lookup.GetStaticField(field);
-            if (fieldValue == null)
-                throw new InvalidOperationException("Unknown static field: " + field);
+            ValueRef fieldValue = context.Compiler.Lookup.GetStaticField(field);
             
-            ValueRef result = LLVM.BuildLoad(builder, fieldValue.Value, "ldsfld");
+            ValueRef result = LLVM.BuildLoad(builder, fieldValue, "ldsfld");
             if (instruction.HasPrefix(Code.Volatile))
                 LLVM.SetVolatile(result, true);
 

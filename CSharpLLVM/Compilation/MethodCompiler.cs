@@ -66,10 +66,6 @@ namespace CSharpLLVM.Compilation
         {
             string methodName = NameHelper.CreateMethodName(methodDef);
             ValueRef? function = mCompiler.Lookup.GetFunction(methodName);
-            if (!function.HasValue)
-            {
-                throw new InvalidOperationException("The method has no declaration yet: " + methodDef);
-            }
             
             // A method has internal linkage if one (or both) of the following is true:
             // 1) The method is a private method.
@@ -79,7 +75,10 @@ namespace CSharpLLVM.Compilation
 
             // Only generate if it has a body.
             if (!methodDef.HasBody || methodDef.Body.CodeSize == 0)
+            {
                 LLVM.SetLinkage(function.Value, Linkage.ExternalLinkage);
+                return;
+            }
 
             // Compile instructions.
             MethodContext ctx = new MethodContext(mCompiler, methodDef, function.Value);
@@ -87,8 +86,6 @@ namespace CSharpLLVM.Compilation
             try
             {
                 emitter.EmitInstructions(mCompiler.CodeGen);
-
-                // Verify & optimize.
                 mCompiler.VerifyAndOptimizeFunction(function.Value);
             }
             catch (Exception e)
