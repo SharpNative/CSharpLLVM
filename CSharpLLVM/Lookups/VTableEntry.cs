@@ -2,18 +2,16 @@
 
 namespace CSharpLLVM.Lookups
 {
-    class StructBarrierEntry : IStructEntry
+    class VTableEntry : IStructEntry
     {
-        public bool IsBarrier { get { return true; } }
-        public bool IsField { get { return false; } }
-
+        public StructEntryType EntryType { get { return StructEntryType.ClassVTable; } }
         public TypeDefinition Type { get; private set; }
 
         /// <summary>
-        /// Creates a new StructBarrierEntry.
+        /// Creates a new VTableEntry.
         /// </summary>
         /// <param name="type">The type.</param>
-        public StructBarrierEntry(TypeDefinition type)
+        public VTableEntry(TypeDefinition type)
         {
             Type = type;
         }

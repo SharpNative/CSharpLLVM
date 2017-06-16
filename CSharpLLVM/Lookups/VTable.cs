@@ -246,6 +246,8 @@ namespace CSharpLLVM.Lookups
                 createParentTable(mType.BaseType.Resolve());
 
             createTypes();
+
+            Dump();
         }
 
         /// <summary>

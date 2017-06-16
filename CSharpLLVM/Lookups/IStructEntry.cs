@@ -1,8 +1,14 @@
 ﻿namespace CSharpLLVM.Lookups
 {
+    enum StructEntryType
+    {
+        Field,
+        ClassVTable,
+        InterfaceVTablesTable
+    }
+
     interface IStructEntry
     {
-        bool IsField { get; }
-        bool IsBarrier { get; }
+        StructEntryType EntryType { get; }
     }
 }

@@ -215,7 +215,7 @@ namespace CSharpLLVM.Lookups
                 return mLayoutLookup[type];
 
             List<IStructEntry> fields = new List<IStructEntry>();
-
+            
             // Value types only have fields and can't be inherited.
             if (type.IsValueType)
             {
@@ -229,10 +229,16 @@ namespace CSharpLLVM.Lookups
 
                 TypeDefinition parent = type.BaseType.Resolve();
 
+                // Interface VTable indirection.
+                if (type.HasInterfaces && type.BaseType != null && !parent.HasInterfaces)
+                {
+                    fields.Add(new InterfaceVTablesTableEntry(type.Interfaces.ToArray()));
+                }
+                
                 // First add parent fields, then our own fields.
                 fields.AddRange(GetStructLayout(parent));
                 fields.AddRange(type.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));
-                fields.Add(new StructBarrierEntry(type));
+                fields.Add(new VTableEntry(type));
             }
 
             // Add to cache.
@@ -253,22 +259,27 @@ namespace CSharpLLVM.Lookups
             uint i = 0;
             foreach (IStructEntry child in fields)
             {
-                // Barrier? Might be the barrier of the type we're looking for.
-                if (child.IsBarrier)
+                // Class VTable entry? It might be the one we're looking for!
+                if (child.EntryType == StructEntryType.ClassVTable)
                 {
-                    StructBarrierEntry barrier = (StructBarrierEntry)child;
+                    VTableEntry barrier = (VTableEntry)child;
                     if (barrier.Type == type)
                         return i;
 
                     i++;
-                    continue;
                 }
-
-                StructFieldEntry fieldEntry = (StructFieldEntry)child;
-                if (fieldEntry.Field.IsStatic)
-                    continue;
-
-                i++;
+                // Indirection pointer to VTables for interfaces.
+                else if (child.EntryType == StructEntryType.InterfaceVTablesTable)
+                {
+                    i++;
+                }
+                // Field.
+                else if (child.EntryType == StructEntryType.Field)
+                {
+                    StructFieldEntry fieldEntry = (StructFieldEntry)child;
+                    if (!fieldEntry.Field.IsStatic)
+                        i++;
+                }
             }
 
             throw new Exception("Could not find VTable index for: " + type);
@@ -286,7 +297,7 @@ namespace CSharpLLVM.Lookups
             uint i = 0;
             foreach (IStructEntry child in fields)
             {
-                if (child.IsBarrier)
+                if (child.EntryType != StructEntryType.Field)
                 {
                     i++;
                     continue;

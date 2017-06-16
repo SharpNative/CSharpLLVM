@@ -99,10 +99,12 @@ namespace CSharpLLVM.Compilation
             mPassManager = LLVM.CreatePassManager();
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
 
+#if !DEBUG
+
             // O0
             if (Options.Optimization >= OptimizationLevel.O0)
             {
-                /*// Function passes.
+                // Function passes.
                 LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
                 LLVM.AddConstantPropagationPass(mFunctionPassManager);
                 LLVM.AddReassociatePass(mFunctionPassManager);
@@ -111,7 +113,7 @@ namespace CSharpLLVM.Compilation
                 // Module passes.
                 LLVM.AddAlwaysInlinerPass(mPassManager);
                 LLVM.AddStripDeadPrototypesPass(mPassManager);
-                LLVM.AddStripSymbolsPass(mPassManager);*/
+                LLVM.AddStripSymbolsPass(mPassManager);
             }
 
             // O1
@@ -148,6 +150,8 @@ namespace CSharpLLVM.Compilation
                 LLVM.AddConstantMergePass(mPassManager);
                 LLVM.AddArgumentPromotionPass(mPassManager);
             }
+
+#endif
 
             // Initialize types and runtime.
             string dataLayout = LLVM.GetDataLayout(Module);

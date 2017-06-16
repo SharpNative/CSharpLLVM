@@ -4,9 +4,7 @@ namespace CSharpLLVM.Lookups
 {
     class StructFieldEntry : IStructEntry
     {
-        public bool IsBarrier { get { return false; } }
-        public bool IsField { get { return true; } }
-
+        public StructEntryType EntryType { get { return StructEntryType.Field; } }
         public FieldDefinition Field { get; private set; }
 
         /// <summary>

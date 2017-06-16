@@ -101,7 +101,7 @@ namespace CSharpLLVM.Compilation
             if (typeKind == TypeKind.Enum)
                 return;
 
-            // VTable
+            // VTable.
             VTable vtable = null;
             bool hasVTable = ((typeKind == TypeKind.Class || typeKind == TypeKind.Interface) && mCompiler.Lookup.NeedsVirtualCall(type));
             if (hasVTable)
@@ -109,7 +109,6 @@ namespace CSharpLLVM.Compilation
                 vtable = new VTable(mCompiler, type);
                 mLookup.AddVTable(vtable);
                 vtable.Create();
-                //vtable.Dump();
             }
 
             // Create struct for this type.
@@ -122,39 +121,47 @@ namespace CSharpLLVM.Compilation
             TypeDefinition currentType = type;
             foreach (IStructEntry entry in fields)
             {
-                // Barrier
-                if (entry.IsBarrier)
+                // VTable for a class?
+                if (entry.EntryType == StructEntryType.ClassVTable)
                 {
                     if (hasVTable)
                     {
-                        StructBarrierEntry barrier = (StructBarrierEntry)entry;
+                        VTableEntry barrier = (VTableEntry)entry;
                         structData.Add(LLVM.PointerType(vtable.GetEntry(barrier.Type).Item1, 0));
                     }
-                    continue;
                 }
-
-                FieldDefinition field = ((StructFieldEntry)entry).Field;
-                TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
-                currentType = field.DeclaringType;
-
-                // Static field.
-                if (field.IsStatic)
+                // Entry that points to a table of VTables for interfaces
+                else if (entry.EntryType == StructEntryType.InterfaceVTablesTable)
                 {
-                    // Only add it if we don't have it already (is possible when inheriting classes).
-                    if (!mLookup.HasStaticField(field))
+                    // TODO
+                    structData.Add(TypeHelper.VoidPtr);
+                }
+                // Field entry
+                else /*if(entry.EntryType == StructEntryType.Field)*/
+                {
+                    FieldDefinition field = ((StructFieldEntry)entry).Field;
+                    TypeRef fieldType = TypeHelper.GetTypeRefFromType(field.FieldType);
+                    currentType = field.DeclaringType;
+
+                    // Static field.
+                    if (field.IsStatic)
                     {
-                        ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
+                        // Only add it if we don't have it already (is possible when inheriting classes).
+                        if (!mLookup.HasStaticField(field))
+                        {
+                            ValueRef val = LLVM.AddGlobal(mCompiler.Module, fieldType, NameHelper.CreateFieldName(field.FullName));
 
-                        // Note: the initializer may be changed later if the compiler sees that it can be constant.
-                        LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
-                        mLookup.AddStaticField(field, val);
+                            // Note: the initializer may be changed later if the compiler sees that it can be constant.
+                            LLVM.SetInitializer(val, LLVM.ConstNull(fieldType));
+                            mLookup.AddStaticField(field, val);
+                        }
                     }
-                }
-                // Field for type instance.
-                else
-                {
-                    structData.Add(fieldType);
-                    fieldTotalSize += LLVM.SizeOfTypeInBits(mCompiler.TargetData, fieldType) / 8;
+                    // Field for type instance.
+                    else
+                    {
+                        structData.Add(fieldType);
+                        fieldTotalSize += LLVM.SizeOfTypeInBits(mCompiler.TargetData, fieldType) / 8;
+                    }
                 }
             }
 
