@@ -109,6 +109,10 @@ namespace CSharpLLVM.Compilation
                 vtable = new VTable(mCompiler, type);
                 mLookup.AddVTable(vtable);
                 vtable.Create();
+
+#if DEBUG
+                vtable.Dump();
+#endif
             }
 
             // Create struct for this type.

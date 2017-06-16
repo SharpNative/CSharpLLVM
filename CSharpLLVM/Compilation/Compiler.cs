@@ -291,10 +291,16 @@ namespace CSharpLLVM.Compilation
             List<TypeDefinition> types = getAllTypes(moduleDef);
             types.Sort(sortTypes);
 
-            // Create opaque types and method declarations.
+            // Create opaque types and grab method declarations.
             foreach (TypeDefinition type in types)
             {
-                createTypeAndMethodsDeclarations(type, methods);
+                declareTypes(type, methods);
+            }
+
+            // Create declarations.
+            foreach (MethodDefinition method in methods)
+            {
+                mMethodCompiler.CreateDeclaration(method);
             }
 
             // Compiles types and adds methods.
@@ -331,6 +337,7 @@ namespace CSharpLLVM.Compilation
             foreach (TypeDefinition inner in type.NestedTypes)
             {
                 addNestedTypes(types, inner);
+                types.Add(inner);
             }
         }
 
@@ -354,11 +361,11 @@ namespace CSharpLLVM.Compilation
         }
 
         /// <summary>
-        /// Creates declarations for methods and types.
+        /// Creates declarations for types and adds the types methods to a list.
         /// </summary>
         /// <param name="type">The type definition.</param>
         /// <param name="methods">The list of methods to add ours to.</param>
-        private void createTypeAndMethodsDeclarations(TypeDefinition type, List<MethodDefinition> methods)
+        private void declareTypes(TypeDefinition type, List<MethodDefinition> methods)
         {
             mTypeCompiler.CreateDeclaration(type);
 
@@ -369,7 +376,6 @@ namespace CSharpLLVM.Compilation
                 foreach (MethodDefinition method in type.Methods)
                 {
                     methods.Add(method);
-                    mMethodCompiler.CreateDeclaration(method);
                 }
             }
         }
