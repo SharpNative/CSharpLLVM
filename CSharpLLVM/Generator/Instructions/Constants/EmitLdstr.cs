@@ -21,6 +21,7 @@ namespace CSharpLLVM.Generator.Instructions.Constants
 
             // Add as global.
             ValueRef strValue = LLVM.BuildGlobalString(builder, str, string.Empty);
+            LLVM.SetGlobalConstant(strValue, true);
 
             // We need to cast the string.
             ValueRef value = LLVM.ConstPointerCast(strValue, TypeHelper.String);
