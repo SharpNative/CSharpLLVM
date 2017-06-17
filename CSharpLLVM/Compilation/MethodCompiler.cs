@@ -48,6 +48,8 @@ namespace CSharpLLVM.Compilation
             if (methodDef.HasThis)
             {
                 argTypes[0] = TypeHelper.GetTypeRefFromType(methodDef.DeclaringType);
+
+                // We need to pass the valuetype as a pointer because we need to modify its contents in the constructor.
                 if (methodDef.DeclaringType.IsValueType)
                     argTypes[0] = LLVM.PointerType(argTypes[0], 0);
             }
@@ -70,7 +72,7 @@ namespace CSharpLLVM.Compilation
             // A method has internal linkage if one (or both) of the following is true:
             // 1) The method is a private method.
             // 2) The compiler got an option to set the linkage of instance methods to internal.
-            if (methodDef.IsPrivate || (!methodDef.IsStatic && mCompiler.Options.InstanceMethodInternalLinkage))
+            if (!methodDef.IsStatic && (methodDef.IsPrivate || mCompiler.Options.InstanceMethodInternalLinkage))
             {
                 LLVM.SetLinkage(function.Value, Linkage.InternalLinkage);
                 if (mCompiler.Options.InternalMethodsFastCC)

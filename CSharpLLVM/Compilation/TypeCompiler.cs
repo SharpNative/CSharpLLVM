@@ -17,7 +17,7 @@ namespace CSharpLLVM.Compilation
             Interface
         }
 
-        private static readonly ConsoleColor[] ColorLookup =
+        private static readonly ConsoleColor[] TypeKindColorLookup =
         {
             ConsoleColor.DarkCyan,
             ConsoleColor.DarkGreen,
@@ -92,7 +92,7 @@ namespace CSharpLLVM.Compilation
             // Log.
             if (mCompiler.Options.Verbose)
             {
-                Console.ForegroundColor = ColorLookup[(int)typeKind];
+                Console.ForegroundColor = TypeKindColorLookup[(int)typeKind];
                 Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
                 Console.ForegroundColor = ConsoleColor.Gray;
             }
@@ -100,6 +100,10 @@ namespace CSharpLLVM.Compilation
             // Enums can be fully generated during the declaration pass. Nothing to do.
             if (typeKind == TypeKind.Enum)
                 return;
+
+            // Add interface type to lookup?
+            if (typeKind == TypeKind.Interface)
+                mLookup.AddInterface(type);
 
             // VTable.
             VTable vtable = null;
@@ -109,6 +113,7 @@ namespace CSharpLLVM.Compilation
                 vtable = new VTable(mCompiler, type);
                 mLookup.AddVTable(vtable);
                 vtable.Create();
+                vtable.Compile();
             }
 
             // Create struct for this type.
@@ -127,14 +132,13 @@ namespace CSharpLLVM.Compilation
                     // Only if there are virtual calls on this type.
                     if (hasVTable)
                     {
-                        VTableEntry barrier = (VTableEntry)entry;
-                        structData.Add(LLVM.PointerType(vtable.GetEntry(barrier.Type).Item1, 0));
+                        VTableEntry castedEntry = (VTableEntry)entry;
+                        structData.Add(LLVM.PointerType(vtable.GetEntry(castedEntry.Type).Item1, 0));
                     }
                 }
                 // Entry that points to a table of VTables for interfaces
                 else if (entry.EntryType == StructEntryType.InterfaceVTablesTable)
                 {
-                    // TODO
                     structData.Add(TypeHelper.VoidPtr);
                 }
                 // Field entry
@@ -179,6 +183,7 @@ namespace CSharpLLVM.Compilation
                 if (typeKind != TypeKind.Struct)
                     throw new InvalidOperationException("Fixed size not on a struct?!");
 
+                // Add bytes until the needed size is reached.
                 int needed = type.ClassSize - (int)fieldTotalSize;
                 for (int i = 0; i < needed; i++)
                     structData.Add(TypeHelper.Int8);
@@ -217,7 +222,7 @@ namespace CSharpLLVM.Compilation
             TypeRef typeRef = mCompiler.Lookup.GetTypeRef(type);
             ValueRef objPtr = LLVM.BuildMalloc(builder, typeRef, "newobj");
 
-            // Initialize VTables.
+            // Initialize class VTables.
             Lookup lookup = mCompiler.Lookup;
             if (lookup.NeedsVirtualCall(type))
             {
@@ -229,6 +234,14 @@ namespace CSharpLLVM.Compilation
                     ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtabledst");
                     LLVM.BuildStore(builder, pair.Value.Item2, vTableGep);
                 }
+            }
+
+            // Initialize interface indirection table.
+            if (type.HasInterfaces)
+            {
+                Tuple<TypeRef, ValueRef> indirectionTable = mLookup.GetInterfaceIndirectionTable(type);
+                ValueRef gep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, 0, false) }, "interfaceindirectiontablegep");
+                LLVM.BuildStore(builder, LLVM.BuildPointerCast(builder, indirectionTable.Item2, TypeHelper.VoidPtr, string.Empty), gep);
             }
 
             // Return object pointer.

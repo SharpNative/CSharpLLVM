@@ -5,6 +5,7 @@ using CSharpLLVM.Helpers;
 using CSharpLLVM.Stack;
 using CSharpLLVM.Compilation;
 using CSharpLLVM.Lookups;
+using System;
 
 namespace CSharpLLVM.Generator.Instructions.FlowControl
 {
@@ -22,13 +23,14 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             MethodReference methodRef = (MethodReference)instruction.Operand;
             TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
             bool needsVirtualCall = context.Compiler.Lookup.NeedsVirtualCall(methodRef.DeclaringType);
+            Lookup lookup = context.Compiler.Lookup;
 
             // Build parameter value and types arrays.
             int paramCount = 1 + methodRef.Parameters.Count;
 
             // Get the method, if it is null, create a new empty one, otherwise reference it.
             string methodName = NameHelper.CreateMethodName(methodRef);
-            ValueRef? func = context.Compiler.Lookup.GetFunction(methodName);
+            ValueRef? func = lookup.GetFunction(methodName);
 
             // Process arguments.
             // Note: backwards for loop because stack is backwards!
@@ -61,19 +63,41 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
             TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
 
             // Call.
-            Lookup lookup = context.Compiler.Lookup;
             ValueRef method;
             if (needsVirtualCall && !lookup.IsMethodUnique(methodRef))
             {
                 // We need a virtual call.
+                TypeDefinition methodParent = methodRef.DeclaringType.Resolve();
                 TypeRef funcPtrType = LLVM.PointerType(functionType, 0);
-                VTable vTable = lookup.GetVTable(methodRef.DeclaringType);
-                uint index = lookup.GetClassVTableIndex(methodRef.DeclaringType.Resolve());
+                VTable vTable = lookup.GetVTable(methodParent);
+                ValueRef methodGep;
 
-                // Get a function pointer.
-                ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
-                ValueRef vTableInstance = LLVM.BuildLoad(builder, vTableGep, "vtable");
-                ValueRef methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodRef.DeclaringType.Resolve(), methodRef), false) }, "methodptr");
+                // Two cases:
+                // 1) The parent of the method is an interface.
+                //    In this case, we need to first get the VTable from the indirection table.
+                // 2) The parent of the method is a class.
+                //    In this case, we can directly now the offset to the VTable from the object pointer.
+
+                if (!methodParent.IsInterface)
+                {
+                    uint index = lookup.GetClassVTableIndex(methodParent);
+                    ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
+                    ValueRef vTableInstance = LLVM.BuildLoad(builder, vTableGep, "vtable");
+                    methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodParent, methodRef), false) }, "methodgep");
+                }
+                else
+                {
+                    uint index = lookup.GetInterfaceID(methodParent);
+
+                    ValueRef indirectionGep = LLVM.BuildInBoundsGEP(builder, argVals[0], new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false) }, "indirectiongep");
+                    indirectionGep = LLVM.BuildPointerCast(builder, indirectionGep, LLVM.PointerType(LLVM.PointerType(LLVM.PointerType(TypeHelper.VoidPtr, 0), 0), 0), string.Empty);
+                    ValueRef indirectionTable = LLVM.BuildLoad(builder, indirectionGep, "indirectiontable");
+                    ValueRef vTableGep = LLVM.BuildInBoundsGEP(builder, indirectionTable, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, index, false) }, "vtablegep");
+                    ValueRef vTableInstance = LLVM.BuildLoad(builder, vTableGep, "vtable");
+                    methodGep = LLVM.BuildInBoundsGEP(builder, vTableInstance, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, (uint)vTable.GetMethodIndex(methodParent, methodRef), false) }, "methodgep");
+                }
+
+                // Indirect call.
                 ValueRef methodPtr = LLVM.BuildLoad(builder, methodGep, "methodptr");
                 method = LLVM.BuildPointerCast(builder, methodPtr, funcPtrType, "method");
             }

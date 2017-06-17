@@ -16,10 +16,13 @@ namespace CSharpLLVM.Lookups
         private Dictionary<TypeDefinition, ValueRef> mNewobjFunctions = new Dictionary<TypeDefinition, ValueRef>();
         private Dictionary<TypeReference, bool> mNeedsVirtualCall = new Dictionary<TypeReference, bool>();
         private Dictionary<MethodReference, bool> mMethodUniqueness = new Dictionary<MethodReference, bool>();
+        private Dictionary<TypeReference, Tuple<TypeRef, ValueRef>> mInterfaceIndirectionTables = new Dictionary<TypeReference, Tuple<TypeRef, ValueRef>>();
 
         private List<MethodDefinition> mCctors = new List<MethodDefinition>();
+        private List<TypeReference> mInterfaceIDs = new List<TypeReference>();
 
         public Dictionary<TypeReference, VTable>.ValueCollection VTables { get { return mVTableLookup.Values; } }
+        public int MaxInterfaceID { get { return mInterfaceIDs.Count; } }
 
         /// <summary>
         /// Gets a function.
@@ -204,6 +207,52 @@ namespace CSharpLLVM.Lookups
         }
 
         /// <summary>
+        /// Adds an interface and associates an ID.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        public void AddInterface(TypeReference type)
+        {
+            mInterfaceIDs.Add(type);
+        }
+
+        /// <summary>
+        /// Gets the ID of the interface.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>The ID.</returns>
+        public uint GetInterfaceID(TypeReference type)
+        {
+            int index = mInterfaceIDs.IndexOf(type);
+            if (index == -1)
+                throw new InvalidOperationException("Could not find interface ID of: " + type);
+
+            return (uint)index;
+        }
+
+        /// <summary>
+        /// Adds an interface indirection table.
+        /// </summary>
+        /// <param name="type">The type</param>
+        /// <param name="table">The table.</param>
+        public void AddInterfaceIndirectionTable(TypeReference type, Tuple<TypeRef, ValueRef> table)
+        {
+            mInterfaceIndirectionTables.Add(type, table);
+        }
+
+        /// <summary>
+        /// Gets the interface indirection table.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>The table.</returns>
+        public Tuple<TypeRef, ValueRef> GetInterfaceIndirectionTable(TypeReference type)
+        {
+            if (!mInterfaceIndirectionTables.ContainsKey(type))
+                throw new InvalidOperationException("Could not get the interface indirection table for type: " + type);
+
+            return mInterfaceIndirectionTables[type];
+        }
+
+        /// <summary>
         /// Gets the struct layout of a type.
         /// </summary>
         /// <param name="type">The type.</param>
@@ -215,7 +264,7 @@ namespace CSharpLLVM.Lookups
                 return mLayoutLookup[type];
 
             List<IStructEntry> fields = new List<IStructEntry>();
-            
+
             // Value types only have fields and can't be inherited.
             if (type.IsValueType)
             {
@@ -234,7 +283,7 @@ namespace CSharpLLVM.Lookups
                 {
                     fields.Add(new InterfaceVTablesTableEntry(type.Interfaces.ToArray()));
                 }
-                
+
                 // First add parent fields, then our own fields.
                 fields.AddRange(GetStructLayout(parent));
                 fields.AddRange(type.Fields.Where(f => f.Name[0] != '<').Select(f => new StructFieldEntry(f)));

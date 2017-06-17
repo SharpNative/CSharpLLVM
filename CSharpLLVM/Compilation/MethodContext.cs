@@ -61,7 +61,7 @@ namespace CSharpLLVM.Compilation
         {
             return GetBranch(instr).Block;
         }
-        
+
         /// <summary>
         /// Creates the branches.
         /// </summary>
@@ -70,12 +70,9 @@ namespace CSharpLLVM.Compilation
             // Look for branching, create blocks for the branches.
             // Note: First, we search all the branches so we can later add them in the correct order.
             //       This is because we may not always have the branches in a chronological order.
-            bool[] isNewBranch = new bool[Method.Body.CodeSize];
             int[] refers = new int[Method.Body.CodeSize];
-
-            isNewBranch[0] = true;
-
             Branches = new Branch[Method.Body.CodeSize];
+            Branches[0] = new Branch(this, 0);
 
             foreach (Instruction instruction in Method.Body.Instructions)
             {
@@ -85,7 +82,8 @@ namespace CSharpLLVM.Compilation
                 if (flow == FlowControl.Branch || flow == FlowControl.Cond_Branch)
                 {
                     Instruction dest = (Instruction)instruction.Operand;
-                    isNewBranch[dest.Offset] = true;
+                    if (Branches[dest.Offset] == null)
+                        Branches[dest.Offset] = new Branch(this, dest.Offset);
                     refers[dest.Offset]++;
                 }
 
@@ -94,17 +92,17 @@ namespace CSharpLLVM.Compilation
                     // If this instruction does branching by a conditional, we also need to have a block after this instruction,
                     // for if the conditional branch is not being executed.
                     if (flow == FlowControl.Cond_Branch)
-                        isNewBranch[instruction.Next.Offset] = true;
+                    {
+                        if (Branches[instruction.Next.Offset] == null)
+                        {
+                            Branches[instruction.Next.Offset] = new Branch(this, instruction.Next.Offset);
+                        }
+                    }
                     else if (flow == FlowControl.Next)
+                    {
                         refers[instruction.Next.Offset]++;
+                    }
                 }
-            }
-            
-            // Create branches.
-            for (int i = 0; i < Branches.Length; i++)
-            {
-                if (isNewBranch[i])
-                    Branches[i] = new Branch(this, i);
             }
 
             // Now that we know the reference count and where to put branches, let's create them.
@@ -114,7 +112,7 @@ namespace CSharpLLVM.Compilation
             {
                 FlowControl flow = instruction.OpCode.FlowControl;
 
-                if (isNewBranch[instruction.Offset])
+                if (Branches[instruction.Offset] != null)
                 {
                     current = Branches[instruction.Offset];
                 }

@@ -37,7 +37,7 @@ namespace CSharpLLVM.Compilation
             // Create function and set linkage.
             TypeRef type = LLVM.FunctionType(TypeHelper.Int8, new TypeRef[] { TypeHelper.String, TypeHelper.Int32 }, false);
             ValueRef func = LLVM.AddFunction(mCompiler.Module, funcName, type);
-            LLVM.SetLinkage(func, Linkage.InternalLinkage);
+            LLVM.SetLinkage(func, Linkage.LinkOnceAnyLinkage);
             LLVM.AddAttributeAtIndex(func, (uint)LLVM.AttributeFunctionIndex, LLVM.CreateEnumAttribute(mCompiler.ModuleContext, LLVM.GetEnumAttributeKindForName("alwaysinline", 12), 1));
 
             // Arguments.

@@ -1,5 +1,4 @@
 ﻿using Mono.Cecil;
-using Mono.Collections.Generic;
 using Swigged.LLVM;
 using System;
 using System.Collections.Generic;
@@ -82,15 +81,15 @@ namespace CSharpLLVM.Compilation
             LLVM.InitializeAllTargetMCs();
             LLVM.InitializeAllAsmParsers();
             LLVM.InitializeAllAsmPrinters();
-            
+
             string triplet = (Options.Target == "default") ? LLVM.GetDefaultTargetTriple() : Options.Target;
-            string error;
-            
+            MyString error = new MyString();
+
             LLVM.SetTarget(mModule, triplet);
             TargetRef target;
-            if (LLVM.GetTargetFromTriple(triplet, out target, out error))
+            if (LLVM.GetTargetFromTriple(triplet, out target, error))
             {
-                throw new InvalidOperationException(error);
+                throw new InvalidOperationException(error.ToString());
             }
 
             // Optimizer.
@@ -175,10 +174,10 @@ namespace CSharpLLVM.Compilation
 
             // Verify and throw exception on error.
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            if (LLVM.VerifyModule(mModule, VerifierFailureAction.ReturnStatusAction, out error))
+            if (LLVM.VerifyModule(mModule, VerifierFailureAction.ReturnStatusAction, error))
             {
                 Console.WriteLine("Compilation of module failed.");
-                Console.WriteLine(error);
+                Console.WriteLine(error.ToString());
                 LLVM.DisposeTargetData(TargetData);
                 Console.ForegroundColor = ConsoleColor.Gray;
                 return;
@@ -187,7 +186,6 @@ namespace CSharpLLVM.Compilation
             {
                 Console.WriteLine("Compilation of module succeeded.");
             }
-            Console.ForegroundColor = ConsoleColor.Gray;
 
             // Output assembly or object file.
             if (!Options.OutputLLVM)
@@ -196,23 +194,24 @@ namespace CSharpLLVM.Compilation
                 LLVM.SetModuleDataLayout(mModule, LLVM.CreateTargetDataLayout(machine));
                 CodeGenFileType type = (Options.OutputAssembly) ? CodeGenFileType.AssemblyFile : CodeGenFileType.ObjectFile;
 
-                if (LLVM.TargetMachineEmitToFile(machine, mModule, Options.OutputFile, type, out error))
+                if (LLVM.TargetMachineEmitToFile(machine, mModule, Options.OutputFile, type, error))
                 {
-                    throw new InvalidOperationException(error);
+                    throw new InvalidOperationException(error.ToString());
                 }
             }
             // Output LLVM code to a file.
             else
             {
-                if (LLVM.PrintModuleToFile(mModule, Options.OutputFile, out error))
+                if (LLVM.PrintModuleToFile(mModule, Options.OutputFile, error))
                 {
                     Console.WriteLine("Writing the LLVM code to a file failed.");
-                    Console.WriteLine(error);
+                    Console.WriteLine(error.ToString());
                     Console.ForegroundColor = ConsoleColor.Gray;
                 }
             }
 
             // Cleanup.
+            Console.ForegroundColor = ConsoleColor.Gray;
             LLVM.DisposeTargetData(TargetData);
         }
 
@@ -226,8 +225,7 @@ namespace CSharpLLVM.Compilation
             // Loop through the modules within the IL assembly.
             // Note: A single assembly can contain multiple IL modules.
             //       We use a single LLVM module to contain all of this.
-            Collection<ModuleDefinition> modules = AssemblyDef.Modules;
-            foreach (ModuleDefinition moduleDef in modules)
+            foreach (ModuleDefinition moduleDef in AssemblyDef.Modules)
             {
                 compileModule(moduleDef);
             }
@@ -253,6 +251,7 @@ namespace CSharpLLVM.Compilation
             }
 
             LLVM.BuildRetVoid(builder);
+
             LLVM.DisposeBuilder(builder);
         }
 
@@ -317,12 +316,6 @@ namespace CSharpLLVM.Compilation
                 // That's why we add it to a list, so we can create a method that calls all these static constructors.
                 if (method.Name == ".cctor")
                     Lookup.AddCctor(method);
-            }
-
-            // Compile VTables.
-            foreach (VTable vtable in Lookup.VTables)
-            {
-                vtable.Compile();
             }
         }
 

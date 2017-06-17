@@ -5,6 +5,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Swigged.LLVM;
 using System;
+using System.Collections.Generic;
 
 namespace CSharpLLVM.Helpers
 {
@@ -114,10 +115,10 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.Pinned:
                     PinnedType pinned = (PinnedType)type;
                     return GetTypeRefFromType(pinned.ElementType);
-                    
+
                 case MetadataType.Class:
                     return LLVM.PointerType(mLookup.GetTypeRef(type), 0);
-                
+
                 case MetadataType.ValueType:
                     return mLookup.GetTypeRef(type);
 
@@ -133,7 +134,7 @@ namespace CSharpLLVM.Helpers
                 case MetadataType.OptionalModifier:
                     OptionalModifierType optionalModifier = (OptionalModifierType)type;
                     return GetTypeRefFromType(optionalModifier.ElementType);
-                    
+
                 default:
                     throw new InvalidOperationException("Invalid meta data type to get type from: " + type.MetadataType);
             }
@@ -255,7 +256,7 @@ namespace CSharpLLVM.Helpers
                     throw new InvalidOperationException("Invalid code to get type from: " + code);
             }
         }
-        
+
         /// <summary>
         /// Gets a TypeRef from a Code.Stind* or Code.Ldind*.
         /// </summary>
@@ -351,7 +352,7 @@ namespace CSharpLLVM.Helpers
         {
             return (LLVM.GetTypeKind(element.Type) == TypeKind.PointerTypeKind);
         }
-        
+
         /// <summary>
         /// Returns true if a type inherits the other type.
         /// </summary>
@@ -375,6 +376,36 @@ namespace CSharpLLVM.Helpers
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns an array of all the inherited interfaces, also the ones from the base types.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>The array of all inherited interfaces.</returns>
+        public static TypeDefinition[] GetAllInterfaces(TypeDefinition type)
+        {
+            List<TypeDefinition> list = new List<TypeDefinition>();
+            
+            // Add interfaces.
+            TypeDefinition current = type;
+            while (current != null)
+            {
+                if (current.HasInterfaces)
+                {
+                    foreach (TypeDefinition interfaceType in current.Interfaces)
+                    {
+                        list.Add(interfaceType);
+                    }
+                }
+
+                if (current.BaseType == null)
+                    break;
+
+                current = current.BaseType.Resolve();
+            }
+
+            return list.ToArray();
         }
 
         /// <summary>

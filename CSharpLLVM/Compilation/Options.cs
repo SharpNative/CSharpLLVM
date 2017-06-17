@@ -1,6 +1,5 @@
 ﻿using CommandLine;
 using CommandLine.Text;
-using Swigged.LLVM;
 using System.Reflection;
 
 namespace CSharpLLVM.Compilation
