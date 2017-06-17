@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using CommandLine.Text;
+using Swigged.LLVM;
 using System.Reflection;
 
 namespace CSharpLLVM.Compilation
@@ -36,6 +37,9 @@ namespace CSharpLLVM.Compilation
 
         [Option("internal-methods-fastcc", HelpText = "This option will make methods with internal linkage use the fastcc calling convention.")]
         public bool InternalMethodsFastCC { get; set; }
+
+        [Option("target", DefaultValue = "default", HelpText = "The target triplet of the outputted code.")]
+        public string Target { get; set; }
 
         /// <summary>
         /// Returns the usage.

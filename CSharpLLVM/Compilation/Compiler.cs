@@ -82,11 +82,10 @@ namespace CSharpLLVM.Compilation
             LLVM.InitializeAllTargetMCs();
             LLVM.InitializeAllAsmParsers();
             LLVM.InitializeAllAsmPrinters();
-
-            //string triplet = LLVM.GetDefaultTargetTriple();
-            string triplet = "x86_64-pc-linux";
+            
+            string triplet = (Options.Target == "default") ? LLVM.GetDefaultTargetTriple() : Options.Target;
             string error;
-
+            
             LLVM.SetTarget(mModule, triplet);
             TargetRef target;
             if (LLVM.GetTargetFromTriple(triplet, out target, out error))
