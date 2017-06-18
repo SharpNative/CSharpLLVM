@@ -13,20 +13,25 @@ An important difference to the .NET framework is that we treat "System.Char" as 
 
 ### Some important features
 
-A list of important features we support (this list does not contain all features)
+A list of important features we support (this list does not contain all features):
   - Classes, (including virtual calls and inheritance), interfaces
   - Structs (with fixed buffer support)
   - Most opcodes for CIL
   - The basic types
 
-Short term planning:
-  - Add support for delegates
-  - Add support for "Plug", this means that you will be able to provide your own implementation of certain .NET classes and/or methods.
-
 Some notable features we currently don't support:
   - Boxing & unboxing (need some sort of garbage collector, or we could work around this, need to investigate)
   - Generic types
   - Linq (depends on classes in the .NET framework)
+
+### Future
+
+Short term planning:
+  - Add support for delegates
+  - Add support for "Plug", this means that you will be able to provide your own implementation of certain .NET classes and/or methods.
+  - ...
+
+This list can change alot. It mostly depends on what is needed, which we will find out while building the kernel.
 
 ### Runtime information
 
