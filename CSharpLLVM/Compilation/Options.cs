@@ -28,8 +28,11 @@ namespace CSharpLLVM.Compilation
         [Option('s', "asm", HelpText = "Output assembly code.", MutuallyExclusiveSet = "output")]
         public bool OutputAssembly { get; set; }
 
-        [Option('l', "llvm", HelpText = "Output LLVM code.", MutuallyExclusiveSet = "output")]
-        public bool OutputLLVM { get; set; }
+        [Option('l', "llvm-ir", HelpText = "Output LLVM IR code.", MutuallyExclusiveSet = "output")]
+        public bool OutputLLVMIR { get; set; }
+
+        [Option('b', "llvm-bitcode", HelpText = "Output LLVM bitcode.", MutuallyExclusiveSet = "output")]
+        public bool OutputLLVMBitCode { get; set; }
 
         [Option("instance-methods-internal", HelpText = "Sets the linkage of instance methods to internal linkage.")]
         public bool InstanceMethodInternalLinkage { get; set; }

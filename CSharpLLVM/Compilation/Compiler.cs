@@ -188,7 +188,7 @@ namespace CSharpLLVM.Compilation
             }
 
             // Output assembly or object file.
-            if (!Options.OutputLLVM)
+            if (!Options.OutputLLVMIR && !Options.OutputLLVMBitCode)
             {
                 TargetMachineRef machine = LLVM.CreateTargetMachine(target, triplet, "generic", "", CodeGenOptLevel.CodeGenLevelDefault, RelocMode.RelocDefault, CodeModel.CodeModelDefault);
                 LLVM.SetModuleDataLayout(mModule, LLVM.CreateTargetDataLayout(machine));
@@ -199,10 +199,20 @@ namespace CSharpLLVM.Compilation
                     throw new InvalidOperationException(error.ToString());
                 }
             }
-            // Output LLVM code to a file.
-            else
+            // Output LLVM IR code to a file.
+            else if (Options.OutputLLVMIR)
             {
                 if (LLVM.PrintModuleToFile(mModule, Options.OutputFile, error))
+                {
+                    Console.WriteLine("Writing the LLVM code to a file failed.");
+                    Console.WriteLine(error.ToString());
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
+            }
+            // Output LLVM bitcode.
+            else if (Options.OutputLLVMBitCode)
+            {
+                if (LLVM.WriteBitcodeToFile(mModule, Options.OutputFile) != 0)
                 {
                     Console.WriteLine("Writing the LLVM code to a file failed.");
                     Console.WriteLine(error.ToString());
