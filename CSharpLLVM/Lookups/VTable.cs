@@ -67,7 +67,7 @@ namespace CSharpLLVM.Lookups
                 string parentName = shortName;
 
                 mLookup.SetMethodNotUnique(method);
-                
+
                 // It could have an explicit override...
                 // But that's only possible with interfaces.
                 if (parentType.IsInterface)
@@ -122,9 +122,9 @@ namespace CSharpLLVM.Lookups
                     // Did we override this method?
                     if (MyNameTable.ContainsKey(shortName) && (MyTable[MyNameTable[shortName]].IsVirtual))
                     {
-                        MethodDefinition method = MyTable[MyNameTable[shortName]];
-                        mLookup.SetMethodNotUnique(method);
                         int nameTableIndex = MyNameTable[shortName];
+                        MethodDefinition method = MyTable[nameTableIndex];
+                        mLookup.SetMethodNotUnique(method);
                         tableCopy.Add(methodPair.Value, MyTable[nameTableIndex]);
                     }
                     // Use existing method definition.

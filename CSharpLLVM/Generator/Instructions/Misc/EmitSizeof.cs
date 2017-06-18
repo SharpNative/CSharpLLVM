@@ -21,7 +21,12 @@ namespace CSharpLLVM.Generator.Instructions.Misc
             TypeDefinition type = (TypeDefinition)instruction.Operand;
             TypeRef typeRef = TypeHelper.GetTypeRefFromType(type);
             ulong size = LLVM.SizeOfTypeInBits(context.Compiler.TargetData, typeRef) / 8;
-            context.CurrentStack.Push(new StackElement(LLVM.ConstInt(TypeHelper.Int32, size, false), typeof(int).GetTypeReference(), TypeHelper.Int32));
+
+            // Invalid size? Try getting it using a pointer.
+            if (size == 0)
+                context.CurrentStack.Push(new StackElement(LLVM.SizeOf(typeRef), typeof(long).GetTypeReference(), TypeHelper.Int64));
+            else
+                context.CurrentStack.Push(new StackElement(LLVM.ConstInt(TypeHelper.Int64, size, false), typeof(long).GetTypeReference(), TypeHelper.Int32));
         }
     }
 }

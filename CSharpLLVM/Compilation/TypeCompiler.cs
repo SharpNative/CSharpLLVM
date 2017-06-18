@@ -183,8 +183,13 @@ namespace CSharpLLVM.Compilation
                 if (typeKind != TypeKind.Struct)
                     throw new InvalidOperationException("Fixed size not on a struct?!");
 
+                // Note: we treat char as 8-bit. So we need to check if we're dealing with chars.
+                int classSize = type.ClassSize;
+                if (type.Fields.Count == 1 && type.Fields[0].FieldType.FullName == "System.Char")
+                    classSize /= 2;
+
                 // Add bytes until the needed size is reached.
-                int needed = type.ClassSize - (int)fieldTotalSize;
+                int needed = classSize - (int)fieldTotalSize;
                 for (int i = 0; i < needed; i++)
                     structData.Add(TypeHelper.Int8);
             }
