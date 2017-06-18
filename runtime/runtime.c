@@ -9,5 +9,7 @@ void* newarr(int32_t nelements, size_t size)
     if(ptr == NULL)
         return NULL;
     *ptr = nelements;
-    return (void*)((int8_t*)ptr + sizeof(size_t));
+    void* ret = (void*)((int8_t*)ptr + sizeof(size_t));;
+    memset(ret, 0, nelements * size);
+    return ret;
 }
