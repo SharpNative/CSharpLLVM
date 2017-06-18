@@ -96,8 +96,7 @@ namespace CSharpLLVM.Compilation
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             mPassManager = LLVM.CreatePassManager();
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
-            LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
-            LLVM.AddConstantPropagationPass(mFunctionPassManager);
+
 #if !DEBUG
 
             // O0
