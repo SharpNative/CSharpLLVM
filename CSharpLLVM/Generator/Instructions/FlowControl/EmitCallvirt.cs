@@ -21,8 +21,8 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
         {
             MethodReference methodRef = (MethodReference)instruction.Operand;
             TypeRef returnType = TypeHelper.GetTypeRefFromType(methodRef.ReturnType);
-            bool needsVirtualCall = context.Compiler.Lookup.NeedsVirtualCall(methodRef.DeclaringType);
             Lookup lookup = context.Compiler.Lookup;
+            bool needsVirtualCall = lookup.NeedsVirtualCall(methodRef.DeclaringType);
 
             // Build parameter value and types arrays.
             int paramCount = 1 + methodRef.Parameters.Count;

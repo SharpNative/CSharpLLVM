@@ -96,7 +96,8 @@ namespace CSharpLLVM.Compilation
             mFunctionPassManager = LLVM.CreateFunctionPassManagerForModule(mModule);
             mPassManager = LLVM.CreatePassManager();
             LLVM.InitializeFunctionPassManager(mFunctionPassManager);
-
+            LLVM.AddPromoteMemoryToRegisterPass(mFunctionPassManager);
+            LLVM.AddConstantPropagationPass(mFunctionPassManager);
 #if !DEBUG
 
             // O0
@@ -267,6 +268,11 @@ namespace CSharpLLVM.Compilation
         /// <returns>Order number.</returns>
         private int sortTypes(TypeDefinition left, TypeDefinition right)
         {
+            if (left.IsInterface)
+                Lookup.SetNeedVirtualCall(left, true);
+            if (right.IsInterface)
+                Lookup.SetNeedVirtualCall(right, true);
+
             if (TypeHelper.InheritsFrom(left, right))
             {
                 Lookup.SetNeedVirtualCall(right, true);

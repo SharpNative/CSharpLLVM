@@ -84,7 +84,7 @@ namespace CSharpLLVM.Compilation
 
             // VTable.
             VTable vtable = null;
-            bool hasVTable = ((typeKind == TypeKind.Class || typeKind == TypeKind.Interface) && mCompiler.Lookup.NeedsVirtualCall(type));
+            bool hasVTable = ((typeKind == TypeKind.Interface) || (typeKind == TypeKind.Class && mCompiler.Lookup.NeedsVirtualCall(type)));
             if (hasVTable)
             {
                 vtable = new VTable(mCompiler, type);
