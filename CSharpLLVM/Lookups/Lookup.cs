@@ -16,7 +16,7 @@ namespace CSharpLLVM.Lookups
         private Dictionary<TypeDefinition, ValueRef> mNewobjFunctions = new Dictionary<TypeDefinition, ValueRef>();
         private Dictionary<TypeReference, bool> mNeedsVirtualCall = new Dictionary<TypeReference, bool>();
         private Dictionary<MethodReference, bool> mMethodUniqueness = new Dictionary<MethodReference, bool>();
-        private Dictionary<TypeReference, Tuple<TypeRef, ValueRef>> mInterfaceIndirectionTables = new Dictionary<TypeReference, Tuple<TypeRef, ValueRef>>();
+        private Dictionary<TypeReference, ValueRef> mInterfaceIndirectionTables = new Dictionary<TypeReference, ValueRef>();
 
         private List<MethodDefinition> mCctors = new List<MethodDefinition>();
         private List<TypeReference> mInterfaceIDs = new List<TypeReference>();
@@ -234,7 +234,7 @@ namespace CSharpLLVM.Lookups
         /// </summary>
         /// <param name="type">The type</param>
         /// <param name="table">The table.</param>
-        public void AddInterfaceIndirectionTable(TypeReference type, Tuple<TypeRef, ValueRef> table)
+        public void AddInterfaceIndirectionTable(TypeReference type, ValueRef table)
         {
             mInterfaceIndirectionTables.Add(type, table);
         }
@@ -244,7 +244,7 @@ namespace CSharpLLVM.Lookups
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>The table.</returns>
-        public Tuple<TypeRef, ValueRef> GetInterfaceIndirectionTable(TypeReference type)
+        public ValueRef GetInterfaceIndirectionTable(TypeReference type)
         {
             if (!mInterfaceIndirectionTables.ContainsKey(type))
                 throw new InvalidOperationException("Could not get the interface indirection table for type: " + type);

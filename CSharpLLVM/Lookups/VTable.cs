@@ -64,14 +64,24 @@ namespace CSharpLLVM.Lookups
                     continue;
 
                 string shortName = NameHelper.CreateShortMethodName(method);
+                string parentName = shortName;
 
                 mLookup.SetMethodNotUnique(method);
+                
+                // It could have an explicit override...
+                // But that's only possible with interfaces.
+                if (parentType.IsInterface)
+                {
+                    string explicitName = string.Format("{0}_{1}", NameHelper.CreateTypeName(parentType), shortName);
+                    if (MyNameTable.ContainsKey(explicitName))
+                        shortName = explicitName;
+                }
 
                 // This type overrides the method in the parent type.
                 if (MyNameTable.ContainsKey(shortName) && MyTable[MyNameTable[shortName]].IsVirtual)
                 {
                     int nameTableIndex = MyNameTable[shortName];
-                    own.Add(parentTable.MyNameTable[shortName], MyTable[nameTableIndex]);
+                    own.Add(parentTable.MyNameTable[parentName], MyTable[nameTableIndex]);
                 }
                 // Use parent method definition.
                 else
@@ -235,7 +245,7 @@ namespace CSharpLLVM.Lookups
                 LLVM.SetLinkage(global, Linkage.PrivateLinkage);
 
                 // Add indirection table to lookup.
-                Tuple<TypeRef, ValueRef> interfaceIndirectionTable = new Tuple<TypeRef, ValueRef>(tableType, global);
+                ValueRef interfaceIndirectionTable = global;
                 mLookup.AddInterfaceIndirectionTable(Type, interfaceIndirectionTable);
             }
         }

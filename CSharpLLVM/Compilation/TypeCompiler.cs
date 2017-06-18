@@ -239,9 +239,9 @@ namespace CSharpLLVM.Compilation
             // Initialize interface indirection table.
             if (type.HasInterfaces)
             {
-                Tuple<TypeRef, ValueRef> indirectionTable = mLookup.GetInterfaceIndirectionTable(type);
+                ValueRef indirectionTable = mLookup.GetInterfaceIndirectionTable(type);
                 ValueRef gep = LLVM.BuildInBoundsGEP(builder, objPtr, new ValueRef[] { LLVM.ConstInt(TypeHelper.Int32, 0, false), LLVM.ConstInt(TypeHelper.Int32, 0, false) }, "interfaceindirectiontablegep");
-                LLVM.BuildStore(builder, LLVM.BuildPointerCast(builder, indirectionTable.Item2, TypeHelper.VoidPtr, string.Empty), gep);
+                LLVM.BuildStore(builder, LLVM.BuildPointerCast(builder, indirectionTable, TypeHelper.VoidPtr, string.Empty), gep);
             }
 
             // Return object pointer.
