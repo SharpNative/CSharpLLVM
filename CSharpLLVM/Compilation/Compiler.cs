@@ -163,9 +163,7 @@ namespace CSharpLLVM.Compilation
 
             // Log time.
             stopWatch.Stop();
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("Compilation time: " + stopWatch.Elapsed);
-            Console.ForegroundColor = ConsoleColor.Gray;
+            Logger.LogDetail("Compilation time: " + stopWatch.Elapsed);
 
             // Debug: print LLVM assembly code.
 #if DEBUG
@@ -176,15 +174,14 @@ namespace CSharpLLVM.Compilation
             Console.ForegroundColor = ConsoleColor.DarkGray;
             if (LLVM.VerifyModule(mModule, VerifierFailureAction.ReturnStatusAction, error))
             {
-                Console.WriteLine("Compilation of module failed.");
-                Console.WriteLine(error.ToString());
+                Logger.LogError("Compilation of module failed.");
+                Logger.LogInfo(error.ToString());
                 LLVM.DisposeTargetData(TargetData);
-                Console.ForegroundColor = ConsoleColor.Gray;
                 return;
             }
             else
             {
-                Console.WriteLine("Compilation of module succeeded.");
+                Logger.LogDetail("Compilation of module succeeded.");
             }
 
             // Output assembly or object file.
@@ -204,9 +201,8 @@ namespace CSharpLLVM.Compilation
             {
                 if (LLVM.PrintModuleToFile(mModule, Options.OutputFile, error))
                 {
-                    Console.WriteLine("Writing the LLVM code to a file failed.");
-                    Console.WriteLine(error.ToString());
-                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Logger.LogError("Writing the LLVM code to a file failed.");
+                    Logger.LogInfo(error.ToString());
                 }
             }
             // Output LLVM bitcode.
@@ -214,14 +210,12 @@ namespace CSharpLLVM.Compilation
             {
                 if (LLVM.WriteBitcodeToFile(mModule, Options.OutputFile) != 0)
                 {
-                    Console.WriteLine("Writing the LLVM code to a file failed.");
-                    Console.WriteLine(error.ToString());
-                    Console.ForegroundColor = ConsoleColor.Gray;
+                    Logger.LogError("Writing the LLVM code to a file failed.");
+                    Logger.LogInfo(error.ToString());
                 }
             }
 
             // Cleanup.
-            Console.ForegroundColor = ConsoleColor.Gray;
             LLVM.DisposeTargetData(TargetData);
         }
 

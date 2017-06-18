@@ -95,6 +95,7 @@
   <ItemGroup>
     <Compile Include="Compilation\Branch.cs" />
     <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
+    <Compile Include="Compilation\TypeKind.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Any.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Ref.cs" />
     <Compile Include="Generator\Instructions\Misc\EmitSizeof.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="Generator\Instructions\StoreLoad\EmitLdarga.cs" />
     <Compile Include="Generator\Instructions\StoreLoad\EmitLdftn.cs" />
     <Compile Include="Helpers\InstructionHelper.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Lookups\Lookup.cs" />
     <Compile Include="Compilation\TypeCompiler.cs" />
     <Compile Include="Lookups\IStructEntry.cs" />

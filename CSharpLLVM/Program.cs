@@ -17,6 +17,7 @@ namespace CSharpLLVM
             Parser parser = new Parser(setSettings);
             if (parser.ParseArguments(args, options))
             {
+                Logger.Init(options.Verbose);
                 string moduleName = Path.GetFileNameWithoutExtension(options.InputFile);
                 Compiler compiler = new Compiler(options);
                 compiler.Compile(moduleName);

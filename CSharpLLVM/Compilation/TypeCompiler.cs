@@ -9,22 +9,6 @@ namespace CSharpLLVM.Compilation
 {
     class TypeCompiler
     {
-        enum TypeKind
-        {
-            Struct,
-            Enum,
-            Class,
-            Interface
-        }
-
-        private static readonly ConsoleColor[] TypeKindColorLookup =
-        {
-            ConsoleColor.DarkCyan,
-            ConsoleColor.DarkGreen,
-            ConsoleColor.Cyan,
-            ConsoleColor.DarkMagenta
-        };
-
         private Compiler mCompiler;
         private Lookup mLookup;
 
@@ -88,14 +72,7 @@ namespace CSharpLLVM.Compilation
         public void Compile(TypeDefinition type)
         {
             TypeKind typeKind = getTypeKind(type);
-
-            // Log.
-            if (mCompiler.Options.Verbose)
-            {
-                Console.ForegroundColor = TypeKindColorLookup[(int)typeKind];
-                Console.WriteLine(string.Format("Compiling type {0}", type.FullName));
-                Console.ForegroundColor = ConsoleColor.Gray;
-            }
+            Logger.LogVerbose(typeKind.GetColor(), "Compiling type {0}", type.FullName);
 
             // Enums can be fully generated during the declaration pass. Nothing to do.
             if (typeKind == TypeKind.Enum)

@@ -31,10 +31,8 @@ namespace CSharpLLVM.Generator
                 foreach (Code code in attrib.Codes)
                     mEmitters.Add(code, emitter);
             }
-
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine(string.Format("{0} code emitters registered", mEmitters.Count));
-            Console.ForegroundColor = ConsoleColor.Gray;
+            
+            Logger.LogDetailVerbose("{0} code emitters registered", mEmitters.Count);
         }
 
         /// <summary>

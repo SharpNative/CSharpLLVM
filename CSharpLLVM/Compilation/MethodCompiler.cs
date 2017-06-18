@@ -96,12 +96,9 @@ namespace CSharpLLVM.Compilation
             }
             catch (Exception e)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Exception inside method " + methodDef);
-                Console.WriteLine(e.Message);
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine(e.StackTrace);
-                Console.ForegroundColor = ConsoleColor.Gray;
+                Logger.LogError("Exception inside method {0}: {1}", methodDef, e.Message);
+                Logger.LogDetail("----------");
+                Logger.LogInfo(e.StackTrace);
             }
         }
     }

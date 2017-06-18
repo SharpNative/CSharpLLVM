@@ -350,7 +350,7 @@ namespace CSharpLLVM.Helpers
         /// <returns>If the stack element is a pointer.</returns>
         public static bool IsPointer(StackElement element)
         {
-            return (LLVM.GetTypeKind(element.Type) == TypeKind.PointerTypeKind);
+            return (LLVM.GetTypeKind(element.Type) == Swigged.LLVM.TypeKind.PointerTypeKind);
         }
 
         /// <summary>
