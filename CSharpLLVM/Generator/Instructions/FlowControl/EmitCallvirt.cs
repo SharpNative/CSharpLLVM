@@ -60,6 +60,11 @@ namespace CSharpLLVM.Generator.Instructions.FlowControl
 
             // Function does not exist, create a declaration for the function.
             TypeRef functionType = LLVM.FunctionType(returnType, paramTypes, false);
+            if (!func.HasValue)
+            {
+                func = LLVM.AddFunction(context.Compiler.Module, methodName, functionType);
+                context.Compiler.Lookup.AddFunction(methodName, func.Value);
+            }
 
             // Call.
             ValueRef method;
