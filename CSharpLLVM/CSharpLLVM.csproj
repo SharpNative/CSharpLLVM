@@ -94,7 +94,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compilation\Branch.cs" />
-    <Compile Include="Compilation\BuiltinRuntimeFunctions.cs" />
+    <Compile Include="Runtime\Builtin\BuiltinRuntimeFunctions.cs" />
+    <Compile Include="Runtime\CIL\CILRuntimeMethodCompiler.cs" />
     <Compile Include="Compilation\TypeKind.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Any.cs" />
     <Compile Include="Generator\Instructions\Arrays\EmitLdelem_Ref.cs" />
@@ -148,6 +149,10 @@
     <Compile Include="Helpers\NameHelper.cs" />
     <Compile Include="Helpers\PredicateHelper.cs" />
     <Compile Include="Helpers\RuntimeHelper.cs" />
+    <Compile Include="Runtime\CIL\DelegatesHandler.cs" />
+    <Compile Include="Runtime\CIL\IRuntimeHandler.cs" />
+    <Compile Include="Runtime\CIL\MethodHandlerAttribute.cs" />
+    <Compile Include="Runtime\CIL\RuntimeHandlerAttribute.cs" />
     <Compile Include="Stack\ILStack.cs" />
     <Compile Include="Generator\CodeGenerator.cs" />
     <Compile Include="Compilation\Compiler.cs" />

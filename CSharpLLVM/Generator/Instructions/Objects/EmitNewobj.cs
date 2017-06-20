@@ -4,6 +4,7 @@ using CSharpLLVM.Stack;
 using CSharpLLVM.Helpers;
 using Mono.Cecil;
 using CSharpLLVM.Compilation;
+using System;
 
 namespace CSharpLLVM.Generator.Instructions.Objects
 {
@@ -23,7 +24,7 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             TypeRef type = TypeHelper.GetTypeRefFromType(ctor.DeclaringType);
 
             ValueRef objPtr;
-            bool ptr = objType.IsClass && !objType.IsValueType;
+            bool ptr = (objType.IsClass && !objType.IsValueType);
             if (ptr)
             {
                 // This type is a class, therefor we have a specialised "newobj" method.
@@ -31,13 +32,15 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             }
             else
             {
-                // Not a class, no specialised method.
+                // Not a class, allocate on stack.
                 objPtr = LLVM.BuildAlloca(builder, type, "newobj");
             }
 
             // Constructor.
             ValueRef? ctorFunc = context.Compiler.Lookup.GetFunction(NameHelper.CreateMethodName(ctor));
-            
+            if (!ctorFunc.HasValue)
+                throw new Exception("Constructor not found: " + ctor);
+
             // Get .ctor parameters.
             int paramCount = 1 + ctor.Parameters.Count;
             ValueRef[] values = new ValueRef[paramCount];
@@ -46,6 +49,13 @@ namespace CSharpLLVM.Generator.Instructions.Objects
             {
                 StackElement element = context.CurrentStack.Pop();
                 values[i] = element.Value;
+
+                // Cast needed?
+                TypeRef paramType = TypeHelper.GetTypeRefFromType(ctor.Parameters[i - 1].ParameterType);
+                if (element.Type != paramType)
+                {
+                    CastHelper.HelpIntAndPtrCast(builder, ref values[i], ref element.Type, paramType, "ctorcallcast");
+                }
             }
 
             // Call .ctor.

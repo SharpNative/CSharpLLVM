@@ -6,6 +6,7 @@ using System.Diagnostics;
 using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
 using CSharpLLVM.Lookups;
+using CSharpLLVM.Runtime.Builtin;
 
 namespace CSharpLLVM.Compilation
 {

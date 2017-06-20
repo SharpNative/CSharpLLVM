@@ -22,7 +22,7 @@ namespace CSharpLLVM.Generator
             foreach (Type type in types)
             {
                 // Check and get handler.
-                InstructionHandlerAttribute attrib = (InstructionHandlerAttribute)type.GetCustomAttribute(typeof(InstructionHandlerAttribute), false);
+                InstructionHandlerAttribute attrib = (InstructionHandlerAttribute)type.GetCustomAttribute(typeof(InstructionHandlerAttribute));
                 if (attrib == null)
                     continue;
 

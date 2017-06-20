@@ -1,5 +1,6 @@
 ﻿using CSharpLLVM.Generator;
 using CSharpLLVM.Helpers;
+using CSharpLLVM.Runtime.CIL;
 using Mono.Cecil;
 using Swigged.LLVM;
 using System;
@@ -9,6 +10,7 @@ namespace CSharpLLVM.Compilation
     class MethodCompiler
     {
         private Compiler mCompiler;
+        private CILRuntimeMethodCompiler mRuntimeCompiler;
 
         /// <summary>
         /// Creates a new MethodCompiler.
@@ -17,6 +19,7 @@ namespace CSharpLLVM.Compilation
         public MethodCompiler(Compiler compiler)
         {
             mCompiler = compiler;
+            mRuntimeCompiler = new CILRuntimeMethodCompiler(compiler);
         }
 
         /// <summary>
@@ -27,6 +30,10 @@ namespace CSharpLLVM.Compilation
         {
             string methodName = NameHelper.CreateMethodName(methodDef);
             int paramCount = methodDef.Parameters.Count;
+            
+            // CIL runtime method?
+            if (methodDef.IsRuntime && !mRuntimeCompiler.MustHandleMethod(methodDef))
+                return;
 
             // If we expect an instance reference as first argument, then we need to make sure our for loop has an offset.
             int offset = 0;
@@ -68,6 +75,11 @@ namespace CSharpLLVM.Compilation
         {
             string methodName = NameHelper.CreateMethodName(methodDef);
             ValueRef? function = mCompiler.Lookup.GetFunction(methodName);
+
+            // It is possible we didn't create a declaration because we don't want to generate this method.
+            // In that case, don't continue.
+            if (!function.HasValue)
+                return;
 
             // A method has internal linkage if one (or both) of the following is true:
             // 1) The method is a private method.
